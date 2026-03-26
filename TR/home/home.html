@@ -1,46 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIBRA | Biblioteca Digital</title>
     <link rel="stylesheet" href="home.css">
-    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="princ">
-        
-        <img src="img/g10.png" alt="logo" class="img">
-
-        <div class="form">
-            <form action="" method="post"></form>
-            <label for="pesquisa">Pesquisa:</label>
-            <input id="pesquisa" type="text" name="pesquisa"></input>
+        <div class="logo-container">
+            <img src="img/g10.png" alt="logo" class="img">
+            <span class="logo-text">LIBRA</span>
         </div>
 
-       
+        <div class="form-wrapper">
+            <form action="#" method="GET" class="search-form">
+                <div class="input-group">
+                    <input id="pesquisa" type="text" name="pesquisa" placeholder="Pesquisar por título, autor ou ISBN...">
+                    <button type="submit" class="btn-search">BUSCAR</button>
+                </div>
+            </form>
+        </div>
 
-
-        <div>
+        <nav class="navigation">
             <ul class="nav-menu">
-                <li class="style">
-                    <a href="">Emprestimos</a>
-                </li>
-
-                <li>
-                    <a href="">Livros</a>
-                </li>
-
-                <li>
-                    <a href="">Conta</a>
-                </li>
+                <li><a href="#" class="nav-link">Início</a></li>
+                <li><a href="#" class="nav-link">Empréstimos</a></li>
+                <li><a href="#" class="nav-link account-btn">Minha Conta</a></li>
             </ul>
-            
-        </div>
-
-       
+        </nav>
     </header>
 
-  
+    <main class="main-content">
+        
+        <section class="hero">
+            <div class="hero-overlay">
+                <h1 class="hero-title">LIBRA</h1>
+                <p class="hero-subtitle">Mais de 10.000 títulos disponíveis para o seu crescimento acadêmico e pessoal.</p>
+            </div>
+        </section>
+
+        <section class="categories">
+            <h2 class="section-title">Navegar por Matéria</h2>
+            <div class="category-grid">
+                <div class="cat-card"><span>📚</span> Literatura Brasileira</div>
+                <div class="cat-card"><span>🧬</span> Biologia Celular</div>
+                <div class="cat-card"><span>📊</span> Economia</div>
+                <div class="cat-card"><span>⚖️</span> Direito Civil</div>
+                <div class="cat-card"><span>💻</span> Programação</div>
+                <div class="cat-card"><span>📐</span> Engenharia</div>
+                <div class="cat-card"><span>🎭</span> Filosofia</div>
+                <div class="cat-card"><span>🏥</span> Medicina</div>
+                <div class="cat-card"><span>🏛️</span> História Universa</div>
+                <div class="cat-card"><span>👨‍🍳</span> Culinária & Gastronomia</div>
+            </div>
+        </section>
+
+        <section class="books-section">
+            <div class="section-header">
+                <h2 class="section-title">Catálogo LIBRA</h2>
+                <p class="section-desc">Confira os lançamentos e os mais lidos da semana.</p>
+            </div>
+
+            <div class="books-grid">
+                <div class="book-card">
+                    <div class="book-cover color-1">📖</div>
+                    <div class="book-info">
+                        <h3>Dom Casmurro</h3>
+                        <p class="author">Machado de Assis</p>
+                        <span class="status disponivel">● Disponível</span>
+                        <button class="btn-borrow">Reservar</button>
+                    </div>
+                </div>
+
+                <div class="book-card">
+                    <div class="book-cover color-2">📘</div>
+                    <div class="book-info">
+                        <h3>O Pequeno Príncipe</h3>
+                        <p class="author">Antoine de Saint-Exupéry</p>
+                        <span class="status disponivel">● Disponível</span>
+                        <button class="btn-borrow">Reservar</button>
+                    </div>
+                </div>
+
+                <div class="book-card">
+                    <div class="book-cover color-3">📙</div>
+                    <div class="book-info">
+                        <h3>Código Limpo</h3>
+                        <p class="author">Robert C. Martin</p>
+                        <span class="status ocupado">● Emprestado</span>
+                        <button class="btn-borrow disabled" disabled>Indisponível</button>
+                    </div>
+                </div>
+
+                <div class="book-card">
+                    <div class="book-cover color-4">📕</div>
+                    <div class="book-info">
+                        <h3>1984</h3>
+                        <p class="author">George Orwell</p>
+                        <span class="status disponivel">● Disponível</span>
+                        <button class="btn-borrow">Reservar</button>
+                    </div>
+                </div>
+
+                <div class="book-card">
+                    <div class="book-cover color-5">📗</div>
+                    <div class="book-info">
+                        <h3>Sapiens</h3>
+                        <p class="author">Yuval Noah Harari</p>
+                        <span class="status disponivel">● Disponível</span>
+                        <button class="btn-borrow">Reservar</button>
+                    </div>
+                </div>
+
+                <div class="book-card">
+                    <div class="book-cover color-1">📓</div>
+                    <div class="book-info">
+                        <h3>A República</h3>
+                        <p class="author">Platão</p>
+                        <span class="status disponivel">● Disponível</span>
+                        <button class="btn-borrow">Reservar</button>
+                    </div>
+                </div>
+
+                <div class="book-card">
+                    <div class="book-cover color-2">📔</div>
+                    <div class="book-info">
+                        <h3>O Hobbit</h3>
+                        <p class="author">J.R.R. Tolkien</p>
+                        <span class="status ocupado">● Emprestado</span>
+                        <button class="btn-borrow disabled" disabled>Indisponível</button>
+                    </div>
+                </div>
+
+                <div class="book-card">
+                    <div class="book-cover color-3">📒</div>
+                    <div class="book-info">
+                        <h3>Inteligência Artificial</h3>
+                        <p class="author">Stuart Russell</p>
+                        <span class="status disponivel">● Disponível</span>
+                        <button class="btn-borrow">Reservar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p><strong>LIBRA Biblioteca Digital</strong></p>
+            <p>Acesso rápido à informação e conhecimento.</p>
+            <div class="footer-bottom">
+                &copy; 2026 Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
 
 </body>
 </html>
