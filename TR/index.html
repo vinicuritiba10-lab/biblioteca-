@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+   
     
     <div class="container">
         <!-- Lado esquerdo com gradiente e mensagem de boas-vindas -->
@@ -26,6 +28,13 @@
                 <h2>Login</h2>
                 <form id="form" class="form">
                     <div class="form-group">
+                        <label for="nome">Nome</label>
+                        <input type="nome" id="nome" placeholder="digite seu nome">
+                    </div>
+
+
+                    <div class="form-group">
+                        
                         <label for="email">E-mail</label>
                         <input type="email" id="email" placeholder="Digite seu e-mail">
                     </div>
@@ -34,12 +43,23 @@
                         <input type="password" id="password" placeholder="Digite sua senha">
                     </div>
                     <button type="submit">Entrar</button>
+                    
+
+                    <label for="tipo">Tipo de login</label>
+                    <select name="tipo" id="tipo">
+                        <option value="Aluno">Aluno</option>
+                        <option value="Bibliotecario">Bibliotecario</option>
+                    </select>
                 </form>
                 <p class="signup-link">Não tem uma conta? <a href="#">Cadastre-se</a></p>
             </div>
         </div>
-    </div>
-    <script src="login.js"></script>
-    <script src="validaçao.js"></script>
+    </div> 
+    
+    
+
+
+    <script src="login.js" defer></script>
+    
 </body>
 </html>
