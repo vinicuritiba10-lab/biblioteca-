@@ -1,10 +1,11 @@
 const express = require("express");
-
+const cors = require("cors");
 const server = express();
 const port = 3000;
 const usuarios = require("./models/usuarios");
 const bodyParser = require("body-parser");
-
+ 
+server.use(cors());
 //config bodyparser
 server.use(bodyParser.urlencoded({extended: false}));
 server.use(bodyParser.json());
@@ -15,14 +16,14 @@ server.post("/usuarios", function(req, res){
 		email: req.body.email,
 		senha: req.body.senha,
 		tipo: req.body.tipo,
-		matricula: req.body.matricula
+		
 
 
-	}).then(function(){
-		res.send("usuario cadastrado com sucesso");
-	}).catch(function(erro){
-		res.send("erro ao cadastrar usuario" + erro);
-	});
+	})//.then(function(){
+		//res.send("usuario cadastrado com sucesso");
+	//}).catch(function(erro){
+		//res.send("erro ao cadastrar usuario" + erro);
+	//});
 });
 
 server.get("/", function(req, res){
