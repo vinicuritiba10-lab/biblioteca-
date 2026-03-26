@@ -21,10 +21,7 @@ const usuarios = db.sequelize.define("usuarios",{
         allowNull: true
     },
 
-    matricula: {
-        type: db.Sequelize.STRING,
-        allowNull: true
-    },
+    
 
 
 });
