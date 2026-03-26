@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+   
+    
+    <div class="container">
+        <!-- Lado esquerdo com gradiente e mensagem de boas-vindas -->
+        <div class="left-side">
+            <img src="g10.png" alt="logo">
+            <div class="welcome-content">
+                <h1>Bem-vindo(a)!</h1>
+                <p>Estamos felizes em ter você por aqui</p>
+                <div class="decorative-element"></div>
+            </div>
+        </div>
+        
+        <!-- Lado direito com o formulário de login -->
+        <div class="right-side">
+            <!-- Aqui você coloca o seu formulário de login existente -->
+            <div class="login-container">
+                <h2>Login</h2>
+                <form id="form" class="form">
+                    <div class="form-group">
+                        <label for="nome">Nome</label>
+                        <input type="nome" id="nome" placeholder="digite seu nome">
+                    </div>
+
+
+                    <div class="form-group">
+                        
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" placeholder="Digite seu e-mail">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" placeholder="Digite sua senha">
+                    </div>
+                    <button type="submit">Entrar</button>
+                    
+
+                    <label for="tipo">Tipo de login</label>
+                    <select name="tipo" id="tipo">
+                        <option value="Aluno">Aluno</option>
+                        <option value="Bibliotecario">Bibliotecario</option>
+                    </select>
+                </form>
+                <p class="signup-link">Não tem uma conta? <a href="#">Cadastre-se</a></p>
+            </div>
+        </div>
+    </div> 
+    
+    
+
+
+    <script src="login.js" defer></script>
+    
+</body>
+</html>
