@@ -309,3 +309,36 @@ body {
     font-weight: 800;
     letter-spacing: 1px;
 }
+
+
+.btn-voltar {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.btn-voltar:hover {
+    background: #5a6268;
+}
+
+/* Ajuste para os cards de categoria */
+.cat-card {
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.cat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Badge de usuário no menu */
+.nav-link.account-btn {
+    background: #4CAF50;
+    padding: 8px 15px;
+    border-radius: 20px;
+}
