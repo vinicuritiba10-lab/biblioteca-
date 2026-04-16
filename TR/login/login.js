@@ -113,3 +113,57 @@ form.addEventListener("submit", async (event) => {
         alert("Erro de conexão com o servidor");
     }
 });
+
+//acessar home apos login
+document.getElementById("btn-login").addEventListener("click", async function(e){
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("password").value;
+    
+
+    if (!email || !senha) {
+        alert("preencha todos os campos");
+        return;
+    }
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true;
+    btn.textContent = 'Entrando...';
+
+    try {
+        const response = await fetch("http://localhost:3000/login",{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                senha: senha
+            })
+        });
+
+        const data = await response.json();
+
+        if(response.ok && data.success) {
+            localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
+            
+            alert(`bem-vindo, ${data.usuario.nome}!`);
+
+            window.location.href = "../home/home.html";
+        } else {
+
+            alert(data.error || "erro ao fazer login");
+        }
+
+    } catch (error) {
+        console.error("erro:", error);
+        alert("erro de conexao com o servidor. verificar backend");
+
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "entrar";
+    }
+
+    
+});
