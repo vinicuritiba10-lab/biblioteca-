@@ -1,0 +1,123 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+.princ {
+    background: #f4f7f6; 
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.enviarStyle {
+    width: 95%;
+    max-width: 800px;
+    background: white;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.enviarStyle h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+    font-size: 2rem;
+}
+
+
+form#livro {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 1.5rem; 
+}
+
+
+.form-livro {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-livro label {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.form-livro input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e1e1e1;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-livro input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+
+button {
+    grid-column: span 2; 
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #ec380b 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+}
+
+
+@media (max-width: 650px) {
+    form#livro {
+        grid-template-columns: 1fr;
+    }
+    button {
+        grid-column: span 1;
+    }
+}
+
+.local {
+    position: absolute;
+    top: 50px;
+    right: 150px;
+}
+
+
+.lista {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+    list-style: none;
+}
+
+
+.lista a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: color 0.3s;
+}
+
+.lista a:hover {
+    color: #764ba2; 
+}

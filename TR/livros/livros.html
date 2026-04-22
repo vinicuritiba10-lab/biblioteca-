@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="livros.css">
+    <title>Livros</title>
+</head>
+<body>
+
+    
+    <div class="local">
+        <ul class="lista">
+            <a href="../home/home.html">Início</a>
+            
+            <a href="">Emprestimos</a>
+            
+            <a href="">Minha Conta</a>
+        </ul>
+    </div>
+    
+
+    <div class="princ">
+        <div class="enviarStyle">
+            <h2>Adicionar livros</h2>
+            <form class="livro" id="livro">
+                <div class="form-livro">
+                    <label for="titulo">Titulo do livro</label>
+                    <input type="nome" id="titulo" placeholder="digite o titulo do livro"> 
+                </div>
+
+                <div class="form-livro">
+                    <label for="autor">Autor</label>
+                    <input type="nome" id="autor" placeholder="nome do autor do livro">
+                </div>
+
+                 <div class="form-livro">
+                    <label for="isbn">Isbn</label>
+                    <input type="text" id="isbn" placeholder="isbn do livro">
+                </div>
+
+                 <div class="form-livro">
+                    <label for="editora">Editora</label>
+                    <input type="nome" id="editora" placeholder="nome da editora do livro">
+                </div>
+
+                 <div class="form-livro">
+                    <label for="ano">Ano</label>
+                    <input type="number" id="ano" placeholder="Ano do livro">
+                </div>
+
+                 <div class="form-livro">
+                    <label for="categoria">categoria</label>
+                    <input type="nome" id="categoria" placeholder="categoria do livro">
+                </div>
+
+                 <div class="form-livro">
+                    <label for="quantidade">quantidade total</label>
+                    <input type="number" id="quantidade_total" placeholder="quantidade de livros">
+                </div>
+
+                 <div class="form-livro">
+                    <label for="quantidade_disponivel">quantidade disponivel</label>
+                    <input type="number" id="quantidade_disponivel" placeholder="quantidade disponivel de livro">
+                </div>
+
+                <button type="submit" id="btn-livros">Enviar</button>
+            </form>
+        </div>
+    </div>
+    <script src="AddLivros.js" defer></script>
+    
+</body>
+</html>
