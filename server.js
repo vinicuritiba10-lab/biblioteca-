@@ -82,7 +82,64 @@ server.post("/livros", function(req, res){
 	})
 });
 
+//buscar livros
+server.get("/livros/buscar/:termo", async function(req, res){
+	try{
+		const { termo } = req.params;
+		const { Op } = require("sequelize");
+		
+		const livrosEncontrados = await livros.findAll({
+			where: {
+				[Op.or]: [
+					{ titulo: { [Op.like]: `%${termo}%`} },
+					{ autor: { [Op.like]: `%${termo}%`} },
+					{ categoria: { [Op.like]: `%${termo}%`} }
+				]
+			}
+		});
+	res.json(livrosEncontrados);
+	} catch (error) {
+		res.status(500).json({error: "erro ao buscar livros: " + error.message});
+	}
+});
 
+//listar livros
+
+//server.get("/livros", async (req, res) => {
+	//try {
+		//const livros = await livros.findAll();
+		//res.json(livros);
+	//} catch (error) {
+		//res.status(500).json({ error: "erro ao buscar livros:" + error.message});
+	//}
+//});
+
+server.get("/livros/categoria/:categoria", async (req, res) => {
+	try {
+		const {categoria} = req.params;
+
+		console.log("buscando categoria", categoria);
+
+		const todosLivros = await livros.findAll();
+
+		console.log("total de livros:", todosLivros.length);
+
+		const livrosFiltrados = todosLivros.filter(livro => {
+
+			const catLivro = livro.categoria ? livro.categoria.toLowerCase() : '';
+			const catBusca = categoria.toLowerCase();
+			return catLivro === catBusca;
+		});
+
+		console.log("encontrados", livrosFiltrados.length);
+
+		res.json(livrosFiltrados);
+	} catch (error) {
+
+		console.log("❌ ERRO na rota /livros/categoria/:categoria:", error);
+		res.status(500).json([]);
+	}
+});
 
 
 
