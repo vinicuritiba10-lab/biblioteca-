@@ -29,8 +29,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         document.getElementById('btn-admin').addEventListener('click', function(e) {
             e.preventDefault();
-            window.location.href = 'admin-livros.html';
+            window.location.href = 'admin-livros.html'; //<-- fazer
         });
+
+        await carregarTodosLivros();
     }
     
     // Carrega as categorias
@@ -39,7 +41,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Configura eventos
     document.getElementById('btn-buscar').addEventListener('click', buscarLivros);
     document.getElementById('pesquisa').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') buscarLivros();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+           buscarLivros();
+        }
     });
     
     document.getElementById('btn-inicio').addEventListener('click', function(e) {
@@ -55,13 +60,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('btn-sair').addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('usuarioLogado');
-        window.location.href = 'login.html';
+        window.location.href = '../login/index.html';
     });
     
     document.getElementById("btn-adicionar-livro").addEventListener("click", function(e){
         e.preventDefault();
-        adicionaLivro();
-        window.location.href = "livros.html";
+        window.location.href = "../livros/livros.html";
     });
 
     document.getElementById('btn-voltar').addEventListener('click', mostrarInicio);
@@ -107,7 +111,7 @@ async function buscarPorCategoria(categoria) {
         'direito': 'Direito',
         'tecnologia': 'Tecnologia',
         'engenharia': 'Engenharia',
-        'filosofia': 'Filosofia',
+        'filosofia': '🎭 Filosofia',
         'medicina': 'Medicina',
         'historia': 'História',
         'culinaria': 'Culinária'
@@ -121,11 +125,33 @@ async function buscarPorCategoria(categoria) {
     
     const booksGrid = document.getElementById('books-grid');
     booksGrid.innerHTML = '<p style="text-align:center;">Carregando livros...</p>';
-    
+   
     try {
         const response = await fetch(`http://localhost:3000/livros/categoria/${categoria}`);
+
+        if(!response.ok) {
+            throw new Error (`HTTP ${response.status}`);
+        }
         const livros = await response.json();
-        exibirLivros(livros);
+
+        if(!Array.isArray(livros)) {
+            console.error("resposta nao e array", livros);
+            booksGrid.innerHTML = '<p style="text-align:center;">❌ Erro: Dados inválidos do servidor</p>';
+            return;
+        }
+
+        //exibirLivros(livros);
+
+        if (livros.length === 0) {
+            booksGrid.innerHTML = `
+                <div style="text-align:center; padding:40px;">
+                    <p>📭 Nenhum livro encontrado na categoria "${nomesCategorias[categoria] || categoria}"</p>
+                    <p>Você precisa cadastrar livros com esta categoria.</p>
+                </div>
+            `;
+        } else {
+            exibirLivros(livros);
+        }
     } catch (error) {
         console.error('Erro:', error);
         booksGrid.innerHTML = '<p style="text-align:center;">Erro ao carregar livros</p>';
@@ -151,16 +177,30 @@ async function buscarLivros() {
     
     try {
         const response = await fetch(`http://localhost:3000/livros/buscar/${encodeURIComponent(termo)}`);
-        const livros = await response.json();
         
-        if (livros.length === 0) {
-            booksGrid.innerHTML = '<p style="text-align:center;">📭 Nenhum livro encontrado</p>';
+        
+        if (!response.ok) {
+            throw new Error("erro na busca");
+        }
+
+        const livros = await response.json();
+
+        console.log("livros encontrados:", livros);
+
+          if (livros.length === 0) {
+            booksGrid.innerHTML = `
+                <div style="text-align:center; padding:40px;">
+                    <p>📭 Nenhum livro encontrado para "${termo}"</p>
+                    <p>Tente outro termo ou verifique se já existem livros cadastrados.</p>
+                </div>
+            `;
         } else {
             exibirLivros(livros);
         }
+        
     } catch (error) {
-        console.error('Erro:', error);
-        booksGrid.innerHTML = '<p style="text-align:center;">Erro na busca</p>';
+        console.error('Erro na busca:', error);
+        booksGrid.innerHTML = '<p style="text-align:center;">❌ Erro ao buscar livros. Verifique se o servidor está rodando.</p>';
     }
 }
 
@@ -169,6 +209,11 @@ function exibirLivros(livros) {
     
     const cores = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
     const icones = ['📖', '📘', '📙', '📕', '📗', '📓', '📔', '📒'];
+
+    if(!livros || livros.lenght === 0) {
+        booksGrid.innerHTML = '<p style="text-align:center;"> nenhum livro disponivel';
+        return;
+    }
     
     booksGrid.innerHTML = livros.map((livro, index) => `
         <div class="book-card">
@@ -292,3 +337,24 @@ window.devolverLivro = async function(emprestimoId) {
         alert('Erro ao devolver livro');
     }
 };
+
+async function carregarTodosLivros() {
+    const booksGrid = document.getElementsById("books-grid");
+    booksGrid.innerHTML = '<p style="text-align:center;"> carregando livros...</p>';
+
+    try {
+        const response = await fetch("http://localhost:3000/livros");
+        const livros = await response.json();
+
+        if (livros.lenght === 0) {
+            booksGrid.innerHTML = '<p style="text-align:center;">📭 Nenhum livro cadastrado ainda.</p>';
+        } else {
+            exibirLivros(livros);
+        }
+
+      
+    } catch (error) {
+        console.error("erro:", error);
+        booksGrid.innerHTML = '<p style="text-align:center;">❌ Erro ao carregar livros</p>';
+    }
+}
