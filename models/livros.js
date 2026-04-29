@@ -1,4 +1,4 @@
-const db = require("./db")
+const db = require ("./db")
 
 const livros = db.sequelize.define("livros", {
     titulo: {
@@ -40,9 +40,6 @@ const livros = db.sequelize.define("livros", {
         type: db.Sequelize.INTEGER,
         allowNull: true
     },
-
-}, {
-    timestamps: false  // desativa createdAt e updatedAt automáticos
 });
 
 module.exports = livros;

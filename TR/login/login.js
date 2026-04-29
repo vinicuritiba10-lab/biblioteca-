@@ -1,11 +1,15 @@
+
 const form = document.getElementById("form");
 const emailInput = document.getElementById("email");
 const senhaInput = document.getElementById("password"); 
 const nomeInput = document.getElementById("nome");
+const tipoInput = document.getElementById("tipo");
 
+tipoInput.addEventListener("blur", checkInputTipo);
 nomeInput.addEventListener("blur", checkInputNome);
 emailInput.addEventListener("blur", checkInputEmail);
 senhaInput.addEventListener("blur", checkInputPassword);
+
 
 function checkInputNome() {
     const nomeValue = nomeInput.value;
@@ -31,6 +35,19 @@ function checkInputEmail() {
     }
 }
 
+function checkInputTipo(){
+  const tipoValue = tipoInput.value;
+  if(tipoValue === ""){
+    errorInput(tipoInput, "O tipo de conta é obrigatorio.");
+    return false;
+
+  } else {
+    const formItem = tipoInput.parentElement;
+    formItem.className = "form-group";
+    return true;
+  }
+}
+
 function checkInputPassword() {
     const passwordValue = senhaInput.value;
     if (passwordValue === "") {
@@ -53,17 +70,20 @@ function errorInput(input, message) {
     formItem.className = "form-group error";
 }
 
+
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    const isTipoValid = checkInputTipo();
     const isNomeValid = checkInputNome();
     const isEmailValid = checkInputEmail();
     const isPassValid = checkInputPassword();
 
-    if (!isNomeValid || !isEmailValid || !isPassValid) {
+    if (!isNomeValid || !isEmailValid || !isPassValid || !isTipoValid) {
         return;
     }
 
+    const tipo = tipoInput.value;
     const nome = nomeInput.value;
     const email = emailInput.value;
     const senha = senhaInput.value;
@@ -74,7 +94,7 @@ form.addEventListener("submit", async (event) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ email, senha, nome, tipo: "aluno" })
+            body: JSON.stringify({ email, senha, nome, tipo })
         });
 
         const data = await response.json();
@@ -94,15 +114,16 @@ form.addEventListener("submit", async (event) => {
     }
 });
 
-// Acessar home após login
-document.getElementById("btn-login").addEventListener("click", async function(e) {
+//acessar home apos login
+document.getElementById("btn-login").addEventListener("click", async function(e){
     e.preventDefault();
 
     const email = document.getElementById("email").value;
     const senha = document.getElementById("password").value;
+    
 
     if (!email || !senha) {
-        alert("Preencha todos os campos");
+        alert("preencha todos os campos");
         return;
     }
 
@@ -111,7 +132,7 @@ document.getElementById("btn-login").addEventListener("click", async function(e)
     btn.textContent = 'Entrando...';
 
     try {
-        const response = await fetch("http://localhost:3000/login", {
+        const response = await fetch("http://localhost:3000/login",{
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -124,24 +145,25 @@ document.getElementById("btn-login").addEventListener("click", async function(e)
 
         const data = await response.json();
 
-        if (response.ok && data.success) {
+        if(response.ok && data.success) {
             localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
-            alert(`Bem-vindo, ${data.usuario.nome}!`);
+            
+            alert(`bem-vindo, ${data.usuario.nome}!`);
+
             window.location.href = "../home/home.html";
         } else {
-            alert(data.error || "Erro ao fazer login");
+
+            alert(data.error || "erro ao fazer login");
         }
 
     } catch (error) {
-        console.error("Erro:", error);
-        alert("Erro de conexão com o servidor. Verificar backend");
+        console.error("erro:", error);
+        alert("erro de conexao com o servidor. verificar backend");
 
     } finally {
         btn.disabled = false;
-        btn.textContent = "Entrar";
+        btn.textContent = "entrar";
     }
-});
 
-document.getElementById("btn-google").addEventListener("click", () => {
-    window.location.href = "http://localhost:3000/auth/google/aluno";
+    
 });

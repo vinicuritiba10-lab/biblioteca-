@@ -21,8 +21,9 @@ const usuarios = db.sequelize.define("usuarios",{
         allowNull: true
     },
 
-}, {
-    timestamps: false  // desativa createdAt e updatedAt automáticos
+    
+
+
 });
 
 

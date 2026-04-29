@@ -1,4 +1,4 @@
-* {
+ * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -12,7 +12,6 @@ body {
     color: #2d3436;
 }
 
-/* ========== HEADER ========== */
 .princ {
     display: flex;
     justify-content: space-between;
@@ -23,7 +22,7 @@ body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     position: sticky;
     top: 0;
-    z-index: 900;
+    z-index: 1000;
 }
 
 .logo-container {
@@ -39,7 +38,9 @@ body {
     letter-spacing: -1px;
 }
 
-.img { height: 45px; }
+.img {
+    height: 45px;
+}
 
 .form-wrapper {
     flex: 1;
@@ -80,14 +81,12 @@ body {
     cursor: pointer;
     font-weight: 700;
     font-size: 12px;
-    font-family: 'Poppins', sans-serif;
 }
 
 .nav-menu {
     display: flex;
     list-style: none;
     gap: 30px;
-    align-items: center;
 }
 
 .nav-link {
@@ -101,250 +100,13 @@ body {
 
 .nav-link:hover { color: #ec380b; }
 
-/* ========== BOTÃO DE PERFIL NO HEADER ========== */
-.perfil-trigger {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.account-btn {
     background: #2d3436;
-    color: #fff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 13px;
-    transition: background 0.3s, transform 0.2s;
-    white-space: nowrap;
-}
-
-.perfil-trigger:hover {
-    background: #764ba2;
-    transform: translateY(-1px);
-}
-
-.perfil-dot {
-    width: 9px;
-    height: 9px;
-    background: #4CAF50;
-    border-radius: 50%;
-    display: inline-block;
-    box-shadow: 0 0 0 2px rgba(76,175,80,0.3);
-    flex-shrink: 0;
-}
-
-.perfil-chevron {
-    width: 16px;
-    height: 16px;
-    transition: transform 0.3s;
-    flex-shrink: 0;
-}
-
-.perfil-trigger.ativo .perfil-chevron {
-    transform: rotate(90deg);
-}
-
-/* ========== OVERLAY ========== */
-.drawer-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.35s ease;
-}
-
-.drawer-overlay.visivel {
-    opacity: 1;
-    pointer-events: all;
-}
-
-/* ========== DRAWER LATERAL ========== */
-.perfil-drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 320px;
-    height: 100vh;
-    background: #fff;
-    z-index: 1100;
-    box-shadow: -8px 0 40px rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    transform: translateX(100%);
-    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-y: auto;
-}
-
-.perfil-drawer.aberto {
-    transform: translateX(0);
-}
-
-/* Cabeçalho do drawer */
-.drawer-header {
-    background: linear-gradient(135deg, #ec380b 0%, #764ba2 100%);
-    padding: 28px 22px 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    position: relative;
-    flex-shrink: 0;
-}
-
-.drawer-avatar {
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.25);
-    border: 2.5px solid rgba(255,255,255,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    font-weight: 800;
-    color: #fff;
-    flex-shrink: 0;
-    text-transform: uppercase;
-    letter-spacing: -1px;
-}
-
-.drawer-user-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.drawer-nome {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.drawer-email {
-    font-size: 11.5px;
-    color: rgba(255,255,255,0.75);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 2px;
-}
-
-.drawer-badge {
-    display: inline-block;
-    margin-top: 6px;
-    background: rgba(255,255,255,0.22);
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    padding: 3px 10px;
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.35);
-}
-
-.drawer-badge.bibliotecario {
-    background: rgba(255,255,255,0.35);
-}
-
-.drawer-close {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    background: rgba(255,255,255,0.18);
-    border: none;
+    color: #fff !important;
+    padding: 10px 20px;
     border-radius: 8px;
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s;
-    color: #fff;
 }
 
-.drawer-close:hover { background: rgba(255,255,255,0.32); }
-
-.drawer-close svg { width: 18px; height: 18px; }
-
-/* Seções e menu */
-.drawer-section-label {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: #b2bec3;
-    padding: 18px 22px 8px;
-}
-
-.drawer-menu {
-    list-style: none;
-    padding: 0 10px;
-}
-
-.drawer-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 14px;
-    border-radius: 10px;
-    text-decoration: none;
-    color: #2d3436;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background 0.2s, color 0.2s, transform 0.15s;
-    cursor: pointer;
-}
-
-.drawer-item:hover {
-    background: #f8f0ff;
-    color: #764ba2;
-    transform: translateX(4px);
-}
-
-.drawer-icon {
-    font-size: 18px;
-    width: 26px;
-    text-align: center;
-    flex-shrink: 0;
-}
-
-/* Rodapé do drawer */
-.drawer-footer {
-    margin-top: auto;
-    padding: 16px 14px 24px;
-    border-top: 1px solid #f1f2f6;
-    flex-shrink: 0;
-}
-
-.drawer-sair {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 13px 16px;
-    background: #fff0ed;
-    color: #ec380b;
-    border: 1.5px solid #ffd5cc;
-    border-radius: 10px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
-}
-
-.drawer-sair:hover {
-    background: #ffebe5;
-    transform: translateX(3px);
-}
-
-/* ========== MAIN CONTENT ========== */
 .main-content {
     max-width: 1300px;
     margin: 0 auto;
@@ -353,12 +115,15 @@ body {
 
 .hero {
     text-align: center;
-    padding: 80px 40px;
+    padding: 80px 40px; 
     color: white;
-    background: rgba(255, 255, 255, 0.1);
+    
+    /* Aplicação do efeito decorativo (Glassmorphism) */
+    background: rgba(255, 255, 255, 0.1); 
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 30px;
+    
     margin-bottom: 40px;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
@@ -368,7 +133,7 @@ body {
     font-weight: 900;
     margin-bottom: 10px;
     text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    color: #ffffff;
+    color: #ffffff; /* Ajustado para melhor contraste */
 }
 
 .hero-subtitle {
@@ -379,6 +144,21 @@ body {
     margin: 0 auto;
     text-shadow: 0 2px 5px rgba(0,0,0,0.3);
     color: #f1f1f1;
+}
+.hero-title {
+    font-size: 4rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.95;
+    font-weight: 400;
+    max-width: 700px;
+    margin: 0 auto;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.4);
 }
 
 .section-title {
@@ -494,7 +274,6 @@ body {
     font-weight: 700;
     cursor: pointer;
     transition: 0.3s;
-    font-family: 'Poppins', sans-serif;
 }
 
 .btn-borrow:hover:not(.disabled) {
@@ -517,7 +296,7 @@ body {
     font-size: 13px;
     opacity: 0.6;
 }
-
+/* Badge de NOVO - Adicione isso ao final do CSS */
 .new-badge {
     position: absolute;
     top: 15px;
@@ -531,6 +310,7 @@ body {
     letter-spacing: 1px;
 }
 
+
 .btn-voltar {
     background: #6c757d;
     color: white;
@@ -540,7 +320,25 @@ body {
     cursor: pointer;
     font-size: 14px;
     margin-top: 10px;
-    font-family: 'Poppins', sans-serif;
 }
 
-.btn-voltar:hover { background: #5a6268; }
+.btn-voltar:hover {
+    background: #5a6268;
+}
+
+/* Ajuste para os cards de categoria */
+.cat-card {
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.cat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Badge de usuário no menu */
+.nav-link.account-btn {
+    background: #4CAF50;
+    padding: 8px 15px;
+    border-radius: 20px;
+}

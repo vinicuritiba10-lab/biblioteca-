@@ -48,7 +48,7 @@ CREATE TABLE renovacoes (
     FOREIGN KEY (emprestimo_id) REFERENCES emprestimos(id)
 );
 
-
+)
 CREATE TABLE devolucoes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     emprestimo_id INT UNIQUE NOT NULL,

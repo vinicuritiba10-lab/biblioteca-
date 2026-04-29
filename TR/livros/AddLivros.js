@@ -47,7 +47,7 @@ function checkInputIsbn(){
         errorInput(isbnInput, "o isbn e obrigatorio");
         return false;
     } else {
-        const formLivro = isbnInput.parentElement;
+        const formLivro = autorInput.parentElement;
         formLivro.className = "form-livro";
         return true;
     }
@@ -77,6 +77,7 @@ function checkInputAno(){
     }
 }
 
+
 function checkInputCategoria(){
     const categoriaValue = categoriaInput.value;
     if(categoriaValue === "") {
@@ -90,7 +91,7 @@ function checkInputCategoria(){
 }
 
 function checkInputQuantTotal(){
-    const quantidade_totalValue = quantidade_totalInput.value;
+    const quantidade_totalValue = quantidade_disponivelInput.value;
     if(quantidade_totalValue === "") {
         errorInput(quantidade_totalInput, "a quantidade total e obrigatorio");
         return false;
@@ -120,26 +121,24 @@ function errorInput(input, message) {
     formLivro.className = "form-livro error";
 }
 
-livroInput.addEventListener("submit", async (event) => {
+livro.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const isTituloValid = checkInputTitulo();
     const isAutorValid = checkInputAutor();
     const isIsbnValid = checkInputIsbn();
-    const isEditoraValid = checkInputEditora();
     const isAnoValid = checkInputAno();
     const isCategoriaValid = checkInputCategoria();
     const isQuantidadeTotalValid = checkInputQuantTotal();
     const isQuantidadeDisponivelsValid = checkInputQuantDispo();
 
-    if (!isTituloValid || !isAutorValid || !isIsbnValid || !isEditoraValid || !isAnoValid || !isCategoriaValid || !isQuantidadeTotalValid || !isQuantidadeDisponivelsValid) {
+    if (!isTituloValid || !isAutorValid || !isIsbnValid || !isAnoValid || !isCategoriaValid || !isQuantidadeTotalValid || !isQuantidadeDisponivelsValid) {
         return;
     }
 
     const titulo = tituloInput.value;
     const autor = autorInput.value;
     const isbn = isbnInput.value;
-    const editora = editoraInput.value;
     const ano = anoInput.value;
     const categoria = categoriaInput.value;
     const quantidade_total = quantidade_totalInput.value;
@@ -151,14 +150,16 @@ livroInput.addEventListener("submit", async (event) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ titulo, autor, isbn, editora, ano, categoria, quantidade_total, quantidade_disponivel })
+            body: JSON.stringify({ titulo, autor, isbn, ano, categoria, quantidade_total, quantidade_disponivel })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            alert("Livro adicionado com sucesso!");
-            window.location.href = "../home/home.html";
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("livros", JSON.stringify(data.livros));
+            alert("livro enviado com sucesso!");
+            window.location.href = "dashboard.html";
         } else {
             alert(data.error || "Erro ao enviar livro");
         }
@@ -168,3 +169,5 @@ livroInput.addEventListener("submit", async (event) => {
         alert("Erro de conexão com o servidor");
     }
 });
+
+
