@@ -22,18 +22,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Se for bibliotecário, adiciona opção de admin
     if (usuarioAtual.tipo === 'bibliotecario') {
-        const navMenu = document.querySelector('.nav-menu');
-        const adminLi = document.createElement('li');
-        adminLi.innerHTML = '<a href="#" id="btn-admin" class="nav-link">📚 Admin</a>';
-        navMenu.insertBefore(adminLi, document.getElementById('btn-sair'));
-        
-        document.getElementById('btn-admin').addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = 'admin-livros.html'; //<-- fazer
-        });
+        const btnAdmin = document.getElementById('btn-adicionar-livro');
 
-        await carregarTodosLivros();
+        if(btnAdmin) {
+            btnAdmin.style.display = 'block';
+        }
+        
+       
+
+        await carregarCategorias();
     }
+
     
     // Carrega as categorias
     carregarCategorias();
