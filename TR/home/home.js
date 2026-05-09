@@ -240,6 +240,7 @@ function mostrarInicio() {
     categoriaAtual = '';
 }
 
+//
 async function mostrarMeusEmprestimos() {
     document.getElementById('categorias-section').style.display = 'none';
     document.getElementById('livros-section').style.display = 'none';
@@ -267,7 +268,7 @@ async function mostrarMeusEmprestimos() {
                     <h3>${emp.titulo}</h3>
                     <p class="author">${emp.autor}</p>
                     <p><small>Emprestado em: ${new Date(emp.data_emprestimo).toLocaleDateString()}</small></p>
-                    <p><small>Devolver até: ${new Date(emp.data_devolucao_prevista).toLocaleDateString()}</small></p>
+                    <p><small>Devolver até: ${new Date(emp.data_prevista_devolucao).toLocaleDateString()}</small></p>
                     <span class="status ${emp.status === 'ativo' ? 'disponivel' : 'ocupado'}">
                         ${emp.status === 'ativo' ? '● Ativo' : '● Devolvido'}
                     </span>
