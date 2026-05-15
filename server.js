@@ -116,10 +116,10 @@ server.get("/auth/google/aluno",
 );
 
 server.get("/auth/google/aluno/callback",
-    passport.authenticate("google-aluno", { failureRedirect: "http://127.0.0.1:5500/biblioteca--main/TR/login/index.html" }),
+    passport.authenticate("google-aluno", { failureRedirect: "http://127.0.0.1:5500/TR/login/index.html" }),
     (req, res) => {
         const encoded = encodeURIComponent(JSON.stringify(req.user));
-        res.redirect(`http://127.0.0.1:5500/biblioteca--main/TR/home/home.html?usuario=${encoded}`);
+        res.redirect(`http://127.0.0.1:5500/TR/home/home.html?usuario=${encoded}`);
     }
 );
 
@@ -129,10 +129,10 @@ server.get("/auth/google/bibliotecario",
 );
 
 server.get("/auth/google/bibliotecario/callback",
-    passport.authenticate("google-bibliotecario", { failureRedirect: "http://127.0.0.1:5500/biblioteca--main/TR/login-bibliotecario/bibliotecario.html" }),
+    passport.authenticate("google-bibliotecario", { failureRedirect: "http://127.0.0.1:5500/TR/login-bibliotecario/bibliotecario.html" }),
     (req, res) => {
         const encoded = encodeURIComponent(JSON.stringify(req.user));
-        res.redirect(`http://127.0.0.1:5500/biblioteca--main/TR/home/home.html?usuario=${encoded}`);
+        res.redirect(`http://127.0.0.1:5500/TR/home/home.html?usuario=${encoded}`);
     }
 );
 
