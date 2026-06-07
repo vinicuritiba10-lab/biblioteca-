@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Admin - Gerenciar Livros | Libro</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="princ">
+        <div class="logo-container">
+            <span class="logo-text">📚 Libro</span>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <nav class="navigation">
+            <ul class="nav-menu">
+                <li><a href="home.html" class="nav-link">🏠 Início</a></li>
+                <!--<li><a href="#" id="btn-sair" class="nav-link">🚪 Sair</a></li> -->
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1>
+                <span>📚</span> 
+                Painel de Gerenciamento
+                <span style="font-size: 14px; background: #4CAF50; color: white; padding: 5px 12px; border-radius: 20px;">Administrador</span>
+            </h1>
+            
+            <!-- Formulário de adicionar livro -->
+            <div class="form-container">
+                <h2>
+                    <span>➕</span> 
+                    Adicionar Novo Livro
+                </h2>
+                <form id="form-adicionar-livro">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required">Título do Livro</label>
+                            <input type="text" id="titulo" placeholder="Ex: Dom Casmurro" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Autor</label>
+                            <input type="text" id="autor" placeholder="Ex: Machado de Assis" required>
+                        </div>
+                        <div class="form-group">
+                            <label>ISBN</label>
+                            <input type="text" id="isbn" placeholder="Código ISBN (opcional)">
+                        </div>
+                        <div class="form-group">
+                            <label>Editora</label>
+                            <input type="text" id="editora" placeholder="Nome da editora">
+                        </div>
+                        <div class="form-group">
+                            <label>Ano de Publicação</label>
+                            <input type="number" id="ano" placeholder="Ex: 1899">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoria</label>
+                            <select id="categoria">
+                                <option value="">Selecione uma categoria</option>
+                                <option value="literatura">📚 Literatura</option>
+                                <option value="ciencias">🧬 Ciências</option>
+                                <option value="tecnologia">💻 Tecnologia</option>
+                                <option value="historia">🏛️ História</option>
+                                <option value="filosofia">🎭 Filosofia</option>
+                                <option value="matematica">📐 Matemática</option>
+                                <option value="artes">🎨 Artes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade</label>
+                            <input type="number" id="quantidade" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <span>✓</span> Cadastrar Livro
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="limparFormulario()">
+                            <span>🗑️</span> Limpar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de livros cadastrados -->
+            <div class="livros-container">
+                <h2>
+                    <span>📚</span> 
+                    Acervo da Biblioteca
+                    <span id="total-livros" style="font-size: 14px; background: #e9ecef; padding: 5px 12px; border-radius: 20px;"></span>
+                </h2>
+                <div id="lista-livros-admin" class="livros-grid-admin">
+                    <div class="loading">Carregando livros...</div>
+                </div>
+            </div>
+        </div>
+
+        
+
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>
