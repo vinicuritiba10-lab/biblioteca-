@@ -1,0 +1,35 @@
+{
+  "name": "biblioteca-",
+  "version": "1.0.0",
+  "description": "Sistema para facilitar a vida dos alunos e profissionais das bibliotecas escolares:\r - facil visualizaçao de emprestimos e devolutivas\r - organizaçao de prazos e renovaçao",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vinicuritiba10-lab/biblioteca-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vinicuritiba10-lab/biblioteca-/issues"
+  },
+  "homepage": "https://github.com/vinicuritiba10-lab/biblioteca-#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mysql2": "^3.20.0",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.10",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^6.0.1"
+  }
+}
