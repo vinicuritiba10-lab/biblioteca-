@@ -1,26 +1,23 @@
 const Sequelize = require('sequelize');
 
 const sequelize = new Sequelize(
-	"biblioteca",
-	"root",
-	"123456",
-	{
-		host: "localhost",
-		dialect: "mysql",
-		port: 3306
-	}
-	
+    process.env.MYSQLDATABASE || "biblioteca",
+    process.env.MYSQLUSER || "root",
+    process.env.MYSQLPASSWORD || "123456",
+    {
+        host: process.env.MYSQLHOST || "localhost",
+        dialect: "mysql",
+        port: process.env.MYSQLPORT || 3306
+    }
 );
 
-sequelize.authenticate().then((function(){
-	console.log("banco de dados conectado com sucesso");
-})).catch(function(erro){
-	console.log("banco de dados conectado com sucesso" + erro);
-	
+sequelize.authenticate().then(function(){
+    console.log("banco de dados conectado com sucesso");
+}).catch(function(erro){
+    console.log("erro ao conectar banco de dados: " + erro);
 });
 
-
 module.exports = {
-	Sequelize: Sequelize,
-	sequelize: sequelize
+    Sequelize: Sequelize,
+    sequelize: sequelize
 };
