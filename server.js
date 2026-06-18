@@ -816,7 +816,7 @@ sequelize.sync({ alter: true })
     console.log('Banco de dados sincronizado e tabelas criadas!');
     
     // Usa o seu 'server' em vez de 'app'
-    server.listen(process.env.PORT || 3000, () => {
+    server.listen(process.env.PORT || 3000, "0.0.0.0", () => {
       console.log('Servidor rodando com sucesso!');
     });
   })
