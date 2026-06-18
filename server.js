@@ -8,6 +8,7 @@ const Emprestimo = require("./models/Emprestimos");
 const bodyParser = require("body-parser");
 const { enviarlembreteDevolucao } = require("./TR/email/config/email");
 const { Op } = require('sequelize');
+const { sequelize } = require('./models/db');
 
  
 server.use(cors());
@@ -124,18 +125,18 @@ server.post("/login", async (req, res) => {
 
 //adicionar livros
 
-//server.post("/livros", function(req, res){
-	//livros.create({
-		//titulo: req.body.titulo,
-		//autor: req.body.autor,
-		//isbn: req.body.isbn,
-		//editora: req.body.editora,
-		//ano: req.body.ano,
-		//categoria: req.body.categoria,
-		//quantidade_total: req.body.quantidade_total,
-		//quantidade_disponivel: req.body.quantidade_disponivel
-	//})
-//});
+// server.post("/livros-biblio", function(req, res){
+//  	livros.create({
+//  		titulo: req.body.titulo,
+//  		autor: req.body.autor,
+//  		isbn: req.body.isbn,
+//  		editora: req.body.editora,
+//  		ano: req.body.ano,
+//  		categoria: req.body.categoria,
+//  		quantidade_total: req.body.quantidade_total,
+//  		quantidade_disponivel: req.body.quantidade_disponivel
+//  	})
+// });
 
 //buscar livros
 server.get("/livros/buscar/:termo", async function(req, res){
@@ -806,6 +807,19 @@ server.delete("/deletar/:id",function(req,res){
 	});
 });
 
-server.listen(port, () =>{
-	console.log(`example app listening on port ${port}`);
-});
+// server.listen(port, () =>{
+// 	console.log(`example app listening on port ${port}`);
+// });
+
+sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('Banco de dados sincronizado e tabelas criadas!');
+    
+    // Usa o seu 'server' em vez de 'app'
+    server.listen(process.env.PORT || 3000, () => {
+      console.log('Servidor rodando com sucesso!');
+    });
+  })
+  .catch(err => {
+    console.error('Erro ao conectar ou sincronizar o banco de dados:', err);
+  });
