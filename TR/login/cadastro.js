@@ -42,7 +42,7 @@ document.getElementById('form-cadastro').addEventListener('submit', async functi
         
         if (response.ok) {
             alert(`✅ ${data.message}\nFaça login para continuar.`);
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         } else {
             alert('❌ ' + data.error);
         }
