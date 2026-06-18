@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
    
     //se for bibliotecario ou admin, mostra menu de administracao
-    if (usuarioAtual.tipo === 'bibliotecario' || usuarioAtual.tipo === 'admin') {
+    if (usuarioAtual.tipo === 'admin' || usuarioAtual.tipo === 'bibliotecario') {
         const adminMenu = document.getElementById('admin-menu');
         if (adminMenu) {
             adminMenu.style.display = 'block';
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     document.getElementById("btn-adicionar-livro").addEventListener("click", function(e){
         e.preventDefault();
-        window.location.href = "../livros/livros.html";
+        window.location.href = "admin-livros.html";
     });
 
     //remover elemento

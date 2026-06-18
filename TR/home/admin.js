@@ -238,7 +238,7 @@ async function carregarListaLivros() {
                     <div class="livro-info">
                         <span class="info-badge">📌 ${livro.categoria || 'Sem categoria'}</span>
                         <span class="info-badge">🏢 ${livro.editora || 'Sem editora'}</span>
-                        <span class="info-badge">📅 ${livro.ano_publicacao || 'Ano não informado'}</span>
+                        <span class="info-badge">📅 ${livro.ano || 'Ano não informado'}</span>
                     </div>
                     <div class="livro-info">
                         <span class="info-badge">📚 Total: ${livro.quantidade_total}</span>
@@ -273,7 +273,7 @@ async function adicionarLivro(event) {
         editora: document.getElementById('editora').value,
         ano: parseInt(document.getElementById('ano').value) || null,
         categoria: document.getElementById('categoria').value,
-        quantidade_total: parseInt(document.getElementById('quantidade').value) || 1
+        quantidade_total: parseInt(document.getElementById('quantidade_total').value) || 1
     };
     
     console.log("Enviando livro:", livro); // ← DEBUG
@@ -295,7 +295,7 @@ async function adicionarLivro(event) {
             alert('✅ Livro cadastrado com sucesso!');
             // Limpa o formulário
             document.getElementById('form-adicionar-livro').reset();
-            document.getElementById('quantidade').value = '1';
+            document.getElementById('quantidade_total').value = '1';
             // Recarrega a lista
             await carregarListaLivros();
         } else {
