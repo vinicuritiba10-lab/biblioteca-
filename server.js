@@ -7,7 +7,7 @@ const livros = require("./models/livros");
 const Emprestimo = require("./models/Emprestimos");
 const bodyParser = require("body-parser");
 const { enviarlembreteDevolucao } = require("./TR/email/config/email");
-const { Op } = require('sequelize');
+//const { Op } = require('sequelize');
 const { sequelize } = require('./models/db');
 const path = require('path');
 server.use(express.static(path.join(__dirname, 'TR/login')));
