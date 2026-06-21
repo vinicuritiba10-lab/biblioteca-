@@ -591,14 +591,14 @@ function configurarEventos() {
 
 //botao enviar lembretes
 async function enviarLembretes () {
-    const btn = document.getElementById('lembretes');
+    const btn = document.getElementById('btn-enviar-lembretes');
     if (btn) {
         btn.disabled = true;
         btn.textContent = 'Enviando...';
     }
 
     try {
-        const response = await fetch('/notificacoes/verificar');
+        const response = await fetch('localhost:3000/notificacoes/verificar');
 
         const data = await response.json();
 
