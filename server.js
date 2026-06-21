@@ -815,9 +815,10 @@ sequelize.sync({ alter: true })
   .then(() => {
     console.log('Banco de dados sincronizado e tabelas criadas!');
     
-    // Usa o seu 'server' em vez de 'app'
-    server.listen(process.env.PORT || 3000, "0.0.0.0", () => {
-      console.log('Servidor rodando com sucesso!');
+    // Deixe apenas a porta. O Node resolve o host por padrão no Railway se o Target Port estiver certo.
+    const PORTA = process.env.PORT || 3000;
+    server.listen(PORTA, () => {
+      console.log(`Servidor rodando com sucesso na porta ${PORTA}!`);
     });
   })
   .catch(err => {
