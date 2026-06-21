@@ -9,7 +9,7 @@ const bodyParser = require("body-parser");
 const { enviarlembreteDevolucao } = require("./TR/email/config/email");
 const { Op } = require('sequelize');
 const { sequelize } = require('./models/db');
-
+const path = require('path');
  
 server.use(cors());
 //config bodyparser
@@ -769,11 +769,7 @@ server.get("/admin/estatisticas", isAdmin, async (req, res) => {
 });
 //================================================
 server.get("/", function(req, res){
-	usuarios.findAll().then(function(usuarios){
-		res.send({usuarios: usuarios})
-	}).catch(function(erro){
-		res.send("erro ao buscar dados" + erro)
-	})
+	res.sendFile(path.join(__dirname, 'TR/login/index.html'));
 });
 
 server.get("/:nome", function(req,res){
