@@ -172,7 +172,7 @@ async function buscarPorCategoria(categoria) {
     booksGrid.innerHTML = '<p style="text-align:center;">Carregando livros...</p>';
    
     try {
-        const response = await fetch(`http://localhost:3000/livros/categoria/${categoria}`);
+        const response = await fetch(`/livros/categoria/${categoria}`);
 
         if(!response.ok) {
             throw new Error (`HTTP ${response.status}`);
@@ -221,7 +221,7 @@ async function buscarLivros() {
     booksGrid.innerHTML = '<p style="text-align:center;">Buscando...</p>';
     
     try {
-        const response = await fetch(`http://localhost:3000/livros/buscar/${encodeURIComponent(termo)}`);
+        const response = await fetch(`/livros/buscar/${encodeURIComponent(termo)}`);
         
         
         if (!response.ok) {
@@ -295,7 +295,7 @@ async function mostrarMeusEmprestimos() {
     emprestimosGrid.innerHTML = '<p style="text-align:center;">Carregando seus empréstimos...</p>';
     
     try {
-        const response = await fetch(`http://localhost:3000/usuarios/${usuarioAtual.id}/emprestimos`);
+        const response = await fetch(`/usuarios/${usuarioAtual.id}/emprestimos`);
         const emprestimos = await response.json();
         
         if (emprestimos.length === 0) {
@@ -352,7 +352,7 @@ window.renovarEmprestimo = async function(emprestimoId) {
     if(!confirm('deseja renovar este emprestimo por mais 7 dias?')) return;
 
     try {
-        const response = await fetch(`http://localhost:3000/emprestimos/${emprestimoId}/renovar`,{
+        const response = await fetch(`/emprestimos/${emprestimoId}/renovar`,{
             method: 'PUT'
         });
 
@@ -376,7 +376,7 @@ async function deletarEmprestimo(idEmprestimo, botaoClicado) {
         return;
     }
     try{
-        const response = await fetch(`http://localhost:3000/emprestimos/${idEmprestimo}`,{
+        const response = await fetch(`/emprestimos/${idEmprestimo}`,{
             method: 'DELETE'
         });
 
@@ -399,7 +399,7 @@ window.solicitarEmprestimo = async function(livroId) {
     if (!confirm('Deseja pegar este livro emprestado?')) return;
     
     try {
-        const response = await fetch('http://localhost:3000/emprestimos', {
+        const response = await fetch('/emprestimos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -430,7 +430,7 @@ window.devolverLivro = async function(emprestimoId) {
     if (!confirm('Confirmar devolução do livro?')) return;
     
     try {
-        const response = await fetch(`http://localhost:3000/emprestimos/${emprestimoId}/devolver`, {
+        const response = await fetch(`/emprestimos/${emprestimoId}/devolver`, {
             method: 'PUT'
         });
         
@@ -452,7 +452,7 @@ async function carregarTodosLivros() {
     booksGrid.innerHTML = '<p style="text-align:center;"> carregando livros...</p>';
 
     try {
-        const response = await fetch("http://localhost:3000/livros");
+        const response = await fetch("/livros");
         const livros = await response.json();
 
         if (livros.lenght === 0) {
@@ -471,7 +471,7 @@ async function carregarTodosLivros() {
 async function carregarRelatoriosEmprestimos() {
     try {
 
-        const resposta = await fetch("http://localhost:3000/emprestimos");
+        const resposta = await fetch("/emprestimos");
 
         if(!resposta.ok) {
             throw new Error("erro ao buscar emprestimos");
@@ -598,7 +598,7 @@ async function enviarLembretes () {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/notificacoes/verificar');
+        const response = await fetch('/notificacoes/verificar');
 
         const data = await response.json();
 
@@ -629,7 +629,7 @@ async function mostrarGerenciarUsuarios() {
     conteudo.innerHTML = '<p>Carregando usuários...</p>';
     
     try {
-        const response = await fetch('http://localhost:3000/admin/usuarios', {
+        const response = await fetch('/admin/usuarios', {
             headers: { 'usuario-id': usuarioAtual.id }
         });
         
@@ -696,7 +696,7 @@ async function mostrarEstatisticas() {
     conteudo.innerHTML = '<p>Carregando estatísticas...</p>';
     
     try {
-        const response = await fetch('http://localhost:3000/admin/estatisticas', {
+        const response = await fetch('/admin/estatisticas', {
             headers: { 'usuario-id': usuarioAtual.id }
         });
         
@@ -775,7 +775,7 @@ window.alterarTipoUsuario = async function(userId, novoTipo) {
     }
     
     try {
-        const response = await fetch(`http://localhost:3000/usuarios/${userId}/tipo`, {
+        const response = await fetch(`/usuarios/${userId}/tipo`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -812,7 +812,7 @@ window.deletarUsuario = async function(userId) {
     if (!confirmacao) return;
     
     try {
-        const response = await fetch(`http://localhost:3000/usuarios/${userId}`, {
+        const response = await fetch(`/usuarios/${userId}`, {
             method: 'DELETE',
             headers: {
                 'usuario-id': usuarioAtual.id
