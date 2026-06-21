@@ -59,7 +59,7 @@ async function carregarListaUsuarios() {
     container.innerHTML = '<div class="loading">🔄 Carregando usuários...</div>';
     
     try {
-        const response = await fetch('http://localhost:3000/admin/usuarios', {
+        const response = await fetch('/admin/usuarios', {
             headers: { 'usuario-id': usuarioAtual.id }
         });
         
@@ -140,7 +140,7 @@ window.alterarTipoUsuario = async function(userId, novoTipo) {
     }
     
     try {
-        const response = await fetch(`http://localhost:3000/usuarios/${userId}/tipo`, {
+        const response = await fetch(`/usuarios/${userId}/tipo`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ window.deletarUsuario = async function(userId) {
     if (!confirmacao) return;
     
     try {
-        const response = await fetch(`http://localhost:3000/usuarios/${userId}`, {
+        const response = await fetch(`/usuarios/${userId}`, {
             method: 'DELETE',
             headers: {
                 'usuario-id': usuarioAtual.id
@@ -208,7 +208,7 @@ async function carregarListaLivros() {
     container.innerHTML = '<div class="loading">🔄 Carregando livros...</div>';
     
     try {
-        const response = await fetch('http://localhost:3000/livros');
+        const response = await fetch('/livros');
         
         if (!response.ok) throw new Error('Erro ao carregar livros');
         
@@ -279,7 +279,7 @@ async function adicionarLivro(event) {
     console.log("Enviando livro:", livro); // ← DEBUG
     
     try {
-        const response = await fetch('http://localhost:3000/livros', {
+        const response = await fetch('/livros', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -311,7 +311,7 @@ window.excluirLivro = async function(livroId) {
     if (!confirm('⚠️ Tem certeza que quer excluir este livro permanentemente?')) return;
     
     try {
-        const response = await fetch(`http://localhost:3000/livros/${livroId}`, {
+        const response = await fetch(`/livros/${livroId}`, {
             method: 'DELETE',
             headers: { 'usuario-id': usuarioAtual.id }
         });
