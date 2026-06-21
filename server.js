@@ -11,7 +11,7 @@ const { Op } = require('sequelize');
 const { sequelize } = require('./models/db');
 const path = require('path');
 server.use(express.static(path.join(__dirname, 'TR')));
-//server.use(express.static(path.join(__dirname, '')));
+
 server.use(cors());
 //config bodyparser
 server.use(bodyParser.urlencoded({extended: false}));
@@ -770,11 +770,11 @@ server.get("/admin/estatisticas", isAdmin, async (req, res) => {
 });
 //================================================
 server.get("/", function(req, res){
-	res.sendFile(path.join(__dirname, 'TR/login/index.html'));
+	res.sendFile(path.join(__dirname, '/login/index.html'));
 });
 
 server.get("/home", function(req, res) {
-    res.sendFile(path.join(__dirname, 'TR/home/home.html'));
+    res.sendFile(path.join(__dirname, '/home/home.html'));
 });
 
 server.get("/:nome", function(req,res){
