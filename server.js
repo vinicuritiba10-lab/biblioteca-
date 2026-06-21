@@ -769,7 +769,7 @@ server.get("/admin/estatisticas", isAdmin, async (req, res) => {
 });
 //================================================
 server.get("/", function(req, res){
-	res.sendFile(path.join(__dirname, '/TR/index.html'));
+	res.sendFile(path.join(__dirname, '/TR/login/index.html'));
 
 });
 
