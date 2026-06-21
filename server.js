@@ -811,16 +811,21 @@ server.delete("/deletar/:id",function(req,res){
 // 	console.log(`example app listening on port ${port}`);
 // });
 
-sequelize.sync({ force: true })
+// Força o MySQL a ignorar as chaves estrangeiras temporariamente para podermos limpar o banco
+sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
   .then(() => {
-    console.log('Banco de dados sincronizado e tabelas criadas!');
+    // Agora o force: true vai conseguir apagar e recriar tudo perfeitamente
+    return sequelize.sync({ force: true });
+  })
+  .then(() => {
+    // Reativa a checagem de chaves após a reconstrução das tabelas
+    return sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
+  })
+  .then(() => {
+    console.log('Banco de dados resetado e tabelas recriadas com sucesso!');
     
-    // Força a porta do Railway. Se não existir (no seu PC), usa 3000.
-    const portaFinal = Number(process.env.PORT) || 3000;
-    
-    // PASSANDO A PORTA COMO NÚMERO E O HOST CORRETO PARA REDES DOCKER
-    server.listen(portaFinal, "0.0.0.0", () => {
-      console.log(`Servidor iniciado com sucesso na porta: ${portaFinal}`);
+    server.listen(process.env.PORT || 3000, () => {
+      console.log('Servidor rodando com sucesso!');
     });
   })
   .catch(err => {
