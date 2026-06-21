@@ -43,7 +43,7 @@ const livros = db.sequelize.define("livros", {
 
 }, {
     timestamps: false,
-    tableName: 'usuarios'
+    tableName: 'livros'
 });
 
 module.exports = livros;
