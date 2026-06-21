@@ -773,6 +773,10 @@ server.get("/", function(req, res){
 	res.sendFile(path.join(__dirname, 'TR/login/index.html'));
 });
 
+server.get("/home", function(req, res) {
+    res.sendFile(path.join(__dirname, 'TR/home/home.html'));
+});
+
 server.get("/:nome", function(req,res){
 	usuarios.findAll({where: {"nome": req.params.nome}}).then(function(usuarios){
 		res.send(usuarios);
