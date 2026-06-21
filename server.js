@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const server = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const usuarios = require("./models/usuarios");
 const livros = require("./models/livros");
 const Emprestimo = require("./models/Emprestimos");
@@ -815,10 +815,12 @@ sequelize.sync({ alter: true })
   .then(() => {
     console.log('Banco de dados sincronizado e tabelas criadas!');
     
-    // Deixe apenas a porta. O Node resolve o host por padrão no Railway se o Target Port estiver certo.
-    const PORTA = process.env.PORT || 3000;
-    server.listen(PORTA, () => {
-      console.log(`Servidor rodando com sucesso na porta ${PORTA}!`);
+    // Força a porta do Railway. Se não existir (no seu PC), usa 3000.
+    const portaFinal = Number(process.env.PORT) || 3000;
+    
+    // PASSANDO A PORTA COMO NÚMERO E O HOST CORRETO PARA REDES DOCKER
+    server.listen(portaFinal, "0.0.0.0", () => {
+      console.log(`Servidor iniciado com sucesso na porta: ${portaFinal}`);
     });
   })
   .catch(err => {
