@@ -598,7 +598,7 @@ async function enviarLembretes () {
     }
 
     try {
-        const response = await fetch('localhost:3000/notificacoes/verificar');
+        const response = await fetch('./notificacoes/verificar');
 
         const data = await response.json();
 
