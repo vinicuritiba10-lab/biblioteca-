@@ -150,7 +150,7 @@ document.getElementById("btn-login").addEventListener("click", async function(e)
             
             alert(`bem-vindo, ${data.usuario.nome}!`);
 
-            window.location.href = "../home/home.html";
+            window.location.href = "/home";
         } else {
 
             alert(data.error || "erro ao fazer login");
