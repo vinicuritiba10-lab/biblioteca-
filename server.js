@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const server = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 const usuarios = require("./models/usuarios");
 const livros = require("./models/livros");
 const Emprestimo = require("./models/Emprestimos");
