@@ -811,7 +811,7 @@ server.delete("/deletar/:id",function(req,res){
 // 	console.log(`example app listening on port ${port}`);
 // });
 
-sequelize.sync({ alter: true })
+sequelize.sync({ force: true })
   .then(() => {
     console.log('Banco de dados sincronizado e tabelas criadas!');
     
