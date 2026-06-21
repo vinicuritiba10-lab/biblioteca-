@@ -811,20 +811,15 @@ server.delete("/deletar/:id",function(req,res){
 // 	console.log(`example app listening on port ${port}`);
 // });
 
-// Sincronização forçada desativando temporariamente as chaves estrangeiras no Sequelize
-sequelize.sync({ 
-    force: true, 
-    logging: console.log,
-    //match: /_production$/ // Opcional: Garante segurança se necessário, pode remover se preferir
-})
-.then(() => {
-    console.log('Banco de dados resetado e tabelas recriadas com sucesso!');
+sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('Banco de dados limpo sincronizado com sucesso!');
     
     const portaFinal = Number(process.env.PORT) || 3000;
     server.listen(portaFinal, "0.0.0.0", () => {
-        console.log(`Servidor rodando com sucesso na porta ${portaFinal}!`);
+      console.log(`Servidor rodando com sucesso na porta ${portaFinal}!`);
     });
-})
-.catch(err => {
+  })
+  .catch(err => {
     console.error('Erro ao conectar ou sincronizar o banco de dados:', err);
-});
+  });
