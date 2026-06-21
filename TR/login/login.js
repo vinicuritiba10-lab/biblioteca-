@@ -89,7 +89,7 @@ form.addEventListener("submit", async (event) => {
     const senha = senhaInput.value;
 
     try {
-        const response = await fetch("http://localhost:3000/usuarios", {
+        const response = await fetch("/usuarios", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
