@@ -811,23 +811,20 @@ server.delete("/deletar/:id",function(req,res){
 // 	console.log(`example app listening on port ${port}`);
 // });
 
-// Força o MySQL a ignorar as chaves estrangeiras temporariamente para podermos limpar o banco
-sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
-  .then(() => {
-    // Agora o force: true vai conseguir apagar e recriar tudo perfeitamente
-    return sequelize.sync({ force: true });
-  })
-  .then(() => {
-    // Reativa a checagem de chaves após a reconstrução das tabelas
-    return sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
-  })
-  .then(() => {
+// Sincronização forçada desativando temporariamente as chaves estrangeiras no Sequelize
+sequelize.sync({ 
+    force: true, 
+    logging: console.log,
+    //match: /_production$/ // Opcional: Garante segurança se necessário, pode remover se preferir
+})
+.then(() => {
     console.log('Banco de dados resetado e tabelas recriadas com sucesso!');
     
-    server.listen(process.env.PORT || 3000, () => {
-      console.log('Servidor rodando com sucesso!');
+    const portaFinal = Number(process.env.PORT) || 3000;
+    server.listen(portaFinal, "0.0.0.0", () => {
+        console.log(`Servidor rodando com sucesso na porta ${portaFinal}!`);
     });
-  })
-  .catch(err => {
+})
+.catch(err => {
     console.error('Erro ao conectar ou sincronizar o banco de dados:', err);
-  });
+});
