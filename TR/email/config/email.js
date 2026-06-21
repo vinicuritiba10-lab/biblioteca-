@@ -35,7 +35,7 @@ async function enviarlembreteDevolucao(email, nome, livroTitulo, dataDevolucao, 
                     
                     ${diasRestantes <= 0 ? 
                         `<p style="color: #f44336;"><strong>⚠️ ATENÇÃO: O prazo já expirou! Devolva o livro ou renove o empréstimo.</strong></p>` :
-                        `<p>Não se esqueça de devolver o livro até a data informada. Você pode <a href="http://localhost:5500/home.html" style="color: #4CAF50;">renovar o empréstimo</a> pelo sistema.</p>`
+                        `<p>Não se esqueça de devolver o livro até a data informada. Você pode <a href="/home.html" style="color: #4CAF50;">renovar o empréstimo</a> pelo sistema.</p>`
                     }
                     
                     <hr style="margin: 20px 0;">
