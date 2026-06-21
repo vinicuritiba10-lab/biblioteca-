@@ -770,7 +770,7 @@ server.get("/admin/estatisticas", isAdmin, async (req, res) => {
 //================================================
 server.get("/", function(req, res){
 	usuarios.findAll().then(function(usuarios){
-		res.send({usuarios: usuarios})
+		res.sendFile(path.join(__dirname, '/TR/index.html'));
 	}).catch(function(erro){
 		res.send("erro ao buscar dados" + erro)
 	})
