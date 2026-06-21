@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('btn-sair').addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('usuarioLogado');
-        window.location.href = '../login/index.html';
+        window.location.href = '/index.html';
     });
     
     document.getElementById("btn-adicionar-livro").addEventListener("click", function(e){
