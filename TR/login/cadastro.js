@@ -25,7 +25,7 @@ document.getElementById('form-cadastro').addEventListener('submit', async functi
     btn.textContent = 'Cadastrando...';
     
     try {
-        const response = await fetch('http://localhost:3000/usuarios', {
+        const response = await fetch('/usuarios', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
