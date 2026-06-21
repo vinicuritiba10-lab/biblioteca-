@@ -11,7 +11,7 @@ const { Op } = require('sequelize');
 const { sequelize } = require('./models/db');
 const path = require('path');
 server.use(express.static(path.join(__dirname, 'TR')));
-server.use(express.static(path.join(__dirname, '')));
+//server.use(express.static(path.join(__dirname, '')));
 server.use(cors());
 //config bodyparser
 server.use(bodyParser.urlencoded({extended: false}));
