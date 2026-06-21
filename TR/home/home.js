@@ -591,7 +591,7 @@ function configurarEventos() {
 
 //botao enviar lembretes
 async function enviarLembretes () {
-    const btn = document.getElementById('btn-enviar-lembretes');
+    const btn = document.getElementById('lembretes');
     if (btn) {
         btn.disabled = true;
         btn.textContent = 'Enviando...';
