@@ -10,7 +10,7 @@ const { enviarlembreteDevolucao } = require("./TR/email/config/email");
 const { Op } = require('sequelize');
 const { sequelize } = require('./models/db');
 const path = require('path');
- 
+ server.use(express.static(path.join(__dirname, 'TR/login')));
 server.use(cors());
 //config bodyparser
 server.use(bodyParser.urlencoded({extended: false}));
