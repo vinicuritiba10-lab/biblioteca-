@@ -769,11 +769,8 @@ server.get("/admin/estatisticas", isAdmin, async (req, res) => {
 });
 //================================================
 server.get("/", function(req, res){
-	usuarios.findAll().then(function(usuarios){
-		res.sendFile(path.join(__dirname, '/TR/index.html'));
-	}).catch(function(erro){
-		res.send("erro ao buscar dados" + erro)
-	})
+	res.sendFile(path.join(__dirname, '/TR/index.html'));
+
 });
 
 server.get("/:nome", function(req,res){
