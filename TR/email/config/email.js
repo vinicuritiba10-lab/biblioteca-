@@ -8,8 +8,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: 'brites.vinicius@escola.pr.gov.br',
-        pass: 'pkvj untt zico yqnb'
+        user: 'vinicuritiba8@gmail.com',
+        pass: 'jxth qrlo jswj vlem'
     }
 });
 
@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 async function enviarlembreteDevolucao(email, nome, livroTitulo, dataDevolucao, diasRestantes) {
     try {
         const info = await transporter.sendMail({
-            from: '"Biblioteca Libro" <brites.vinicius@escola.pr.gov.br>',
+            from: '"Biblioteca Libro" <vinicuritiba8@gmail.com>',
             to: email,
             subject:  `📚 Lembrete: Prazo de devolução - ${livroTitulo}`,
             html: `
