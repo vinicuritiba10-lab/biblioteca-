@@ -736,7 +736,7 @@ async function enviarLembretes () {
 
         const data = await response.json();
 
-        showToast(data.message, 'info', 5000);
+        showToast(data.message, 'info', '/home.html');
         
     } catch (error) {
         console.error('Erro:', error);
