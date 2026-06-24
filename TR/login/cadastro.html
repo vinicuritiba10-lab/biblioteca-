@@ -2,10 +2,16 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cadastro - Libro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="cadastro.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e8491d">
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Libro">
+    <link rel="stylesheet" href="/toast.css">
 </head>
 <body>
     <div class="container">
@@ -20,7 +26,23 @@
                 
                 <div class="form-group">
                     <label for="email">E-mail *</label>
-                    <input type="email" id="email" required>
+                    <input type="email" id="email" required autocomplete="off">
+                    <div id="email-sugestao" style="
+                        display: none;
+                        margin-top: 6px;
+                        padding: 9px 14px;
+                        background: #f0faf0;
+                        border: 1.5px solid #4CAF50;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        color: #2e7d32;
+                        cursor: pointer;
+                        font-family: 'Poppins', sans-serif;
+                        transition: background 0.15s;
+                    ">
+                        <span style="opacity:0.55; font-size:12px;">↩ Toque para usar:</span><br>
+                        <strong id="email-sugestao-texto"></strong>
+                    </div>
                     <small>Use seu e-mail da escola (@escola.pr.gov.br)</small>
                 </div>
                 
@@ -48,6 +70,8 @@
         </div>
     </div>
     
+    <script src="/toast.js"></script>
     <script src="cadastro.js"></script>
+    <script src="/pwa-register.js"></script>
 </body>
 </html>

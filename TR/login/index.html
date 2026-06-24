@@ -2,9 +2,14 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e8491d">
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Libro">
 </head>
 <body>
 
@@ -51,7 +56,7 @@
                         <option value="Aluno">Aluno</option>
                         <option value="Bibliotecario">Bibliotecario</option>
                         <option value="Bibliotecario">Admin</option>
-                    </select> 
+                    </select>
                 </form>
                 <p class="signup-link">Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
             </div>
@@ -63,5 +68,6 @@
 
     <script src="login.js" defer></script>
     
+    <script src="/pwa-register.js"></script>
 </body>
 </html>

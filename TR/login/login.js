@@ -24,6 +24,12 @@ function checkInputNome() {
 }
 
 function checkInputEmail() {
+    // sugere o dominio da escola se a pessoa digitou so a parte antes do @
+    const valorAtual = emailInput.value.trim();
+    if (valorAtual && !valorAtual.includes('@')) {
+        emailInput.value = valorAtual + "@escola.pr.gov.br";
+    }
+
     const emailValue = emailInput.value;
     if (emailValue === "") {
         errorInput(emailInput, "O email é obrigatório.");
@@ -103,7 +109,7 @@ form.addEventListener("submit", async (event) => {
             localStorage.setItem("token", data.token);
             localStorage.setItem("usuario", JSON.stringify(data.usuario));
             alert("Login realizado com sucesso!");
-            window.location.href = "dashboard.html";
+            window.location.href = "../home/home.html";
         } else {
             alert(data.error || "Erro ao fazer login");
         }
@@ -150,7 +156,7 @@ document.getElementById("btn-login").addEventListener("click", async function(e)
             
             alert(`bem-vindo, ${data.usuario.nome}!`);
 
-            window.location.href = "/home";
+            window.location.href = "../home/home.html";
         } else {
 
             alert(data.error || "erro ao fazer login");
