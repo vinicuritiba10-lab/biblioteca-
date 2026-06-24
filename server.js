@@ -553,15 +553,17 @@ server.get("/notificacoes/verificar", async (req, res) => {
 	try {
 		const { Op } = require('sequelize');
 		const hoje = new Date();
+		hoje.setHours(0, 0, 0, 0);
 		const daqui3Dias = new Date();
 		daqui3Dias.setDate(hoje.getDate() + 3);
+		daqui3Dias.setHours(23, 59, 59, 999);
 
 		//busca emprestimos que vencem em ate 3 dias
 		const emprestimos = await Emprestimo.findAll({
 			where: {
 				status: 'ativo',
 				data_prevista_devolucao: {
-					[Op.lte]: daqui3Dias
+					[Op.between]: [hoje, daqui3Dias]
 				}
 			},
 			include: [
@@ -574,32 +576,44 @@ server.get("/notificacoes/verificar", async (req, res) => {
 		const resultados = [];
 
 		for (const emp of emprestimos) {
+
+			const usuarioData = emp.usuario;
+			const livroData = emp.livro;
+
+			if (!usuarioData || !livroData) {
+				console.warn(` dados incomplestos para o imprestimo ID: ${emp.id}`);
+				continue;
+			}
 			const dataDevolucao = new Date(emp.data_prevista_devolucao);
-			const diasRestantes = Math.ceil((dataDevolucao - hoje) / (1000 * 60 * 60 * 24));
+			dataDevolucao.setHours(0, 0, 0, 0);
+
+			const diferencaTempo = dataDevolucao.getTime() - hoje.getTime();
+			const diasRestantes = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
 
 			const enviado = await enviarlembreteDevolucao(
-				emp.usuario.email,
-				emp.usuario.nome,
-				emp.livro.titulo,
+				usuarioData.email,
+				usuarioData.nome,
+				livroData.titulo,
 				emp.data_prevista_devolucao,
 				diasRestantes
 			);
 
 			resultados.push({
-				usuario: emp.usuario.nome,
-				livro: emp.livro.titulo,
-				email: emp.usuario.email,
+				usuario: usuarioData.nome,
+				livro: livroData.titulo,
+				email: usuarioData.email,
 				enviado: enviado,
 				dias_restantes: diasRestantes
 			});
 		}
 
 		res.json({
+			success: true,
 			message: `notificacoes processadas: ${resultados.length}`,
 			notificacoes: resultados
 		});
 	} catch (error) {
-		console.error("erro:", error);
+		console.error("erro na rota de notificacoes:", error);
 		res.status(500).json({ error: error.message });
 	}
 });
