@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     usuarioAtual = JSON.parse(usuarioLogado);
     
     // Verifica se é admin
-    if (usuarioAtual.tipo !== 'admin') {
+    if (usuarioAtual.tipo !== 'admin' && usuarioAtual.tipo !== 'bibliotecario') {
         alert('Acesso negado. Área restrita para administradores.');
         window.location.href = 'home.html';
         return;
