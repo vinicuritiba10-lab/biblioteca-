@@ -732,7 +732,7 @@ async function enviarLembretes () {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/notificacoes/verificar');
+        const response = await fetch('/notificacoes/verificar');
 
         if(!response.ok) {
             throw new Error(`erro no servidor: ${response.status}`);

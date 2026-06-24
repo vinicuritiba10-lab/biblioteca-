@@ -549,7 +549,7 @@ server.put("/emprestimos/:id/renovar", async (req, res) => {
 
 //verificar e enviar lembretes
 
-server.get("http://localhost:3000/notificacoes/verificar", async (req, res) => {
+server.get("/notificacoes/verificar", async (req, res) => {
 	try {
 		const { Op } = require('sequelize');
 		const hoje = new Date();
