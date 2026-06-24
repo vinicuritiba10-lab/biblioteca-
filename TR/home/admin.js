@@ -23,12 +23,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.href = 'home.html';
         return;
     }
-
-    if (usuarioAtual.tipo !== 'bibliotecario') {
-        alert('Acesso negado. Área restrita para administradores.');
-        window.location.href = 'home.html';
-        return;
-    }
     
     // Mostra nome do admin no header
     const adminName = document.querySelector('.logo-text');
