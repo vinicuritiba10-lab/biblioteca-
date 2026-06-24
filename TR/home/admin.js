@@ -1,9 +1,9 @@
 // admin.js - Painel de Administração
 
 // Verifica se já foi declarado para não duplicar
-//if (typeof usuarioAtual === 'undefined') {
-    //var usuarioAtual = null;
-//}
+if (typeof usuarioAtual === 'undefined') {
+    var usuarioAtual = null;
+}
 
 document.addEventListener('DOMContentLoaded', async function() {
     // Verifica se usuário está logado
@@ -14,17 +14,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.href = '../login/index.html';
         return;
     }
-    if(typeof usuarioAtual !== 'undefined') {
-        usuarioAtual = JSON.parse(usuarioLogado);
-    }else {
-        window.usuarioAtual = JSON.parse(usuarioLogado);
-    }
     
-    const usuarioParaUso = typeof usuarioAtual !== 'undefined' ? usuarioAtual : window.usuarioAtual;
-
+    usuarioAtual = JSON.parse(usuarioLogado);
     
     // Verifica se é admin
-    if (usuarioParaUso.tipo !== 'admin' && usuarioParaUso.tipo !== 'bibliotecario') {
+    if (usuarioAtual.tipo !== 'admin' && usuarioAtual.tipo !== 'bibliotecario') {
         alert('Acesso negado. Área restrita para administradores.');
         window.location.href = 'home.html';
         return;
@@ -37,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Carrega as listas
-    await carregarListaUsuarios(usuarioParaUso.id);
+    await carregarListaUsuarios();
     await carregarListaLivros();
     
     // Configura o formulário de adicionar livro
@@ -66,7 +60,7 @@ async function carregarListaUsuarios() {
     
     try {
         const response = await fetch('/admin/usuarios', {
-            headers: { 'usuario-id': userId }
+            headers: { 'usuario-id': usuarioAtual.id }
         });
         
         if (!response.ok) throw new Error('Erro ao carregar usuários');
