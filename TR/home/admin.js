@@ -2,7 +2,7 @@
 
 // Verifica se já foi declarado para não duplicar
 if (typeof usuarioAtual === 'undefined') {
-    //var usuarioAtual = null;
+    var usuarioAtual = null;
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
