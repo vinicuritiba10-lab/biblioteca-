@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
 
-    if (usuarioAtual.tipo !== 'admin') {
+    if (usuarioAtual.tipo !== 'bibliotecario') {
         alert('Acesso negado. Área restrita para administradores.');
         window.location.href = 'home.html';
         return;
