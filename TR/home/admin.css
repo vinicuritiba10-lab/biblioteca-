@@ -1,5 +1,70 @@
 /* ========== PÁGINA ADMIN - GERENCIAR LIVROS ========== */
 
+/* Cabeçalho (estava sem estilo nesta página) */
+.princ {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.98);
+    padding: 0 60px;
+    height: 90px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-family: 'Poppins', sans-serif;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-text {
+    font-size: 24px;
+    font-weight: 800;
+    color: #764ba2;
+}
+
+.admin-badge {
+    background: #ec380b;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #2d3436;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.nav-link:hover { color: #ec380b; }
+
+@media (max-width: 768px) {
+    .princ {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 12px 16px;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .nav-menu {
+        gap: 14px;
+    }
+}
+
 /* Container principal */
 .container {
     max-width: 1200px;
@@ -194,6 +259,16 @@ a:hover{
 .livro-card-admin:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.livro-capa-admin {
+    width: 80px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 8px;
+    float: left;
+    margin: 0 14px 10px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .livro-card-admin .livro-titulo {

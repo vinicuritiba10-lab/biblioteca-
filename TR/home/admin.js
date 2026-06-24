@@ -11,16 +11,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (!usuarioLogado) {
         alert('Faça login primeiro!');
-        window.location.href = 'login.html';
+        window.location.href = '../login/index.html';
         return;
     }
     
     usuarioAtual = JSON.parse(usuarioLogado);
     
     // Verifica se é admin
-    if (usuarioAtual.tipo !== 'bibliotecario') {
+    if (usuarioAtual.tipo !== 'admin') {
         alert('Acesso negado. Área restrita para administradores.');
-        window.location.href = 'home.html';
+        window.location.href = '../home/home.html';
         return;
     }
     
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (btnSair) {
         btnSair.addEventListener('click', function() {
             localStorage.removeItem('usuarioLogado');
-            window.location.href = 'login.html';
+            window.location.href = '../login/index.html';
         });
     }
 });
@@ -228,8 +228,12 @@ async function carregarListaLivros() {
         
         for (const livro of livros) {
             const disponivel = livro.quantidade_disponivel > 0;
+            const capaImg = livro.capa_url
+                ? `<img src="${livro.capa_url}" alt="Capa de ${livro.titulo}" class="livro-capa-admin" onerror="this.style.display='none'">`
+                : '';
             html += `
                 <div class="livro-card-admin">
+                    ${capaImg}
                     <div class="livro-header">
                         <h3 class="livro-titulo">📖 ${livro.titulo}</h3>
                         <span class="livro-id">ID: ${livro.id}</span>
@@ -273,7 +277,8 @@ async function adicionarLivro(event) {
         editora: document.getElementById('editora').value,
         ano: parseInt(document.getElementById('ano').value) || null,
         categoria: document.getElementById('categoria').value,
-        quantidade_total: parseInt(document.getElementById('quantidade_total').value) || 1
+        quantidade_total: parseInt(document.getElementById('quantidade_total').value) || 1,
+        capa_url: document.getElementById('capa_url').value || null
     };
     
     console.log("Enviando livro:", livro); // ← DEBUG

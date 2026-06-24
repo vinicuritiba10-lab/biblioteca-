@@ -2,10 +2,15 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin - Gerenciar Livros | Libro</title>
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e8491d">
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Libro">
 </head>
 <body>
     <header class="princ">
@@ -74,6 +79,10 @@
                             <label>Quantidade</label>
                             <input type="number" id="quantidade_total" value="1" min="1">
                         </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>URL da Capa (opcional)</label>
+                            <input type="url" id="capa_url" placeholder="https://exemplo.com/capa-do-livro.jpg">
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">
@@ -103,5 +112,6 @@
     </main>
 
     <script src="admin.js"></script>
+    <script src="/pwa-register.js"></script>
 </body>
 </html>

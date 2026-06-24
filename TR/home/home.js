@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const usuarioLogado = localStorage.getItem('usuarioLogado');
     
     if (!usuarioLogado) {
-        alert('Faça login primeiro!');
-        window.location.href = 'login.html';
+        showToast('Faça login primeiro!', 'warning');
+        window.location.href = '../login/index.html';
         return;
     }
     
@@ -24,14 +24,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     await carregarTodosLivros();
     configurarEventos();
     
-    // Se for bibliotecário, adiciona opção de admin
+    // Se for bibliotecário, mostra botão de adicionar livro
     if (usuarioAtual.tipo === 'bibliotecario') {
         const btnAdmin = document.getElementById('btn-adicionar-livro');
-
         if(btnAdmin) {
             btnAdmin.style.display = 'block';
         }
+    }
 
+    // Relatório de empréstimos: visível para bibliotecário E admin
+    if (usuarioAtual.tipo === 'bibliotecario' || usuarioAtual.tipo === 'admin') {
         const relatoriosSection = document.getElementById('relatorios-section');
         if (relatoriosSection) {
             relatoriosSection.style.display = 'block';
@@ -95,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('btn-sair').addEventListener('click', function(e) {
         e.preventDefault();
         localStorage.removeItem('usuarioLogado');
-        window.location.href = '/index.html';
+        window.location.href = '../login/index.html';
     });
     
     document.getElementById("btn-adicionar-livro").addEventListener("click", function(e){
@@ -207,7 +209,7 @@ async function buscarLivros() {
     const termo = document.getElementById('pesquisa').value.trim();
     
     if (!termo) {
-        alert('Digite um termo para buscar');
+        showToast('Digite um termo para buscar', 'warning');
         return;
     }
     
@@ -262,7 +264,11 @@ function exibirLivros(livros) {
     
     booksGrid.innerHTML = livros.map((livro, index) => `
         <div class="book-card">
-            <div class="book-cover ${cores[index % cores.length]}">${icones[index % icones.length]}</div>
+            <div class="book-cover ${cores[index % cores.length]}" ${livro.capa_url ? 'style="padding:0;"' : ''}>
+                ${livro.capa_url
+                    ? `<img src="${livro.capa_url}" alt="Capa de ${livro.titulo}" class="book-cover-img" onerror="this.parentElement.innerHTML='${icones[index % icones.length]}'">`
+                    : icones[index % icones.length]}
+            </div>
             <div class="book-info">
                 <h3>${livro.titulo}</h3>
                 <p class="author">${livro.autor}</p>
@@ -271,7 +277,7 @@ function exibirLivros(livros) {
                 </span>
                 ${livro.quantidade_disponivel > 0 ? 
                     `<button class="btn-borrow" onclick="solicitarEmprestimo(${livro.id})">Pegar Empréstimo</button>` : 
-                    `<button class="btn-borrow disabled" disabled>Indisponível</button>`}
+                    `<button class="btn-borrow btn-reservar" onclick="reservarLivro(${livro.id})">🔖 Reservar</button>`}
             </div>
         </div>
     `).join('');
@@ -281,6 +287,8 @@ function mostrarInicio() {
     document.getElementById('categorias-section').style.display = 'block';
     document.getElementById('livros-section').style.display = 'none';
     document.getElementById('emprestimos-section').style.display = 'none';
+    const reservasSection = document.getElementById('reservas-section');
+    if (reservasSection) reservasSection.style.display = 'none';
     document.getElementById('pesquisa').value = '';
     categoriaAtual = '';
 }
@@ -290,6 +298,8 @@ async function mostrarMeusEmprestimos() {
     document.getElementById('categorias-section').style.display = 'none';
     document.getElementById('livros-section').style.display = 'none';
     document.getElementById('emprestimos-section').style.display = 'block';
+    const reservasSection = document.getElementById('reservas-section');
+    if (reservasSection) reservasSection.style.display = 'none';
     
     const emprestimosGrid = document.getElementById('emprestimos-grid');
     emprestimosGrid.innerHTML = '<p style="text-align:center;">Carregando seus empréstimos...</p>';
@@ -347,9 +357,94 @@ async function mostrarMeusEmprestimos() {
     
 }
 
-// funcao renovar emprestimo
+// funcao mostrar minhas reservas
+async function mostrarMinhasReservas() {
+    document.getElementById('categorias-section').style.display = 'none';
+    document.getElementById('livros-section').style.display = 'none';
+    document.getElementById('emprestimos-section').style.display = 'none';
+    document.getElementById('reservas-section').style.display = 'block';
+
+    const reservasGrid = document.getElementById('reservas-grid');
+    reservasGrid.innerHTML = '<p style="text-align:center;">Carregando suas reservas...</p>';
+
+    try {
+        const response = await fetch(`/usuarios/${usuarioAtual.id}/reservas`);
+        const reservas = await response.json();
+
+        if (!reservas || reservas.length === 0) {
+            reservasGrid.innerHTML = '<p style="text-align:center;">📭 Você não possui reservas no momento</p>';
+            return;
+        }
+
+        reservasGrid.innerHTML = reservas.map((res) => {
+            const disponivel = res.status === 'disponivel';
+            return `
+                <div class="book-card">
+                    <div class="book-cover color-2">🔖</div>
+                    <div class="book-info">
+                        <h3>${res.livro.titulo}</h3>
+                        <p>Autor: ${res.livro.autor}</p>
+                        <p><small>Reservado em: ${new Date(res.data_reserva).toLocaleDateString()}</small></p>
+                        <span class="status ${disponivel ? 'disponivel' : 'ocupado'}">
+                            ${disponivel ? '● Disponível para retirada' : '● Aguardando devolução'}
+                        </span>
+                        <div class="livro-acoes">
+                            <button onclick="cancelarReserva(${res.id})" class="btn-devolver">✖ Cancelar reserva</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Erro:', error);
+        reservasGrid.innerHTML = '<p style="text-align:center;">❌ Erro ao carregar reservas</p>';
+    }
+}
+
+window.reservarLivro = async function(livroId) {
+    if (!await showConfirm('Esse livro está indisponível agora. Deseja reservar para quando ele voltar?', 'Reservar')) return;
+
+    try {
+        const response = await fetch('/reservas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuarioAtual.id, livro_id: livroId })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast('Reserva feita! Você será avisado em Minhas Reservas quando o livro voltar.', 'success');
+        } else {
+            showToast(data.error || 'Erro desconhecido', 'error');
+        }
+    } catch (error) {
+        showToast('Erro ao reservar livro', 'error');
+    }
+};
+
+window.cancelarReserva = async function(reservaId) {
+    if (!await showConfirm('Deseja cancelar essa reserva?', 'Cancelar reserva', 'Não')) return;
+
+    try {
+        const response = await fetch(`/reservas/${reservaId}`, { method: 'DELETE' });
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast('Reserva cancelada', 'success');
+            mostrarMinhasReservas();
+        } else {
+            showToast(data.error || 'Erro desconhecido', 'error');
+        }
+    } catch (error) {
+        showToast('Erro ao cancelar reserva', 'error');
+    }
+};
+
+
 window.renovarEmprestimo = async function(emprestimoId) {
-    if(!confirm('deseja renovar este emprestimo por mais 7 dias?')) return;
+    if(!await showConfirm('Deseja renovar este empréstimo por mais 7 dias?', 'Renovar')) return;
 
     try {
         const response = await fetch(`/emprestimos/${emprestimoId}/renovar`,{
@@ -359,20 +454,20 @@ window.renovarEmprestimo = async function(emprestimoId) {
         const data = await response.json();
 
         if (response.ok) {
-            alert(`✅ Empréstimo renovado!\n📅 Nova data: ${new Date(data.nova_data_devolucao).toLocaleDateString()}\n🔄 Renovações restantes: ${data.renovacoes_restantes}`);
+            showToast(`Empréstimo renovado! Nova data: ${new Date(data.nova_data_devolucao).toLocaleDateString()} — Renovações restantes: ${data.renovacoes_restantes}`, 'success', 5000);
             mostrarMeusEmprestimos(); //recarrega a lista
         } else {
-            alert('❌' + data.error);
+            showToast(data.error || 'Erro desconhecido', 'error');
         }
     } catch (error) {
         console.error('erro:', error);
-        alert('erro ao renovar emprestimo');
+        showToast('Erro ao renovar empréstimo', 'error');
     }
 };
 
 async function deletarEmprestimo(idEmprestimo, botaoClicado) {
     
-    if(!confirm("tem certeza que deseja apagar este registro de emprestimo?")){
+    if(!await showConfirm("Tem certeza que deseja apagar este registro de empréstimo?", "Apagar", "Cancelar")){
         return;
     }
     try{
@@ -382,13 +477,13 @@ async function deletarEmprestimo(idEmprestimo, botaoClicado) {
 
         if(response.ok){
             botaoClicado.closest('.book-card').remove();
-            alert("Emprestimo apagado com sucesso!");
+            showToast("Empréstimo apagado com sucesso!", "success");
         } else {
-            alert("Nao foi possivel apagar emprestimo no servidor.");
+            showToast("Não foi possível apagar empréstimo no servidor.", "error");
         }
     } catch (error) {
         console.error("erro ao deletar:", error);
-        alert("erro de conexao ao tentar apagar emprestimo.");
+        showToast("Erro de conexão ao tentar apagar empréstimo.", "error");
     }
 }
 
@@ -396,7 +491,7 @@ window.solicitarEmprestimo = async function(livroId) {
     const dataDevolucao = new Date();
     dataDevolucao.setDate(dataDevolucao.getDate() + 7);
     
-    if (!confirm('Deseja pegar este livro emprestado?')) return;
+    if (!await showConfirm('Deseja pegar este livro emprestado?', 'Pegar emprestado')) return;
     
     try {
         const response = await fetch('/emprestimos', {
@@ -412,22 +507,47 @@ window.solicitarEmprestimo = async function(livroId) {
         const data = await response.json();
         
         if (response.ok) {
-            alert('✅ Empréstimo realizado! Devolva em até 7 dias.');
+            showToast('Empréstimo realizado! Devolva em até 7 dias.', 'success');
             if (categoriaAtual) {
                 buscarPorCategoria(categoriaAtual);
             } else {
                 buscarLivros();
             }
+        } else if (data.error && data.error.includes('limite')) {
+            //usuario atingiu o limite de livros simultaneos: oferece solicitar aprovacao
+            if (await showConfirm(`${data.error}. Deseja enviar uma solicitação para o bibliotecário aprovar esse empréstimo extra?`, 'Enviar solicitação')) {
+                solicitarEmprestimoExtra(livroId);
+            }
         } else {
-            alert('❌ ' + data.error);
+            showToast(data.error || 'Erro desconhecido', 'error');
         }
     } catch (error) {
-        alert('Erro ao solicitar empréstimo');
+        showToast('Erro ao solicitar empréstimo', 'error');
+    }
+};
+
+window.solicitarEmprestimoExtra = async function(livroId) {
+    try {
+        const response = await fetch('/solicitacoes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuarioAtual.id, livro_id: livroId })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast('Solicitação enviada! Aguarde a aprovação do bibliotecário.', 'success');
+        } else {
+            showToast(data.error || 'Erro desconhecido', 'error');
+        }
+    } catch (error) {
+        showToast('Erro ao enviar solicitação', 'error');
     }
 };
 
 window.devolverLivro = async function(emprestimoId) {
-    if (!confirm('Confirmar devolução do livro?')) return;
+    if (!await showConfirm('Confirmar devolução do livro?', 'Devolver')) return;
     
     try {
         const response = await fetch(`/emprestimos/${emprestimoId}/devolver`, {
@@ -437,13 +557,13 @@ window.devolverLivro = async function(emprestimoId) {
         const data = await response.json();
         
         if (response.ok) {
-            alert('✅ Livro devolvido com sucesso!');
+            showToast('Livro devolvido com sucesso!', 'success');
             mostrarMeusEmprestimos();
         } else {
-            alert('❌ ' + data.error);
+            showToast(data.error || 'Erro desconhecido', 'error');
         }
     } catch (error) {
-        alert('Erro ao devolver livro');
+        showToast('Erro ao devolver livro', 'error');
     }
 };
 
@@ -557,6 +677,15 @@ function configurarEventos() {
             mostrarMeusEmprestimos();
         });
     }
+
+    // Botão Minhas Reservas
+    const btnReservas = document.getElementById('btn-reservas');
+    if (btnReservas) {
+        btnReservas.addEventListener('click', function(e) {
+            e.preventDefault();
+            mostrarMinhasReservas();
+        });
+    }
     
     // Botão Sair
     const btnSair = document.getElementById('btn-sair');
@@ -587,6 +716,11 @@ function configurarEventos() {
     if (btnVoltarEmprestimos) {
         btnVoltarEmprestimos.addEventListener('click', mostrarInicio);
     }
+
+    const btnVoltarReservas = document.getElementById('btn-voltar-reservas');
+    if (btnVoltarReservas) {
+        btnVoltarReservas.addEventListener('click', mostrarInicio);
+    }
 }
 
 //botao enviar lembretes
@@ -598,15 +732,15 @@ async function enviarLembretes () {
     }
 
     try {
-        const response = await fetch('./notificacoes/verificar');
+        const response = await fetch('/notificacoes/verificar');
 
         const data = await response.json();
 
-        alert(`📧 ${data.message}\nNotificações enviadas para ${data.notificacoes.filter(n => n.enviado).length} empréstimos`);
+        showToast(data.message, 'info', 5000);
         
     } catch (error) {
         console.error('Erro:', error);
-        alert('erro ao enviar notificacoes');
+        showToast('Erro ao enviar notificações', 'error');
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -622,7 +756,7 @@ async function mostrarGerenciarUsuarios() {
     // VERIFICA SE O ELEMENTO EXISTE
     if (!conteudo) {
         console.error("❌ Elemento 'conteudo-area' não encontrado no HTML!");
-        alert("Erro: elemento de conteúdo não encontrado. Adicione <div id='conteudo-area'> no HTML.");
+        showToast('Erro interno: elemento de conteúdo não encontrado', 'error');
         return;
     }
     
@@ -705,6 +839,9 @@ async function mostrarEstatisticas() {
         }
         
         const stats = await response.json();
+        const percentEmprestado = stats.total_livros > 0
+            ? Math.round((stats.livros_emprestados / (stats.livros_emprestados + (stats.total_livros - stats.livros_emprestados) || 1)) * 100)
+            : 0;
         
         conteudo.innerHTML = `
             <div class="admin-panel">
@@ -715,7 +852,14 @@ async function mostrarEstatisticas() {
                     <div class="stat-card">🔄 Empréstimos Ativos: <strong>${stats.emprestimos_ativos}</strong></div>
                     <div class="stat-card">📖 Livros Emprestados: <strong>${stats.livros_emprestados}</strong></div>
                 </div>
+                <div class="stat-barra-container">
+                    <p><small>Proporção de livros emprestados no momento</small></p>
+                    <div class="stat-barra-fundo">
+                        <div class="stat-barra-preenchida" style="width: ${percentEmprestado}%;">${percentEmprestado}%</div>
+                    </div>
+                </div>
                 <p><small>📅 Última atualização: ${new Date(stats.data).toLocaleString()}</small></p>
+                <button onclick="baixarRelatorioPDF()" class="btn-admin">📄 Baixar relatório em PDF</button>
                 <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button>
             </div>
         `;
@@ -725,6 +869,110 @@ async function mostrarEstatisticas() {
         conteudo.innerHTML = '<p>❌ Erro ao carregar estatísticas. Verifique se o backend está rodando.</p>';
     }
 }
+
+// baixa o relatorio de emprestimos em pdf (usa fetch + blob porque a rota exige cabecalho de autenticacao)
+window.baixarRelatorioPDF = async function() {
+    try {
+        const response = await fetch('/relatorio/emprestimos/pdf', {
+            headers: { 'usuario-id': usuarioAtual.id }
+        });
+
+        if (!response.ok) {
+            showToast('Não foi possível gerar o relatório', 'error');
+            return;
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'relatorio-emprestimos.pdf';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Erro ao baixar relatorio:', error);
+        showToast('Erro ao baixar relatório em PDF', 'error');
+    }
+};
+
+// mostra as solicitacoes pendentes de emprestimo extra (bibliotecario/admin)
+async function mostrarSolicitacoes() {
+    const conteudo = document.getElementById('conteudo-area');
+    if (!conteudo) return;
+
+    conteudo.innerHTML = '<p>Carregando solicitações...</p>';
+
+    try {
+        const response = await fetch('/solicitacoes', {
+            headers: { 'usuario-id': usuarioAtual.id }
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao carregar solicitações');
+        }
+
+        const solicitacoes = await response.json();
+
+        if (solicitacoes.length === 0) {
+            conteudo.innerHTML = `
+                <div class="admin-panel">
+                    <h2>📋 Solicitações de Empréstimo Extra</h2>
+                    <p>📭 Nenhuma solicitação pendente no momento.</p>
+                    <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button>
+                </div>
+            `;
+            return;
+        }
+
+        const listaHtml = solicitacoes.map(sol => `
+            <div class="solicitacao-card">
+                <p><strong>${sol.usuario.nome}</strong> (${sol.usuario.email})</p>
+                <p>📖 ${sol.livro.titulo} — ${sol.livro.autor}</p>
+                <p><small>Solicitado em: ${new Date(sol.data_solicitacao).toLocaleString()}</small></p>
+                <div class="livro-acoes">
+                    <button onclick="responderSolicitacao(${sol.id}, 'aprovar')" class="btn-renovar">✅ Aprovar</button>
+                    <button onclick="responderSolicitacao(${sol.id}, 'rejeitar')" class="btn-devolver">✖ Rejeitar</button>
+                </div>
+            </div>
+        `).join('');
+
+        conteudo.innerHTML = `
+            <div class="admin-panel">
+                <h2>📋 Solicitações de Empréstimo Extra</h2>
+                ${listaHtml}
+                <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Erro:', error);
+        conteudo.innerHTML = '<p>❌ Erro ao carregar solicitações.</p>';
+    }
+}
+
+window.responderSolicitacao = async function(id, acao) {
+    if (!await showConfirm(acao === 'aprovar' ? 'Aprovar essa solicitação?' : 'Rejeitar essa solicitação?', acao === 'aprovar' ? 'Aprovar' : 'Rejeitar')) return;
+
+    try {
+        const response = await fetch(`/solicitacoes/${id}/${acao}`, {
+            method: 'PUT',
+            headers: { 'usuario-id': usuarioAtual.id }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast(data.message, 'success');
+            mostrarSolicitacoes();
+        } else {
+            showToast(data.error || 'Erro desconhecido', 'error');
+        }
+    } catch (error) {
+        showToast('Erro ao responder solicitação', 'error');
+    }
+};
 
 // Função para mostrar logs (placeholder)
 function mostrarLogs() {
@@ -768,8 +1016,7 @@ function mostrarBackup() {
 window.alterarTipoUsuario = async function(userId, novoTipo) {
     console.log("Alterando usuário:", userId, "para:", novoTipo);
     
-    const confirmacao = confirm(`⚠️ Tem certeza que quer alterar este usuário para ${novoTipo.toUpperCase()}?`);
-    if (!confirmacao) {
+    if (!await showConfirm(`Tem certeza que quer alterar este usuário para ${novoTipo.toUpperCase()}?`, 'Alterar')) {
         await mostrarGerenciarUsuarios();
         return;
     }
@@ -787,15 +1034,15 @@ window.alterarTipoUsuario = async function(userId, novoTipo) {
         const data = await response.json();
         
         if (response.ok) {
-            alert(`✅ ${data.message}`);
+            showToast(data.message, 'success');
             await mostrarGerenciarUsuarios();
         } else {
-            alert(`❌ ${data.error || 'Erro ao alterar tipo'}`);
+            showToast(data.error || 'Erro desconhecido', 'error');
             await mostrarGerenciarUsuarios();
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('❌ Erro de conexão com o servidor');
+        showToast('Erro de conexão com o servidor', 'error');
     }
 };
 
@@ -804,12 +1051,11 @@ window.deletarUsuario = async function(userId) {
     console.log("Deletando usuário:", userId);
     
     if (userId === usuarioAtual.id) {
-        alert('❌ Você não pode deletar seu próprio usuário!');
+        showToast('Você não pode deletar seu próprio usuário!', 'error');
         return;
     }
     
-    const confirmacao = confirm('⚠️ ATENÇÃO! Deseja realmente excluir este usuário permanentemente?');
-    if (!confirmacao) return;
+    if (!await showConfirm('⚠️ ATENÇÃO! Deseja realmente excluir este usuário permanentemente?', 'Excluir', 'Cancelar')) return;
     
     try {
         const response = await fetch(`/usuarios/${userId}`, {
@@ -822,14 +1068,14 @@ window.deletarUsuario = async function(userId) {
         const data = await response.json();
         
         if (response.ok) {
-            alert('✅ Usuário excluído com sucesso!');
+            showToast('Usuário excluído com sucesso!', 'success');
             await mostrarGerenciarUsuarios();
         } else {
-            alert(`❌ ${data.error || 'Erro ao excluir usuário'}`);
+            showToast(data.error || 'Erro desconhecido', 'error');
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('❌ Erro de conexão com o servidor');
+        showToast('Erro de conexão com o servidor', 'error');
     }
 };
 
