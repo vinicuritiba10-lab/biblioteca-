@@ -732,7 +732,11 @@ async function enviarLembretes () {
     }
 
     try {
-        const response = await fetch('/notificacoes/verificar');
+        const response = await fetch('http://localhost:3000/notificacoes/verificar');
+
+        if(!response.ok) {
+            throw new Error(`erro no servidor: ${response.status}`);
+        }
 
         const data = await response.json();
 
@@ -748,6 +752,15 @@ async function enviarLembretes () {
         }
     }
 }
+
+document.addEventListener('DOMcontentLoaded', () => {
+    const btn = document.getElementById('btn-enviar-lembretes');
+    if(btn) {
+        btn.addEventListener('click', enviarLembretes);
+    }else {
+        console.warn('⚠️ O botão com o ID "btn-enviar-lembretes" não foi encontrado nesta página HTML.')
+    }
+})
 
 // Função mostrarGerenciarUsuarios corrigida
 async function mostrarGerenciarUsuarios() {
