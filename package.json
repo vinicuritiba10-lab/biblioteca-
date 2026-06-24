@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Sistema para facilitar a vida dos alunos e profissionais das bibliotecas escolares:\r - facil visualizaçao de emprestimos e devolutivas\r - organizaçao de prazos e renovaçao",
   "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -29,6 +32,7 @@
     "mysql2": "^3.20.0",
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.10",
+    "pdfkit": "^0.15.0",
     "sequelize": "^6.37.8",
     "sqlite3": "^6.0.1"
   }
