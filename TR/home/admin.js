@@ -23,6 +23,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.href = '../home/home.html';
         return;
     }
+
+    if (usuarioAtual.tipo !== 'admin') {
+        alert('Acesso negado. Área restrita para administradores.');
+        window.location.href = '../home/home.html';
+        return;
+    }
     
     // Mostra nome do admin no header
     const adminName = document.querySelector('.logo-text');
