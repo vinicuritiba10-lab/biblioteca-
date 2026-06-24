@@ -20,13 +20,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Verifica se é admin
     if (usuarioAtual.tipo !== 'admin') {
         alert('Acesso negado. Área restrita para administradores.');
-        window.location.href = '../home/home.html';
+        window.location.href = 'home.html';
         return;
     }
 
     if (usuarioAtual.tipo !== 'admin') {
         alert('Acesso negado. Área restrita para administradores.');
-        window.location.href = '../home/home.html';
+        window.location.href = 'home.html';
         return;
     }
     
