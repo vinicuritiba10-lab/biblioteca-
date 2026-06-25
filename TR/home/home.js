@@ -272,9 +272,10 @@ function exibirLivros(livros) {
             <div class="book-info">
                 <h3>${livro.titulo}</h3>
                 <p class="author">${livro.autor}</p>
+                <select><small>descriçao</small></select>
                 <span class="status ${livro.quantidade_disponivel > 0 ? 'disponivel' : 'ocupado'}">
                     ${livro.quantidade_disponivel > 0 ? '● Disponível' : '● Emprestado'}
-                    <select><small>descriçao</small></select>
+                    
                 </span>
                 ${livro.quantidade_disponivel > 0 ? 
                     `<button class="btn-borrow" onclick="solicitarEmprestimo(${livro.id})">Pegar Empréstimo</button>` : 
