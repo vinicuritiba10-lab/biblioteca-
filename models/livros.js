@@ -46,6 +46,11 @@ const livros = db.sequelize.define("livros", {
         allowNull: true
     },
 
+    descricao: {
+        type: db.Sequelize.STRING,
+        allowNull: true
+    },
+
 }, {
     timestamps: false,
     tableName: 'livros'
