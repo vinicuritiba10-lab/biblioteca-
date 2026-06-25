@@ -279,6 +279,9 @@ function exibirLivros(livros) {
                     `<button class="btn-borrow" onclick="solicitarEmprestimo(${livro.id})">Pegar Empréstimo</button>` : 
                     `<button class="btn-borrow btn-reservar" onclick="reservarLivro(${livro.id})">🔖 Reservar</button>`}
             </div>
+            <div class="books-info">
+                <select><small>descriçao</small></select>
+            </div>
         </div>
     `).join('');
 }
