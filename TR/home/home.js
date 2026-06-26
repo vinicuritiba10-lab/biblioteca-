@@ -276,6 +276,10 @@ function exibirLivros(livros) {
                    <option value=""><small>descricao</small></option>
                    <option value=""><small>${livro.descricao}</small></option>
                 </select>
+                <div id="caixa-previa" style="display: none; margin-top: 20px; padding: 15px; border-left: 4px solid #4CAF50; background-color: #f9f9f9; border-radius: 4px;">
+                    <h4 style="margin-top: 0; color: #333;">📖 Prévia do Livro:</h4>
+                    <p id="texto-previa" style="font-style: italic; color: #555; line-height: 1.5;"></p>
+                </div>
                 <span class="status ${livro.quantidade_disponivel > 0 ? 'disponivel' : 'ocupado'}">
                     ${livro.quantidade_disponivel > 0 ? '● Disponível' : '● Emprestado'}
                     

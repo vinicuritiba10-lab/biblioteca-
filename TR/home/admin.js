@@ -48,6 +48,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             window.location.href = '../login/index.html';
         });
     }
+
+    document.getElementById('descricaoLivro').addEventListener('change', function() {
+    // 1. Encontra qual tag <option> foi clicada
+    const opcaoSelecionada = this.options[this.selectedIndex];
+    
+    // 2. Puxa o texto da prévia que estava escondido no data-previa
+    const resumoDoLivro = opcaoSelecionada.dataset.previa;
+    
+    // 3. Captura os elementos da tela
+    const caixaPrevia = document.getElementById('caixa-previa');
+    const textoPrevia = document.getElementById('texto-previa');
+    
+    // 4. Se existir um texto, exibe a caixa e insere a prévia
+    if (resumoDoLivro) {
+        textoPrevia.textContent = resumoDoLivro;
+        caixaPrevia.style.display = 'block'; // Mostra a caixinha
+    } else {
+        caixaPrevia.style.display = 'none';  // Esconde se for a opção padrão
+    }
+});
 });
 
 // ========== FUNÇÕES PARA GERENCIAR USUÁRIOS ==========
