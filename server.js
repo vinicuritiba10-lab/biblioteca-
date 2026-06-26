@@ -826,7 +826,7 @@ server.post("/livros", isAdminOrBibliotecario, async (req, res) => {
             quantidade_total: quantidade_total || 1,
             quantidade_disponivel: quantidade_total || 1,
             capa_url: capa_url || null,
-			descricao: descricao || null
+			descricao: descricao
         });
         
         console.log("Livro criado:", novoLivro.toJSON()); // ← DEBUG
