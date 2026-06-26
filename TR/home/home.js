@@ -272,7 +272,7 @@ function exibirLivros(livros) {
             <div class="book-info">
                 <h3>${livro.titulo}</h3>
                 <p class="author">${livro.autor}</p>
-                <select id="descricao">
+                <select id="descricaoLivro">
                    <option value="descricao"><small>${livro.descricao}</small></option>
                 </select>
                 <span class="status ${livro.quantidade_disponivel > 0 ? 'disponivel' : 'ocupado'}">
