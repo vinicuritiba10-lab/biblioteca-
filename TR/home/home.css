@@ -759,3 +759,16 @@ body {
         padding: 20px 14px;
     }
 }
+
+select {
+    max-width: 300px;      /* Não deixa o select passar desse tamanho */
+    font-size: 14px;       /* Letra um pouco menor */
+    padding: 6px;          /* Espaçamento interno menor */
+    text-overflow: ellipsis; /* Coloca "..." se o título do livro for muito grande */
+}
+
+/* Reduz o tamanho da fonte da lista que se abre (funciona na maioria dos navegadores) */
+select option {
+    font-size: 12px;
+    padding: 4px;
+}
