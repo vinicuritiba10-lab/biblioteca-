@@ -117,6 +117,31 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     document.getElementById('btn-voltar').addEventListener('click', mostrarInicio);
     document.getElementById('btn-voltar-emprestimos').addEventListener('click', mostrarInicio);
+
+    // Executa após a página e os livros carregarem
+    document.addEventListener('click', function(event) {
+        // 1. Verifica se o que foi clicado foi um link de sinopse
+        if (event.target.classList.contains('link-sinopse')) {
+            event.preventDefault(); // Impede a página de pular para o topo
+
+            const linkClicado = event.target;
+            const sinopseTexto = linkClicado.dataset.sinopse;
+
+            // 2. Captura os elementos do balão
+            const balao = document.getElementById('notificacao-sinopse');
+            const spanTexto = document.getElementById('texto-da-sinopse');
+
+            // 3. Altera o texto e mostra o balão
+            spanTexto.textContent = sinopseTexto || "Este livro não possui descrição cadastrada.";
+            balao.classList.add('mostrar');
+        }
+    });
+
+    // 2. Lógica para fechar o balão ao clicar no 'X'
+    document.getElementById('fechar-balao').addEventListener('click', () => {
+        document.getElementById('notificacao-sinopse').classList.remove('mostrar');
+    });
+
 });
 
 function carregarCategorias() {
@@ -272,10 +297,11 @@ function exibirLivros(livros) {
             <div class="book-info">
                 <h3>${livro.titulo}</h3>
                 <p class="author">${livro.autor}</p>
-                <select id="descricaoLivro">
-                   <option value=""><small>descricao</small></option>
-                   <option value=""><small>${livro.descricao}</small></option>
-                </select>
+                <div id="notificacao-sinopse" class="notificacao-balao">
+                    <span class="fechar-notificacao" id="fechar-balao">&times;</span>
+                    <h4 style="margin: 0 0 5px 0; color: #4CAF50;">📖 Sinopse do Livro</h4>
+                    <span id="texto-da-sinopse">Texto da sinopse aqui...</span>
+                </div>
                 <span class="status ${livro.quantidade_disponivel > 0 ? 'disponivel' : 'ocupado'}">
                     ${livro.quantidade_disponivel > 0 ? '● Disponível' : '● Emprestado'}
                     

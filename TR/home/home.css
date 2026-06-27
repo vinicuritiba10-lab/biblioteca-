@@ -760,15 +760,55 @@ body {
     }
 }
 
-select {
-    max-width: 300px;      /* Não deixa o select passar desse tamanho */
-    font-size: 14px;       /* Letra um pouco menor */
-    padding: 6px;          /* Espaçamento interno menor */
-    text-overflow: ellipsis; /* Coloca "..." se o título do livro for muito grande */
+/* Estilo do balão de notificação */
+.notificacao-balao {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #333333; /* Fundo escuro moderno */
+    color: #ffffff;
+    padding: 15px 20px;
+    border-radius: 8px;
+    max-width: 320px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    z-index: 1000;
+    
+    /* Efeito de transição para sumir/aparecer suavemente */
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
 }
 
-/* Reduz o tamanho da fonte da lista que se abre (funciona na maioria dos navegadores) */
-select option {
-    font-size: 12px;
-    padding: 4px;
+/* Classe que ativa o balão via JavaScript */
+.notificacao-balao.mostrar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* O botão 'X' para fechar */
+.fechar-notificacao {
+    float: right;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    color: #aaa;
+}
+.fechar-notificacao:hover {
+    color: #fff;
+}
+
+/* Estilo opcional para os links dos livros ficarem limpos */
+.link-sinopse {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: 500;
+}
+.link-sinopse:hover {
+    text-decoration: underline;
 }
