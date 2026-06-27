@@ -300,7 +300,7 @@ function exibirLivros(livros) {
                 <div id="notificacao-sinopse" class="notificacao-balao">
                     <span class="fechar-notificacao" id="fechar-balao">&times;</span>
                     <h4 style="margin: 0 0 5px 0; color: #4CAF50;">📖 Sinopse do Livro</h4>
-                    <span id="texto-da-sinopse">Texto da sinopse aqui...</span>
+                    <span id="texto-da-sinopse">${livro.descricao}</span>
                 </div>
                 <span class="status ${livro.quantidade_disponivel > 0 ? 'disponivel' : 'ocupado'}">
                     ${livro.quantidade_disponivel > 0 ? '● Disponível' : '● Emprestado'}
