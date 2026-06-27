@@ -47,7 +47,7 @@ const livros = db.sequelize.define("livros", {
     },
 
     descricao: {
-        type: db.Sequelize.STRING,
+        type: db.Sequelize.TEXT,
         allowNull: true
     },
 
