@@ -279,7 +279,7 @@ async function adicionarLivro(event) {
         categoria: document.getElementById('categoria').value,
         quantidade_total: parseInt(document.getElementById('quantidade_total').value) || 1,
         capa_url: document.getElementById('capa_url').value || null,
-        descricao: document.getElementById('texto-da-sinopse').value
+        descricao: document.getElementById('livro-descricao').value
     };
     
     console.log("Enviando livro:", livro); // ← DEBUG
