@@ -821,28 +821,7 @@ body {
     text-align: justify;          /* Alinha o texto elegantemente */
 }
 
-/* Estilo do balão de notificação */
-.notificacao-balao {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #333333; /* Fundo escuro moderno */
-    color: #ffffff;
-    padding: 15px 20px;
-    border-radius: 8px;
-    max-width: 320px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.4;
-    z-index: 1000;
-    
-    /* Efeito de transição para sumir/aparecer suavemente */
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(20px);
-    transition: all 0.3s ease;
-}
+
 
 /* Classe que ativa o balão via JavaScript */
 .notificacao-balao.mostrar {
