@@ -783,32 +783,41 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Classe que ativa o balão via JavaScript */
-.notificacao-balao.mostrar {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
+/* Estilo do balão de notificação corrigido e expandido */
+.notificacao-balao {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #2c3e50; /* Tom escuro azulado elegante */
+    color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    
+    /* CORREÇÃO DE TAMANHO */
+    width: 450px;                 /* Aumenta a largura fixa do balão */
+    max-width: 90vw;              /* Garante que não vai quebrar em telas de celular */
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    z-index: 1000;
+    
+    /* CORREÇÃO DO TEXTO CORTE */
+    white-space: normal;          /* Força o texto a quebrar linhas em vez de seguir reto */
+    word-wrap: break-word;        /* Quebra palavras gigantes se necessário */
+    overflow-wrap: break-word;
+    
+    /* Efeito de transição suave */
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: all 0.3s ease-in-out;
 }
 
-/* O botão 'X' para fechar */
-.fechar-notificacao {
-    float: right;
-    margin-left: 10px;
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
-    color: #aaa;
-}
-.fechar-notificacao:hover {
-    color: #fff;
+/* Garante que o texto dentro do span use o espaço inteiro */
+#texto-da-sinopse {
+    display: block;
+    margin-top: 8px;
+    text-align: justify;          /* Alinha o texto elegantemente */
 }
 
-/* Estilo opcional para os links dos livros ficarem limpos */
-.link-sinopse {
-    text-decoration: none;
-    color: #007bff;
-    font-weight: 500;
-}
-.link-sinopse:hover {
-    text-decoration: underline;
-}
