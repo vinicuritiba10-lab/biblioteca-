@@ -297,10 +297,11 @@ function exibirLivros(livros) {
             <div class="book-info">
                 <h3>${livro.titulo}</h3>
                 <p class="author">${livro.autor}</p>
-                <div id="notificacao-sinopse" class="notificacao-balao">
-                    <span class="fechar-notificacao" id="fechar-balao">&times;</span>
-                    <h4 style="margin: 0 0 5px 0; color: #4CAF50;">📖 Sinopse do Livro</h4>
-                    <span id="texto-da-sinopse">${livro.descricao}</span>
+                <div class="livro-item">
+                    <!-- O link que aciona a notificação -->
+                    <a href="#" class="link-sinopse" data-sinopse="${livro.descricao}">
+                        📖 ${livro.titulo}
+                    </a>
                 </div>
                 <span class="status ${livro.quantidade_disponivel > 0 ? 'disponivel' : 'ocupado'}">
                     ${livro.quantidade_disponivel > 0 ? '● Disponível' : '● Emprestado'}
