@@ -356,12 +356,8 @@ async function mostrarMeusEmprestimos() {
         
         return `
             <div class="book-card">
-                <!-- <div class="book-cover ${cores[index % cores.length]}">${icones[index % icones.length]}</div> -->
-                <div class="book-cover ${cores[index % cores.length]}" ${emp.livro.capa_url ? 'style="padding:0;"' : ''}>
-                    ${emp.livro.capa_url
-                        ? `<img src="${emp.livro.capa_url}" alt="Capa de ${emp.livro.titulo}" class="book-cover-img" onerror="this.parentElement.innerHTML='${icones[index % icones.length]}'">`
-                        : icones[index % icones.length]}
-                </div>
+                <div class="book-cover ${cores[index % cores.length]}">${icones[index % icones.length]}</div> 
+                
                 <div class="book-info">
                     <h3>${emp.livro.titulo}</h3>
                     <p>Autor: ${emp.livro.autor}</p>
