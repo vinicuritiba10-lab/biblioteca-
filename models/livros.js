@@ -42,7 +42,7 @@ const livros = db.sequelize.define("livros", {
     },
 
     capa_url: {
-        type: db.Sequelize.STRING,
+        type: db.Sequelize.TEXT,
         allowNull: true
     },
 
