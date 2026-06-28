@@ -42,7 +42,12 @@ const Emprestimo = db.sequelize.define("emprestimos", {
     renovacoes_restantes: {
         type: db.Sequelize.INTEGER,
         defaultValue: 2
-    }
+    },
+
+    capa_url_emprestimo: {
+        type: db.Sequelize.TEXT,
+        allowNull: true
+    },
 }, {
     timestamps: false,
     tablename: 'emprestimos'
