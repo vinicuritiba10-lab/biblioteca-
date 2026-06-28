@@ -332,7 +332,7 @@ server.get("/usuarios/:id/emprestimos", async (req, res) => {
 
 server.post("/emprestimos", async (req, res) => {
 	try {
-		const { usuario_id, livro_id, data_devolucao_prevista, capa_url} = req.body;
+		const { usuario_id, livro_id, data_devolucao_prevista} = req.body;
 
 		const livro = await livros.findByPk(livro_id);
 		if (!livro) {
@@ -344,7 +344,6 @@ server.post("/emprestimos", async (req, res) => {
 			livro_id: livro_id,
 			data_emprestimo: new Date(),
 			data_prevista_devolucao: data_devolucao_prevista,
-			capa_url: capa_url,
 			status: 'ativo'
 		});
 

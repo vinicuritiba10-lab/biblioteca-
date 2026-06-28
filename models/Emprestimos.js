@@ -44,10 +44,6 @@ const Emprestimo = db.sequelize.define("emprestimos", {
         defaultValue: 2
     },
 
-    capa_url_emprestimo: {
-        type: db.Sequelize.TEXT,
-        allowNull: true
-    },
 }, {
     timestamps: false,
     tablename: 'emprestimos'
