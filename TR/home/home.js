@@ -297,6 +297,7 @@ function exibirLivros(livros) {
             <div class="book-info">
                 <h3>${livro.titulo}</h3>
                 <p class="author">${livro.autor}</p>
+                <p class="author">sinopse</p>
                 <div class="livro-item">
                     <!-- O link que aciona a notificação -->
                     <a href="#" class="link-sinopse" data-sinopse="${livro.descricao}">
