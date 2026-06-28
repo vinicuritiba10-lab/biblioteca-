@@ -300,7 +300,7 @@ function exibirLivros(livros) {
                 <div class="livro-item">
                     <!-- O link que aciona a notificação -->
                     <a href="#" class="link-sinopse" data-sinopse="${livro.descricao}">
-                        📖 sinopse
+                        📖 ${livro.descricao}
                     </a>
                 </div>
                 <span class="status ${livro.quantidade_disponivel > 0 ? 'disponivel' : 'ocupado'}">
