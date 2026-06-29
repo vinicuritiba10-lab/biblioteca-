@@ -11,7 +11,7 @@
 // versao abaixo (v2 -> v3 -> v4...). Isso forca o celular a esquecer o cache
 // antigo e buscar os arquivos novos.
 
-const CACHE_NAME = "libro-cache-v2";
+const CACHE_NAME = "libro-cache-v8";
 
 const ARQUIVOS_PARA_CACHEAR = [
   "/login/index.html",
@@ -26,7 +26,13 @@ const ARQUIVOS_PARA_CACHEAR = [
   "/img/g10.png",
   "/img/icon-192.png",
   "/img/icon-512.png",
-  "/manifest.json"
+  "/manifest.json",
+  "/tokens.css",
+  "/toast.css",
+  "/toast.js",
+  "/theme.css",
+  "/theme-toggle.js",
+  "/password-toggle.js"
 ];
 
 self.addEventListener("install", (event) => {
