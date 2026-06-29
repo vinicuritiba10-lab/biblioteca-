@@ -791,7 +791,8 @@ server.post("/livros", isAdminOrBibliotecario, async (req, res) => {
             ano, 
             categoria, 
             quantidade_total,
-            capa_url
+            capa_url,
+			descricao
         } = req.body;
         
         // VALIDAÇÃO: verifica se os campos obrigatórios existem
@@ -810,7 +811,8 @@ server.post("/livros", isAdminOrBibliotecario, async (req, res) => {
             categoria: categoria || null,
             quantidade_total: quantidade_total || 1,
             quantidade_disponivel: quantidade_total || 1,
-            capa_url: capa_url || null
+            capa_url: capa_url || null,
+			descricao: descricao
         });
         
         console.log("Livro criado:", novoLivro.toJSON()); // ← DEBUG
