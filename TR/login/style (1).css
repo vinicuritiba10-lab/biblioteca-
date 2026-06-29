@@ -1,0 +1,270 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--fonte-principal, 'Poppins', sans-serif);
+}
+
+body {
+    overflow-x: hidden;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Lado esquerdo com gradiente */
+.left-side {
+    flex: 1;
+    background: linear-gradient(135deg, #ec380b 0%, #764ba2 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 10s ease infinite;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    padding: 48px 32px;
+    text-align: center;
+}
+
+/* leve textura de profundidade no painel de gradiente */
+.left-side::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 18% 20%, rgba(255,255,255,0.14) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(255,255,255,0.10) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.left-side img {
+    position: relative;
+    width: 96px;
+    height: auto;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.25));
+    animation: flutuar 5s ease-in-out infinite;
+}
+
+@keyframes flutuar {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+/* Conteúdo de boas-vindas */
+.welcome-content {
+    position: relative;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.welcome-content h1 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.25);
+    letter-spacing: -0.5px;
+}
+
+.welcome-content p {
+    font-size: 1.05rem;
+    margin-bottom: 1.75rem;
+    opacity: 0.92;
+    line-height: 1.5;
+}
+
+/* Elemento decorativo */
+.decorative-element {
+    width: 90px;
+    height: 90px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    animation: pulse 3s ease infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.12); opacity: 0.85; }
+    100% { transform: scale(1); opacity: 0.5; }
+}
+
+/* Lado direito com o formulário */
+.right-side {
+    flex: 1;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+/* Container do formulário de login */
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    background: #ffffff;
+    padding: 2.5rem 2.25rem;
+    border-radius: 20px;
+    box-shadow: 0 18px 45px rgba(45, 52, 54, 0.10), 0 4px 12px rgba(45, 52, 54, 0.05);
+    animation: subirEDesaparecer 0.5s ease both;
+}
+
+@keyframes subirEDesaparecer {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-container h2 {
+    text-align: center;
+    margin-bottom: 1.75rem;
+    color: #2d3436;
+    font-size: 1.85rem;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 1.4rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem 0.9rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: #fbfbfc;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #d8dbe0;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #ec380b;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(236, 56, 11, 0.10);
+}
+
+button {
+    width: 100%;
+    padding: 0.85rem;
+    background: linear-gradient(135deg, #ec380b 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1), filter 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(236, 56, 11, 0.30);
+    filter: brightness(1.04);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(236, 56, 11, 0.25);
+}
+
+button:focus-visible {
+    outline: 3px solid rgba(118, 75, 162, 0.4);
+    outline-offset: 3px;
+}
+
+.signup-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #666;
+    font-size: 0.92rem;
+}
+
+.signup-link a {
+    color: #764ba2;
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
+.signup-link a:hover {
+    color: #ec380b;
+    text-decoration: underline;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .left-side {
+        min-height: 260px;
+        padding: 36px 24px;
+        gap: 18px;
+    }
+
+    .left-side img {
+        width: 72px;
+    }
+
+    .welcome-content h1 {
+        font-size: 1.9rem;
+    }
+
+    .welcome-content p {
+        font-size: 0.95rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .decorative-element {
+        width: 60px;
+        height: 60px;
+    }
+
+    .right-side {
+        padding: 1.5rem 1.25rem 2.5rem;
+    }
+
+    .login-container {
+        padding: 2rem 1.5rem;
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 380px) {
+    .welcome-content h1 {
+        font-size: 1.6rem;
+    }
+}

@@ -2,9 +2,22 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <script>
+    (function() {
+        try {
+            var salvo = localStorage.getItem('libro-tema');
+            var prefereEscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var tema = salvo || (prefereEscuro ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', tema);
+        } catch (e) {}
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login</title>
+    <link rel="stylesheet" href="/tokens.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/toast.css">
+    <link rel="stylesheet" href="/theme.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#e8491d">
     <link rel="apple-touch-icon" href="/img/icon-192.png">
@@ -12,6 +25,7 @@
     <meta name="apple-mobile-web-app-title" content="Libro">
 </head>
 <body>
+    <button class="btn-tema" onclick="libroAlternarTema()" aria-label="Alternar modo escuro" title="Modo escuro">🌙</button>
 
    
    
@@ -42,11 +56,19 @@
                     <div class="form-group">
                         
                         <label for="email">E-mail</label>
-                        <input type="email" id="email" placeholder="Digite seu e-mail">
+                        <input type="email" id="email" list="sugestao-email-login" autocomplete="off" placeholder="Digite seu e-mail">
+                        <datalist id="sugestao-email-login">
+                            <option id="opcao-dominio-login" value=""></option>
+                        </datalist>
                     </div>
                     <div class="form-group">
                         <label for="password">Senha</label>
-                        <input type="password" id="password" placeholder="Digite sua senha">
+                        <div class="campo-senha">
+                            <input type="password" id="password" placeholder="Digite sua senha">
+                            <button type="button" class="btn-olho" onclick="alternarSenha(this)" aria-label="Mostrar senha">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" id="btn-login">Entrar</button>
                     
@@ -66,6 +88,9 @@
     
 
 
+    <script src="/toast.js"></script>
+    <script src="/theme-toggle.js"></script>
+    <script src="/password-toggle.js"></script>
     <script src="login.js" defer></script>
     
     <script src="/pwa-register.js"></script>

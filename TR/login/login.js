@@ -10,6 +10,20 @@ nomeInput.addEventListener("blur", checkInputNome);
 emailInput.addEventListener("blur", checkInputEmail);
 senhaInput.addEventListener("blur", checkInputPassword);
 
+// sugestao de dominio em tempo real, enquanto a pessoa digita
+const opcaoDominioLogin = document.getElementById('opcao-dominio-login');
+if (opcaoDominioLogin) {
+    emailInput.addEventListener('input', function() {
+        const valor = emailInput.value.trim();
+        const parteLocal = valor.split('@')[0];
+        if (parteLocal) {
+            opcaoDominioLogin.value = parteLocal + "@escola.pr.gov.br";
+        } else {
+            opcaoDominioLogin.value = '';
+        }
+    });
+}
+
 
 function checkInputNome() {
     const nomeValue = nomeInput.value;
@@ -17,14 +31,15 @@ function checkInputNome() {
         errorInput(nomeInput, "O nome é obrigatório.");
         return false;
     } else {
-        const formItem = nomeInput.parentElement;
+        const formItem = nomeInput.closest('.form-group');
         formItem.className = "form-group";
         return true;
     }
 }
 
 function checkInputEmail() {
-    // sugere o dominio da escola se a pessoa digitou so a parte antes do @
+    // completa o dominio da escola so se a pessoa ainda nao digitou nenhum @
+    // (no login nao forcamos o dominio, pra nao quebrar contas antigas de teste)
     const valorAtual = emailInput.value.trim();
     if (valorAtual && !valorAtual.includes('@')) {
         emailInput.value = valorAtual + "@escola.pr.gov.br";
@@ -35,7 +50,7 @@ function checkInputEmail() {
         errorInput(emailInput, "O email é obrigatório.");
         return false;
     } else {
-        const formItem = emailInput.parentElement;
+        const formItem = emailInput.closest('.form-group');
         formItem.className = "form-group";
         return true;
     }
@@ -48,7 +63,7 @@ function checkInputTipo(){
     return false;
 
   } else {
-    const formItem = tipoInput.parentElement;
+    const formItem = tipoInput.closest('.form-group');
     formItem.className = "form-group";
     return true;
   }
@@ -63,14 +78,14 @@ function checkInputPassword() {
         errorInput(senhaInput, "A senha precisa ter no mínimo 8 caracteres.");
         return false;
     } else {
-        const formItem = senhaInput.parentElement;
+        const formItem = senhaInput.closest('.form-group');
         formItem.className = "form-group";
         return true;
     }
 }
 
 function errorInput(input, message) {
-    const formItem = input.parentElement;
+    const formItem = input.closest('.form-group');
     const textMessage = formItem.querySelector("a") || document.createElement("a");
     textMessage.innerText = message;
     formItem.className = "form-group error";
@@ -108,15 +123,15 @@ form.addEventListener("submit", async (event) => {
         if (response.ok) {
             localStorage.setItem("token", data.token);
             localStorage.setItem("usuario", JSON.stringify(data.usuario));
-            alert("Login realizado com sucesso!");
-            window.location.href = "../home/home.html";
+            showToast("Login realizado com sucesso!", "success", 2000);
+            setTimeout(() => { window.location.href = "../home/home.html"; }, 1200);
         } else {
-            alert(data.error || "Erro ao fazer login");
+            showToast(data.error || "Erro ao fazer login", "error");
         }
 
     } catch (error) {
         console.error("Erro:", error);
-        alert("Erro de conexão com o servidor");
+        showToast("Erro de conexão com o servidor", "error");
     }
 });
 
@@ -129,7 +144,7 @@ document.getElementById("btn-login").addEventListener("click", async function(e)
     
 
     if (!email || !senha) {
-        alert("preencha todos os campos");
+        showToast("Preencha todos os campos", "warning");
         return;
     }
 
@@ -154,17 +169,17 @@ document.getElementById("btn-login").addEventListener("click", async function(e)
         if(response.ok && data.success) {
             localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
             
-            alert(`bem-vindo, ${data.usuario.nome}!`);
+            showToast(`Bem-vindo, ${data.usuario.nome}! 👋`, "success", 2500);
 
             window.location.href = "../home/home.html";
         } else {
 
-            alert(data.error || "erro ao fazer login");
+            showToast(data.error || "Erro ao fazer login", "error");
         }
 
     } catch (error) {
         console.error("erro:", error);
-        alert("erro de conexao com o servidor. verificar backend");
+        showToast("Erro de conexão com o servidor", "error");
 
     } finally {
         btn.disabled = false;

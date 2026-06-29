@@ -2,9 +2,20 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <script>
+    (function() {
+        try {
+            var salvo = localStorage.getItem('libro-tema');
+            var prefereEscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var tema = salvo || (prefereEscuro ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', tema);
+        } catch (e) {}
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cadastro - Libro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/tokens.css">
     <link rel="stylesheet" href="cadastro.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#e8491d">
@@ -12,8 +23,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Libro">
     <link rel="stylesheet" href="/toast.css">
+    <link rel="stylesheet" href="/theme.css">
 </head>
 <body>
+    <button class="btn-tema" onclick="libroAlternarTema()" aria-label="Alternar modo escuro" title="Modo escuro">🌙</button>
     <div class="container">
         <div class="form-container">
             <h1>📚 Cadastro - Biblioteca Libro</h1>
@@ -27,20 +40,8 @@
                 <div class="form-group">
                     <label for="email">E-mail *</label>
                     <input type="email" id="email" required autocomplete="off">
-                    <div id="email-sugestao" style="
-                        display: none;
-                        margin-top: 6px;
-                        padding: 9px 14px;
-                        background: #f0faf0;
-                        border: 1.5px solid #4CAF50;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        color: #2e7d32;
-                        cursor: pointer;
-                        font-family: 'Poppins', sans-serif;
-                        transition: background 0.15s;
-                    ">
-                        <span style="opacity:0.55; font-size:12px;">↩ Toque para usar:</span><br>
+                    <div id="email-sugestao" class="sugestao-email-box" style="display: none;">
+                        <span class="sugestao-email-dica">↩ Toque para usar:</span><br>
                         <strong id="email-sugestao-texto"></strong>
                     </div>
                     <small>Use seu e-mail da escola (@escola.pr.gov.br)</small>
@@ -48,12 +49,22 @@
                 
                 <div class="form-group">
                     <label for="senha">Senha *</label>
-                    <input type="password" id="senha" required>
+                    <div class="campo-senha">
+                        <input type="password" id="senha" required>
+                        <button type="button" class="btn-olho" onclick="alternarSenha(this)" aria-label="Mostrar senha">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="confirmar-senha">Confirmar Senha *</label>
-                    <input type="password" id="confirmar-senha" required>
+                    <div class="campo-senha">
+                        <input type="password" id="confirmar-senha" required>
+                        <button type="button" class="btn-olho" onclick="alternarSenha(this)" aria-label="Mostrar senha">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -71,6 +82,8 @@
     </div>
     
     <script src="/toast.js"></script>
+    <script src="/theme-toggle.js"></script>
+    <script src="/password-toggle.js"></script>
     <script src="cadastro.js"></script>
     <script src="/pwa-register.js"></script>
 </body>
