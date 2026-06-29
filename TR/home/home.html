@@ -2,11 +2,23 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <script>
+    (function() {
+        try {
+            var salvo = localStorage.getItem('libro-tema');
+            var prefereEscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var tema = salvo || (prefereEscuro ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', tema);
+        } catch (e) {}
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Libro | Biblioteca Digital</title>
+    <link rel="stylesheet" href="/tokens.css">
     <link rel="stylesheet" href="home.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/toast.css">
+    <link rel="stylesheet" href="/theme.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#e8491d">
     <link rel="apple-touch-icon" href="/img/icon-192.png">
@@ -34,6 +46,7 @@
                 <li><a href="#" id="btn-reservas" class="nav-link">Reservas</a></li>
                 <li><a href="#" id="btn-conta" class="nav-link account-btn">Minha Conta</a></li>
                 <li><a href="#" id="btn-sair" class="nav-link">Sair</a></li>
+                <li><button class="btn-tema" onclick="libroAlternarTema()" aria-label="Alternar modo escuro" title="Modo escuro">🌙</button></li>
             </ul>
         </nav>
     </header>
@@ -91,23 +104,27 @@
         <!-- Seção de relatórios para bibliotecário -->
         <section id="relatorios-section" class="relatorios-section" style="display: none;">
             <div class="container">
-                <h2>📊 Relatório de Empréstimos</h2>
-                <table id="tabela-emprestimos" class="tabela-emprestimos">
-                    <thead>
-                        <tr>
-                            <th>Usuário</th>
-                            <th>Livro</th>
-                            <th>ISBN</th>
-                            <th>Status</th>
-                            <th id="lembretes">📧lembretes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="3">Carregando...</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="relatorio-toolbar">
+                    <h2>📊 Relatório de Empréstimos</h2>
+                    <div id="lembretes" class="lembretes-acao"></div>
+                </div>
+                <div class="tabela-scroll">
+                    <table id="tabela-emprestimos" class="tabela-emprestimos">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Livro</th>
+                                <th>ISBN</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4">Carregando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -118,10 +135,18 @@
         <div id="admin-menu" class="admin-menu" style="display: none;">
             <h3>⚙️ Painel de Administração</h3>
             <div class="admin-buttons">
-                <button onclick="window.location.href='admin-livros.html'" class="btn-admin">📚 Gerenciar Livros</button>
-                <button onclick="mostrarGerenciarUsuarios()" class="btn-admin">👥 Gerenciar Usuários</button>
-                <button onclick="mostrarEstatisticas()" class="btn-admin">📊 Estatísticas</button>
-                <button onclick="mostrarSolicitacoes()" class="btn-admin">📋 Solicitações</button>
+                <button onclick="window.location.href='admin-livros.html'" class="btn-admin">
+                    <span class="btn-admin-icon">📚</span> Gerenciar Livros
+                </button>
+                <button onclick="mostrarGerenciarUsuarios()" class="btn-admin">
+                    <span class="btn-admin-icon">👥</span> Gerenciar Usuários
+                </button>
+                <button onclick="mostrarEstatisticas()" class="btn-admin">
+                    <span class="btn-admin-icon">📊</span> Estatísticas
+                </button>
+                <button onclick="mostrarSolicitacoes()" class="btn-admin">
+                    <span class="btn-admin-icon">📋</span> Solicitações
+                </button>
             </div>
 
             <div id="lista-usuarios-admin">
@@ -130,19 +155,20 @@
             
             <!-- Opções extras apenas para ADMIN -->
             <div id="admin-extra" style="display: none;">
-                <button onclick="mostrarLogs()" class="btn-admin-super">🔐 Logs do Sistema</button>
-                <button onclick="mostrarBackup()" class="btn-admin-super">💾 Backup</button>
+                <p class="admin-extra-label">Ações avançadas</p>
+                <div class="admin-buttons">
+                    <button onclick="mostrarLogs()" class="btn-admin-super">
+                        <span class="btn-admin-icon">🔐</span> Logs do Sistema
+                    </button>
+                    <button onclick="mostrarBackup()" class="btn-admin-super">
+                        <span class="btn-admin-icon">💾</span> Backup
+                    </button>
+                </div>
             </div>
         </div>
 
        
     </main>
-
-    <div id="notificacao-sinopse" class="notificacao-balao">
-        <span class="fechar-notificacao" id="fechar-balao">&times;</span>
-        <h4 style="margin: 0 0 5px 0; color: #4CAF50;">📖 Sinopse do Livro</h4>
-        <span id="texto-da-sinopse">Texto da sinopse aqui...</span>
-    </div>
 
     <footer class="footer">
         <div class="footer-content">
@@ -155,8 +181,8 @@
     </footer>
 
     <script src="/toast.js"></script>
+    <script src="/theme-toggle.js"></script>
     <script src="home.js"></script>
-    <script src="admin.js"></script>
     <script src="/pwa-register.js"></script>
 </body>
 </html>

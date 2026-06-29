@@ -2,8 +2,19 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <script>
+    (function() {
+        try {
+            var salvo = localStorage.getItem('libro-tema');
+            var prefereEscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var tema = salvo || (prefereEscuro ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', tema);
+        } catch (e) {}
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin - Gerenciar Livros | Libro</title>
+    <link rel="stylesheet" href="/tokens.css">
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
@@ -11,6 +22,8 @@
     <link rel="apple-touch-icon" href="/img/icon-192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Libro">
+    <link rel="stylesheet" href="/toast.css">
+    <link rel="stylesheet" href="/theme.css">
 </head>
 <body>
     <header class="princ">
@@ -21,6 +34,7 @@
         <nav class="navigation">
             <ul class="nav-menu">
                 <li><a href="home.html" class="nav-link">🏠 Início</a></li>
+                <li><button class="btn-tema" onclick="libroAlternarTema()" aria-label="Alternar modo escuro" title="Modo escuro">🌙</button></li>
                 <!--<li><a href="#" id="btn-sair" class="nav-link">🚪 Sair</a></li> -->
             </ul>
         </nav>
@@ -76,10 +90,6 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>descricao livro</label>
-                            <textarea id="notificacao-sinopse" rows="4" placeholder="Digite uma mini prévia sobre o livro..."></textarea>
-                        </div>
-                        <div class="form-group">
                             <label>Quantidade</label>
                             <input type="number" id="quantidade_total" value="1" min="1">
                         </div>
@@ -115,10 +125,8 @@
         
     </main>
 
-    <!-- O balão flutuante que vai exibir a prévia -->
-         
-
-
+    <script src="/toast.js"></script>
+    <script src="/theme-toggle.js"></script>
     <script src="admin.js"></script>
     <script src="/pwa-register.js"></script>
 </body>
