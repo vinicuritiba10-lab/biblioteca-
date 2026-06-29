@@ -857,7 +857,8 @@ server.put("/livros/:id", isAdminOrBibliotecario, async (req, res) => {
             ano,
             categoria,
             quantidade_total,
-            capa_url
+            capa_url,
+			descricao
         } = req.body;
 
         if (!titulo || !autor) {
@@ -880,7 +881,8 @@ server.put("/livros/:id", isAdminOrBibliotecario, async (req, res) => {
             categoria: categoria || null,
             quantidade_total: novoTotal,
             quantidade_disponivel: novaDisponivel,
-            capa_url: capa_url || null
+            capa_url: capa_url || null,
+			descricao: descricao
         });
 
         res.json({ message: "Livro atualizado com sucesso!", livro: livro });
