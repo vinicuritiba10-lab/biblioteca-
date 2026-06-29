@@ -332,7 +332,7 @@ server.get("/usuarios/:id/emprestimos", async (req, res) => {
 
 server.post("/emprestimos", async (req, res) => {
 	try {
-		const { usuario_id, livro_id, data_devolucao_prevista} = req.body;
+		const { usuario_id, livro_id, data_devolucao_prevista } = req.body;
 
 		const livro = await livros.findByPk(livro_id);
 		if (!livro) {
@@ -553,17 +553,15 @@ server.get("/notificacoes/verificar", async (req, res) => {
 	try {
 		const { Op } = require('sequelize');
 		const hoje = new Date();
-		hoje.setHours(0, 0, 0, 0);
 		const daqui3Dias = new Date();
 		daqui3Dias.setDate(hoje.getDate() + 3);
-		daqui3Dias.setHours(23, 59, 59, 999);
 
 		//busca emprestimos que vencem em ate 3 dias
 		const emprestimos = await Emprestimo.findAll({
 			where: {
 				status: 'ativo',
 				data_prevista_devolucao: {
-					[Op.between]: [hoje, daqui3Dias]
+					[Op.lte]: daqui3Dias
 				}
 			},
 			include: [
@@ -576,44 +574,32 @@ server.get("/notificacoes/verificar", async (req, res) => {
 		const resultados = [];
 
 		for (const emp of emprestimos) {
-
-			const usuarioData = emp.usuario;
-			const livroData = emp.livro;
-
-			if (!usuarioData || !livroData) {
-				console.warn(` dados incomplestos para o imprestimo ID: ${emp.id}`);
-				continue;
-			}
 			const dataDevolucao = new Date(emp.data_prevista_devolucao);
-			dataDevolucao.setHours(0, 0, 0, 0);
-
-			const diferencaTempo = dataDevolucao.getTime() - hoje.getTime();
-			const diasRestantes = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
+			const diasRestantes = Math.ceil((dataDevolucao - hoje) / (1000 * 60 * 60 * 24));
 
 			const enviado = await enviarlembreteDevolucao(
-				usuarioData.email,
-				usuarioData.nome,
-				livroData.titulo,
+				emp.usuario.email,
+				emp.usuario.nome,
+				emp.livro.titulo,
 				emp.data_prevista_devolucao,
 				diasRestantes
 			);
 
 			resultados.push({
-				usuario: usuarioData.nome,
-				livro: livroData.titulo,
-				email: usuarioData.email,
+				usuario: emp.usuario.nome,
+				livro: emp.livro.titulo,
+				email: emp.usuario.email,
 				enviado: enviado,
 				dias_restantes: diasRestantes
 			});
 		}
 
 		res.json({
-			success: true,
 			message: `notificacoes processadas: ${resultados.length}`,
 			notificacoes: resultados
 		});
 	} catch (error) {
-		console.error("erro na rota de notificacoes:", error);
+		console.error("erro:", error);
 		res.status(500).json({ error: error.message });
 	}
 });
@@ -805,8 +791,7 @@ server.post("/livros", isAdminOrBibliotecario, async (req, res) => {
             ano, 
             categoria, 
             quantidade_total,
-            capa_url,
-			descricao
+            capa_url
         } = req.body;
         
         // VALIDAÇÃO: verifica se os campos obrigatórios existem
@@ -825,8 +810,7 @@ server.post("/livros", isAdminOrBibliotecario, async (req, res) => {
             categoria: categoria || null,
             quantidade_total: quantidade_total || 1,
             quantidade_disponivel: quantidade_total || 1,
-            capa_url: capa_url || null,
-			descricao: descricao
+            capa_url: capa_url || null
         });
         
         console.log("Livro criado:", novoLivro.toJSON()); // ← DEBUG
@@ -838,6 +822,68 @@ server.post("/livros", isAdminOrBibliotecario, async (req, res) => {
         
     } catch (error) {
         console.error("Erro detalhado:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+//busca um livro especifico (usado para preencher o formulario de edicao)
+server.get("/livros/:id", async (req, res) => {
+    try {
+        const livro = await livros.findByPk(req.params.id);
+        if (!livro) {
+            return res.status(404).json({ error: "livro nao encontrado" });
+        }
+        res.json(livro);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+//edita um livro existente (admin e bibliotecario)
+server.put("/livros/:id", isAdminOrBibliotecario, async (req, res) => {
+    try {
+        const livro = await livros.findByPk(req.params.id);
+        if (!livro) {
+            return res.status(404).json({ error: "livro nao encontrado" });
+        }
+
+        const {
+            titulo,
+            autor,
+            isbn,
+            editora,
+            ano,
+            categoria,
+            quantidade_total,
+            capa_url
+        } = req.body;
+
+        if (!titulo || !autor) {
+            return res.status(400).json({ error: "Campos obrigatórios: titulo e autor" });
+        }
+
+        const novoTotal = parseInt(quantidade_total) || livro.quantidade_total;
+
+        //preserva quantos exemplares estao emprestados, ajustando so a disponibilidade
+        const emprestadosAtualmente = livro.quantidade_total - livro.quantidade_disponivel;
+        let novaDisponivel = novoTotal - emprestadosAtualmente;
+        if (novaDisponivel < 0) novaDisponivel = 0;
+
+        await livro.update({
+            titulo: titulo,
+            autor: autor,
+            isbn: isbn || null,
+            editora: editora || null,
+            ano: ano || null,
+            categoria: categoria || null,
+            quantidade_total: novoTotal,
+            quantidade_disponivel: novaDisponivel,
+            capa_url: capa_url || null
+        });
+
+        res.json({ message: "Livro atualizado com sucesso!", livro: livro });
+    } catch (error) {
+        console.error("Erro ao editar livro:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -929,15 +975,20 @@ server.get("/admin/estatisticas", isAdmin, async (req, res) => {
 		
 		const todosLivros = await livros.findAll();
 		let livrosEmprestados = 0;
+		let totalCopias = 0;
 		for (const livro of todosLivros) {
+			totalCopias += (livro.quantidade_total || 0);
 			livrosEmprestados += (livro.quantidade_total - livro.quantidade_disponivel);
 		}
+		const copiasDisponiveis = totalCopias - livrosEmprestados;
 
 		res.json({
 			total_usuarios: totalUsuarios,
 			total_livros: totalLivros,
 			emprestimos_ativos: totalEmprestimos,
 			livros_emprestados: livrosEmprestados || 0,
+			total_copias: totalCopias,
+			copias_disponiveis: copiasDisponiveis < 0 ? 0 : copiasDisponiveis,
 			data: new Date() 
 		});
 	} catch (error) {
