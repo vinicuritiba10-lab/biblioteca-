@@ -1,5 +1,9 @@
 /* ========== PÁGINA ADMIN - GERENCIAR LIVROS ========== */
 
+* {
+    box-sizing: border-box;
+}
+
 /* Cabeçalho (estava sem estilo nesta página) */
 .princ {
     display: flex;
@@ -107,16 +111,16 @@ a:hover{
 
 /* Formulário de adicionar livro */
 .form-container {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: var(--cor-fundo-sutil, #f8f9fa);
     border-radius: 20px;
     padding: 30px;
     margin-bottom: 40px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--sombra-card, 0 5px 20px rgba(0, 0, 0, 0.08));
 }
 
 .form-container h2 {
     font-size: 24px;
-    color: #2c3e50;
+    color: var(--cor-texto, #2c3e50);
     margin-bottom: 25px;
     display: flex;
     align-items: center;
@@ -125,19 +129,20 @@ a:hover{
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px 28px;
 }
 
 .form-group {
     margin-bottom: 20px;
+    min-width: 0;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--cor-texto, #2c3e50);
     font-size: 14px;
 }
 
@@ -147,7 +152,8 @@ a:hover{
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #e0e0e0;
@@ -155,18 +161,27 @@ a:hover{
     font-size: 14px;
     transition: all 0.3s ease;
     font-family: 'Poppins', sans-serif;
-    background: white;
+    background: var(--cor-fundo-card, white);
+    color: var(--cor-texto, #2c3e50);
+}
+
+.form-group textarea {
+    min-height: 110px;
+    resize: vertical;
+    line-height: 1.5;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: #4CAF50;
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
 .form-group input:hover,
-.form-group select:hover {
+.form-group select:hover,
+.form-group textarea:hover {
     border-color: #bbb;
 }
 
@@ -224,15 +239,15 @@ a:hover{
 
 /* Lista de livros */
 .livros-container {
-    background: white;
+    background: var(--cor-fundo-card, white);
     border-radius: 20px;
     padding: 25px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--sombra-card, 0 5px 20px rgba(0, 0, 0, 0.08));
 }
 
 .livros-container h2 {
     font-size: 24px;
-    color: #2c3e50;
+    color: var(--cor-texto, #2c3e50);
     margin-bottom: 20px;
     display: flex;
     align-items: center;
@@ -248,7 +263,7 @@ a:hover{
 }
 
 .livro-card-admin {
-    background: #f8f9fa;
+    background: var(--cor-fundo-sutil, #f8f9fa);
     border-radius: 15px;
     padding: 20px;
     transition: all 0.3s ease;
@@ -258,7 +273,7 @@ a:hover{
 
 .livro-card-admin:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--sombra-card, 0 8px 25px rgba(0, 0, 0, 0.1));
 }
 
 .livro-capa-admin {
@@ -274,13 +289,13 @@ a:hover{
 .livro-card-admin .livro-titulo {
     font-size: 18px;
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--cor-texto, #2c3e50);
     margin-bottom: 10px;
     padding-right: 60px;
 }
 
 .livro-card-admin .livro-autor {
-    color: #6c757d;
+    color: var(--cor-texto-suave, #6c757d);
     font-size: 14px;
     margin-bottom: 8px;
     display: flex;
@@ -461,4 +476,4 @@ a:hover{
 
 ::-webkit-scrollbar-thumb:hover {
     background: #45a049;
-}
+    }
