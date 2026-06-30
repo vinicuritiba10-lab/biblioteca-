@@ -92,49 +92,6 @@ function errorInput(input, message) {
 }
 
 
-form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const isTipoValid = checkInputTipo();
-    const isNomeValid = checkInputNome();
-    const isEmailValid = checkInputEmail();
-    const isPassValid = checkInputPassword();
-
-    if (!isNomeValid || !isEmailValid || !isPassValid || !isTipoValid) {
-        return;
-    }
-
-    const tipo = tipoInput.value;
-    const nome = nomeInput.value;
-    const email = emailInput.value;
-    const senha = senhaInput.value;
-
-    try {
-        const response = await fetch("/usuarios", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, senha, nome, tipo })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("usuario", JSON.stringify(data.usuario));
-            showToast("Login realizado com sucesso!", "success", 2000);
-            setTimeout(() => { window.location.href = "../home/home.html"; }, 1200);
-        } else {
-            showToast(data.error || "Erro ao fazer login", "error");
-        }
-
-    } catch (error) {
-        console.error("Erro:", error);
-        showToast("Erro de conexão com o servidor", "error");
-    }
-});
-
 //acessar home apos login
 document.getElementById("btn-login").addEventListener("click", async function(e){
     e.preventDefault();
