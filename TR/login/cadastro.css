@@ -1,5 +1,9 @@
 /* ========== PÁGINA DE CADASTRO ========== */
 
+* {
+    box-sizing: border-box;
+}
+
 /* Container principal */
 .container {
     max-width: 500px;
