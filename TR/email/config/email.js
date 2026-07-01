@@ -55,4 +55,45 @@ async function enviarlembreteDevolucao(email, nome, livroTitulo, dataDevolucao, 
     }
 }
 
-module.exports = { enviarlembreteDevolucao };
+async function enviarEmailSuspensao(email, nome, livroTitulo, diasAtraso, dataFimSuspensao) {
+    try {
+        const dataFimFormatada = new Date(dataFimSuspensao).toLocaleDateString('pt-BR');
+ 
+        const info = await transporter.sendMail({
+            from: '"Biblioteca Libro" <vinicuritiba8@gmail.com>',
+            to: email,
+            subject: `⚠️ Conta suspensa por atraso na devolução - ${livroTitulo}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <h2 style="color: #e53935;">⚠️ Biblioteca Libro — Suspensão de Conta</h2>
+ 
+                    <p>Olá, <strong>${nome}</strong>!</p>
+ 
+                    <p>Informamos que sua conta foi <strong>suspensa temporariamente</strong> devido ao atraso na devolução do livro abaixo:</p>
+ 
+                    <div style="background-color: #fff3f3; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #e53935;">
+                        <h3 style="margin: 0 0 10px 0;">📖 ${livroTitulo}</h3>
+                        <p><strong>Dias de atraso:</strong> ${diasAtraso} dia(s)</p>
+                        <p><strong>Conta suspensa até:</strong> <span style="color: #e53935; font-weight: bold;">${dataFimFormatada}</span></p>
+                    </div>
+ 
+                    <p>Durante o período de suspensão você <strong>não poderá realizar novos empréstimos</strong>.</p>
+ 
+                    <p>Para regularizar sua situação, devolva o livro o quanto antes na biblioteca.</p>
+ 
+                    <hr style="margin: 20px 0;">
+                    <p style="color: #666; font-size: 12px;">Biblioteca Libro — Facilitando seu acesso ao conhecimento</p>
+                </div>
+            `
+        });
+ 
+        console.log(`✅ Email de suspensao enviado para: ${email}`);
+        return true;
+ 
+    } catch (error) {
+        console.error(`❌ Erro ao enviar email de suspensao para ${email}:`, error.message);
+        return false;
+    }
+}
+
+module.exports = { enviarlembreteDevolucao, enviarEmailSuspensao };

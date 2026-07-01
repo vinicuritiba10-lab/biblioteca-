@@ -13,6 +13,8 @@ const { enviarlembreteDevolucao } = require("./TR/email/config/email");
 const { Op } = require('sequelize');
 const { sequelize } = require('./models/db');
 const PDFDocument = require('pdfkit');
+const Suspensao = require("./models/Suspensoes");
+const { enviarlembreteDevolucao, enviarEmailSuspensao } = require("./TR/email/config/email");
 
  
 server.use(cors());
@@ -41,6 +43,12 @@ Solicitacao.belongsTo(usuarios, { foreignKey: 'usuario_id' });
 
 livros.hasMany(Solicitacao, { foreignKey: 'livro_id' });
 Solicitacao.belongsTo(livros, { foreignKey: 'livro_id' });
+
+usuarios.hasMany(Suspensao, { foreignKey: "usuario_id" });
+Suspensao.belongsTo(usuarios, { foreignKey: "usuario_id" });
+ 
+Emprestimo.hasOne(Suspensao, { foreignKey: "emprestimo_id" });
+Suspensao.belongsTo(Emprestimo, { foreignKey: "emprestimo_id" });
 
 //cadastrar usuarios
 server.post("/usuarios", async (req, res) => {
@@ -217,9 +225,144 @@ server.get("/livros/categoria/:categoria", async (req, res) => {
 	}
 });
 
+// suspensoes
+async function verificarSuspensao(req, res, next) {
+    const usuario_id = req.body.usuario_id || req.headers["usuario-id"];
+ 
+    if (!usuario_id) return next(); // se nao tem id, deixa passar (outra rota vai tratar)
+ 
+    const hoje = new Date().toISOString().split("T")[0]; // formato YYYY-MM-DD
+ 
+    const suspensaoAtiva = await Suspensao.findOne({
+        where: {
+            usuario_id: usuario_id,
+            status: "ativa",
+            data_fim: { [Op.gte]: hoje }
+        }
+    });
+ 
+    if (suspensaoAtiva) {
+        const dataFimFormatada = new Date(suspensaoAtiva.data_fim).toLocaleDateString("pt-BR");
+        return res.status(403).json({
+            error: `Sua conta esta suspensa ate ${dataFimFormatada}. Regularize a devolucao do livro em atraso para liberar sua conta.`,
+            suspensao: {
+                motivo: suspensaoAtiva.motivo,
+                data_fim: suspensaoAtiva.data_fim
+            }
+        });
+    }
+ 
+    next();
+}
+
+
+// ---- LISTAR SUSPENSÕES (bibliotecario/admin) --------------------
+// GET /suspensoes
+server.get("/suspensoes", isAdminOrBibliotecario, async (req, res) => {
+    try {
+        const suspensoes = await Suspensao.findAll({
+            include: [
+                { model: usuarios, attributes: ["nome", "email"] }
+            ],
+            order: [["data_inicio", "DESC"]]
+        });
+        res.json(suspensoes);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ---- CONSULTAR SUSPENSÃO DO PRÓPRIO ALUNO ----------------------
+// GET /usuarios/:id/suspensao
+server.get("/usuarios/:id/suspensao", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const hoje = new Date().toISOString().split("T")[0];
+ 
+        const suspensaoAtiva = await Suspensao.findOne({
+            where: {
+                usuario_id: id,
+                status: "ativa",
+                data_fim: { [Op.gte]: hoje }
+            }
+        });
+ 
+        if (!suspensaoAtiva) {
+            return res.json({ suspenso: false });
+        }
+ 
+        res.json({
+            suspenso: true,
+            motivo: suspensaoAtiva.motivo,
+            dias_atraso: suspensaoAtiva.dias_atraso,
+            data_inicio: suspensaoAtiva.data_inicio,
+            data_fim: suspensaoAtiva.data_fim
+        });
+ 
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ---- ENCERRAR SUSPENSÃO MANUALMENTE (bibliotecario/admin) -------
+// PUT /suspensoes/:id/encerrar
+server.put("/suspensoes/:id/encerrar", isAdminOrBibliotecario, async (req, res) => {
+    try {
+        const { id } = req.params;
+ 
+        const suspensao = await Suspensao.findByPk(id, {
+            include: [{ model: usuarios, attributes: ["nome"] }]
+        });
+ 
+        if (!suspensao) {
+            return res.status(404).json({ error: "suspensao nao encontrada" });
+        }
+ 
+        if (suspensao.status === "cumprida") {
+            return res.status(400).json({ error: "esta suspensao ja foi encerrada" });
+        }
+ 
+        await suspensao.update({ status: "cumprida" });
+ 
+        res.json({
+            message: `Suspensao do usuario ${suspensao.usuario?.nome || id} encerrada manualmente.`
+        });
+ 
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ---- VERIFICAÇÃO AUTOMÁTICA: encerrar suspensões vencidas -------
+// GET /suspensoes/verificar
+// Chamar via cron ou manualmente para encerrar suspensões já cumpridas.
+server.get("/suspensoes/verificar", isAdminOrBibliotecario, async (req, res) => {
+    try {
+        const hoje = new Date().toISOString().split("T")[0];
+ 
+        const vencidas = await Suspensao.findAll({
+            where: {
+                status: "ativa",
+                data_fim: { [Op.lt]: hoje }
+            }
+        });
+ 
+        for (const s of vencidas) {
+            await s.update({ status: "cumprida" });
+        }
+ 
+        res.json({
+            message: `${vencidas.length} suspensao(oes) encerrada(s) automaticamente.`,
+            encerradas: vencidas.length
+        });
+ 
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 //acesso emprestimos
 
-server.post("/emprestimos", async (req, res) => {
+server.post("/emprestimos", verificarSuspensao, async (req, res) => {
 	try{
 		const{ usuario_id, livro_id, data_devolucao_prevista, } = req.body;
 
@@ -348,6 +491,46 @@ server.put("/emprestimos/:id/devolver", async (req, res) => {
 			data_devolucao_real: new Date(),
 			status: "devolvido"
 		});
+
+		const hoje = new Date();
+    	const dataPrevista = new Date(emprestimo.data_prevista_devolucao);
+ 
+    if (hoje > dataPrevista) {
+        const diasAtraso = Math.ceil((hoje - dataPrevista) / (1000 * 60 * 60 * 24));
+ 
+        const suspensaoJaExiste = await Suspensao.findOne({
+            where: { usuario_id: emprestimo.usuario_id, status: "ativa" }
+        });
+ 
+        if (!suspensaoJaExiste) {
+            const dataFim = new Date();
+            dataFim.setDate(dataFim.getDate() + diasAtraso);
+            const dataFimStr = dataFim.toISOString().split("T")[0];
+ 
+            const livroDevolvido = await livros.findByPk(emprestimo.livro_id);
+            const usuarioDevolveu = await usuarios.findByPk(emprestimo.usuario_id);
+ 
+            await Suspensao.create({
+                usuario_id: emprestimo.usuario_id,
+                emprestimo_id: emprestimo.id,
+                motivo: `Devolucao em atraso: ${livroDevolvido?.titulo || "livro"}`,
+                dias_atraso: diasAtraso,
+                data_inicio: hoje.toISOString().split("T")[0],
+                data_fim: dataFimStr,
+                status: "ativa"
+            });
+ 
+            if (usuarioDevolveu) {
+                await enviarEmailSuspensao(
+                    usuarioDevolveu.email,
+                    usuarioDevolveu.nome,
+                    livroDevolvido?.titulo || "livro",
+                    diasAtraso,
+                    dataFimStr
+                );
+            }
+        }
+    }
 
 		//aumenta quantidade disponivel do livro
 		const livro = await livros.findByPk(emprestimo.livro_id);
@@ -914,6 +1097,74 @@ server.get("/admin/estatisticas", isAdmin, async (req, res) => {
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
+});
+
+server.post("/suspensoes", isAdminOrBibliotecario, async (req, res) => {
+    try {
+        const { usuario_id, emprestimo_id, motivo } = req.body;
+ 
+        // busca o usuario
+        const usuario = await usuarios.findByPk(usuario_id);
+        if (!usuario) {
+            return res.status(404).json({ error: "usuario nao encontrado" });
+        }
+ 
+        // busca o emprestimo para calcular os dias de atraso
+        const emprestimo = await Emprestimo.findByPk(emprestimo_id, {
+            include: [{ model: livros, attributes: ["titulo"] }]
+        });
+        if (!emprestimo) {
+            return res.status(404).json({ error: "emprestimo nao encontrado" });
+        }
+ 
+        const hoje = new Date();
+        const dataPrevista = new Date(emprestimo.data_prevista_devolucao);
+        const diasAtraso = Math.max(1, Math.ceil((hoje - dataPrevista) / (1000 * 60 * 60 * 24)));
+ 
+        // calcula o fim da suspensao: hoje + diasAtraso
+        const dataFim = new Date();
+        dataFim.setDate(dataFim.getDate() + diasAtraso);
+        const dataFimStr = dataFim.toISOString().split("T")[0];
+        const dataInicioStr = hoje.toISOString().split("T")[0];
+ 
+        // verifica se ja existe suspensao ativa para esse usuario
+        const suspensaoExistente = await Suspensao.findOne({
+            where: { usuario_id, status: "ativa" }
+        });
+        if (suspensaoExistente) {
+            return res.status(400).json({ error: "este usuario ja possui uma suspensao ativa" });
+        }
+ 
+        // cria a suspensao
+        const novaSuspensao = await Suspensao.create({
+            usuario_id,
+            emprestimo_id: emprestimo_id || null,
+            motivo: motivo || `Devolucao em atraso: ${emprestimo.livro?.titulo || "livro"}`,
+            dias_atraso: diasAtraso,
+            data_inicio: dataInicioStr,
+            data_fim: dataFimStr,
+            status: "ativa"
+        });
+ 
+        // envia email para o aluno
+        const emailEnviado = await enviarEmailSuspensao(
+            usuario.email,
+            usuario.nome,
+            emprestimo.livro?.titulo || "livro",
+            diasAtraso,
+            dataFimStr
+        );
+ 
+        res.status(201).json({
+            message: `Usuario ${usuario.nome} suspenso por ${diasAtraso} dia(s).`,
+            suspensao: novaSuspensao,
+            email_enviado: emailEnviado
+        });
+ 
+    } catch (error) {
+        console.error("erro ao aplicar suspensao:", error);
+        res.status(500).json({ error: error.message });
+    }
 });
 //================================================
 
