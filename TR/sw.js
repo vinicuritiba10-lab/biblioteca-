@@ -11,7 +11,7 @@
 // versao abaixo (v2 -> v3 -> v4...). Isso forca o celular a esquecer o cache
 // antigo e buscar os arquivos novos.
 
-const CACHE_NAME = "libro-cache-v8";
+const CACHE_NAME = "libro-cache-v9";
 
 const ARQUIVOS_PARA_CACHEAR = [
   "/login/index.html",
