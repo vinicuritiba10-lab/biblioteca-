@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <script>
+    (function() {
+        try {
+            var salvo = localStorage.getItem('libro-tema');
+            var prefereEscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var tema = salvo || (prefereEscuro ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', tema);
+        } catch (e) {}
+    })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin - Suspensões | Libro</title>
+    <link rel="stylesheet" href="/tokens.css">
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#e8491d">
+    <link rel="apple-touch-icon" href="/img/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Libro">
+    <link rel="stylesheet" href="/toast.css">
+    <link rel="stylesheet" href="/theme.css">
+    <style>
+        /* ===== STATS CARDS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--cor-fundo-card, white);
+            border-radius: var(--raio-md, 14px);
+            padding: 20px 24px;
+            box-shadow: var(--sombra-card);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform var(--transicao-suave), box-shadow var(--transicao-suave);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--sombra-elevada);
+        }
+
+        .stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .icon-ativas   { background: rgba(231, 76, 60, 0.12); }
+        .icon-cumpridas { background: rgba(46, 204, 113, 0.12); }
+        .icon-total    { background: rgba(118, 75, 162, 0.12); }
+
+        .stat-info h3 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--cor-texto);
+            line-height: 1;
+        }
+
+        .stat-info p {
+            font-size: 12px;
+            color: var(--cor-texto-suave);
+            margin-top: 3px;
+        }
+
+        /* ===== SECTION CARDS ===== */
+        .section-card {
+            background: var(--cor-fundo-card, white);
+            border-radius: var(--raio-lg, 22px);
+            padding: 28px 30px;
+            margin-bottom: 24px;
+            box-shadow: var(--sombra-card);
+        }
+
+        .section-card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cor-texto);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-header-row h2 { margin-bottom: 0; }
+
+        /* ===== BUSCA ===== */
+        .busca-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .busca-row input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid var(--cor-borda);
+            border-radius: var(--raio-sm);
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            background: var(--cor-fundo-sutil);
+            color: var(--cor-texto);
+            outline: none;
+            transition: border-color var(--transicao-rapida);
+        }
+
+        .busca-row input:focus { border-color: var(--cor-secundaria); background: var(--cor-fundo-card); }
+
+        /* ===== INFO ALUNO ===== */
+        .aluno-result {
+            display: none;
+            border-radius: var(--raio-md);
+            padding: 16px 20px;
+            margin-top: 8px;
+            border-left: 4px solid;
+        }
+
+        .aluno-result.suspenso {
+            background: rgba(231, 76, 60, 0.08);
+            border-color: var(--cor-erro);
+        }
+
+        .aluno-result.livre {
+            background: rgba(46, 204, 113, 0.08);
+            border-color: var(--cor-sucesso);
+        }
+
+        .aluno-result h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--cor-texto);
+            margin-bottom: 4px;
+        }
+
+        .aluno-result p {
+            font-size: 13px;
+            color: var(--cor-texto-suave);
+            margin-bottom: 4px;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: var(--raio-pill);
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        .badge-suspenso { background: var(--cor-erro); color: #fff; }
+        .badge-livre    { background: var(--cor-sucesso); color: #fff; }
+
+        /* ===== FORM GRID ===== */
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 20px;
+            margin-bottom: 16px;
+        }
+
+        .form-grid-2 .span-full { grid-column: 1 / -1; }
+
+        .form-group-s label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--cor-texto-suave);
+            margin-bottom: 6px;
+        }
+
+        .form-group-s input,
+        .form-group-s textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--cor-borda);
+            border-radius: var(--raio-sm);
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            background: var(--cor-fundo-sutil);
+            color: var(--cor-texto);
+            outline: none;
+            transition: border-color var(--transicao-rapida), background var(--transicao-rapida);
+        }
+
+        .form-group-s textarea { resize: vertical; min-height: 72px; }
+
+        .form-group-s input:focus,
+        .form-group-s textarea:focus {
+            border-color: var(--cor-secundaria);
+            background: var(--cor-fundo-card);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--cor-texto-suave);
+            margin-top: 10px;
+        }
+
+        /* ===== BOTÕES ===== */
+        .btn-aplicar {
+            background: var(--gradiente-marca);
+            color: white;
+            border: none;
+            padding: 12px 26px;
+            border-radius: var(--raio-md);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: opacity var(--transicao-rapida), transform var(--transicao-rapida), box-shadow var(--transicao-rapida);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-aplicar:hover:not(:disabled) {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: var(--sombra-marca);
+        }
+
+        .btn-aplicar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-acao {
+            background: var(--cor-fundo-sutil);
+            color: var(--cor-texto);
+            border: 1.5px solid var(--cor-borda);
+            padding: 8px 16px;
+            border-radius: var(--raio-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: background var(--transicao-rapida), border-color var(--transicao-rapida);
+        }
+
+        .btn-acao:hover { background: var(--cor-borda); }
+
+        .btn-verificar {
+            background: var(--cor-secundaria);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--raio-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: opacity var(--transicao-rapida);
+        }
+
+        .btn-verificar:hover { opacity: 0.85; }
+
+        .btn-encerrar-susp {
+            background: rgba(46, 204, 113, 0.12);
+            color: var(--cor-sucesso-escura);
+            border: 1.5px solid var(--cor-sucesso);
+            padding: 5px 12px;
+            border-radius: var(--raio-sm);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: background var(--transicao-rapida);
+            white-space: nowrap;
+        }
+
+        .btn-encerrar-susp:hover { background: rgba(46, 204, 113, 0.22); }
+
+        /* ===== FILTROS ===== */
+        .filtros {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .filtro-pill {
+            padding: 6px 16px;
+            border-radius: var(--raio-pill);
+            border: 2px solid var(--cor-borda);
+            background: var(--cor-fundo-card);
+            color: var(--cor-texto-suave);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transicao-rapida);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .filtro-pill.ativo {
+            background: var(--gradiente-marca);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* ===== TABELA ===== */
+        .tabela-scroll {
+            overflow-x: auto;
+            border-radius: var(--raio-md);
+            border: 1px solid var(--cor-borda);
+        }
+
+        .tabela-suspensoes {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+            font-size: 13.5px;
+        }
+
+        .tabela-suspensoes thead th {
+            background: var(--gradiente-marca);
+            color: white;
+            padding: 13px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+
+        .tabela-suspensoes tbody tr {
+            background: var(--cor-fundo-card);
+            border-bottom: 1px solid var(--cor-borda);
+            transition: background var(--transicao-rapida);
+        }
+
+        .tabela-suspensoes tbody tr:nth-child(even) { background: var(--cor-fundo-sutil); }
+        .tabela-suspensoes tbody tr:hover { background: rgba(118, 75, 162, 0.06); }
+
+        .tabela-suspensoes tbody td {
+            padding: 12px 16px;
+            color: var(--cor-texto);
+            vertical-align: middle;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 4px 11px;
+            border-radius: var(--raio-pill);
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+
+        .badge-ativa    { background: rgba(231, 76, 60, 0.12); color: var(--cor-erro-escura); }
+        .badge-cumprida { background: rgba(46, 204, 113, 0.12); color: var(--cor-sucesso-escura); }
+
+        .tabela-vazia {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--cor-texto-suave);
+            font-size: 14px;
+        }
+
+        /* ===== DARK MODE extras ===== */
+        [data-theme="dark"] .section-card,
+        [data-theme="dark"] .stat-card {
+            background: var(--cor-fundo-card);
+        }
+
+        [data-theme="dark"] .busca-row input,
+        [data-theme="dark"] .form-group-s input,
+        [data-theme="dark"] .form-group-s textarea {
+            background: #14151e;
+            color: var(--cor-texto);
+            border-color: var(--cor-borda);
+        }
+
+        [data-theme="dark"] .btn-acao { background: #14151e; color: var(--cor-texto); border-color: var(--cor-borda); }
+        [data-theme="dark"] .btn-acao:hover { background: #1e2030; }
+
+        [data-theme="dark"] .filtro-pill {
+            background: var(--cor-fundo-card);
+            border-color: var(--cor-borda);
+            color: var(--cor-texto-suave);
+        }
+
+        [data-theme="dark"] .tabela-suspensoes tbody tr { background: var(--cor-fundo-card); }
+        [data-theme="dark"] .tabela-suspensoes tbody tr:nth-child(even) { background: var(--cor-fundo-sutil); }
+        [data-theme="dark"] .tabela-suspensoes tbody td { color: var(--cor-texto); border-bottom-color: var(--cor-borda); }
+        [data-theme="dark"] .tabela-scroll { border-color: var(--cor-borda); }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .form-grid-2 { grid-template-columns: 1fr; }
+            .section-card { padding: 20px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="princ">
+        <div class="logo-container">
+            <span class="logo-text">📚 Libro</span>
+            <span class="admin-badge">Suspensões</span>
+        </div>
+        <nav class="navigation">
+            <ul class="nav-menu">
+                <li><a href="home.html" class="nav-link">🏠 Início</a></li>
+                <li><a href="admin-livros.html" class="nav-link">📚 Livros</a></li>
+                <li><a href="#" id="btn-sair" class="nav-link">🚪 Sair</a></li>
+                <li><button class="btn-tema" onclick="libroAlternarTema()" aria-label="Alternar modo escuro" title="Modo escuro">🌙</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+
+            <h1>
+                <span>⛔</span>
+                Gerenciar Suspensões
+                <span style="font-size:13px; background: var(--cor-erro); color:white; padding:4px 12px; border-radius:20px;" id="badge-tipo">Bibliotecário</span>
+            </h1>
+
+            <!-- STATS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon-box icon-ativas">⛔</div>
+                    <div class="stat-info">
+                        <h3 id="total-ativas">—</h3>
+                        <p>Suspensões ativas</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-box icon-cumpridas">✅</div>
+                    <div class="stat-info">
+                        <h3 id="total-cumpridas">—</h3>
+                        <p>Já cumpridas</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-box icon-total">📋</div>
+                    <div class="stat-info">
+                        <h3 id="total-geral">—</h3>
+                        <p>Total registrado</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VERIFICAR ALUNO -->
+            <div class="section-card">
+                <h2>🔍 Verificar situação de um aluno</h2>
+                <div class="busca-row">
+                    <input type="number" id="input-id-aluno" placeholder="Digite o ID do aluno...">
+                    <button class="btn-verificar" onclick="verificarAluno()">Verificar</button>
+                </div>
+                <div class="aluno-result" id="aluno-result">
+                    <h4 id="res-nome">—</h4>
+                    <p id="res-email"></p>
+                    <p id="res-detalhe"></p>
+                    <span class="result-badge" id="res-badge"></span>
+                </div>
+            </div>
+
+            <!-- APLICAR SUSPENSÃO -->
+            <div class="section-card">
+                <h2>➕ Aplicar suspensão manualmente</h2>
+
+                <div class="form-grid-2">
+                    <div class="form-group-s">
+                        <label>ID do Aluno *</label>
+                        <input type="number" id="susp-usuario-id" placeholder="Ex: 5">
+                    </div>
+                    <div class="form-group-s">
+                        <label>ID do Empréstimo em atraso *</label>
+                        <input type="number" id="susp-emprestimo-id" placeholder="Ex: 12">
+                    </div>
+                    <div class="form-group-s span-full">
+                        <label>Motivo (opcional)</label>
+                        <textarea id="susp-motivo" placeholder="Ex: Devolução em atraso — Dom Casmurro"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-aplicar" id="btn-aplicar" onclick="aplicarSuspensao()">
+                        ⛔ Aplicar Suspensão e Enviar E-mail
+                    </button>
+                </div>
+                <p class="hint">💡 Duração automática: 1 dia suspenso por dia de atraso. O aluno recebe um e-mail imediatamente.</p>
+            </div>
+
+            <!-- LISTA DE SUSPENSÕES -->
+            <div class="section-card">
+                <div class="section-header-row">
+                    <h2>📋 Todas as suspensões <span id="contador-label" style="font-size:14px; font-weight:500; color:var(--cor-texto-suave);"></span></h2>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn-acao" onclick="encerrarVencidas()">🔄 Encerrar vencidas</button>
+                        <button class="btn-acao" onclick="carregarSuspensoes()">↺ Atualizar</button>
+                    </div>
+                </div>
+
+                <div class="filtros">
+                    <button class="filtro-pill ativo" onclick="filtrar('todas', this)">Todas</button>
+                    <button class="filtro-pill" onclick="filtrar('ativa', this)">🔴 Ativas</button>
+                    <button class="filtro-pill" onclick="filtrar('cumprida', this)">✅ Cumpridas</button>
+                </div>
+
+                <div class="tabela-scroll">
+                    <table class="tabela-suspensoes" id="tabela-suspensoes">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Aluno</th>
+                                <th>E-mail</th>
+                                <th>Motivo</th>
+                                <th>Atraso</th>
+                                <th>Início</th>
+                                <th>Até</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-suspensoes">
+                            <tr><td colspan="9" class="tabela-vazia">🔄 Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div><!-- /container -->
+    </main>
+
+    <script src="/toast.js"></script>
+    <script src="/theme-toggle.js"></script>
+    <script>
+        let usuarioAtual = null;
+        let todasSuspensoes = [];
+        let filtroAtual = 'todas';
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            const logado = localStorage.getItem('usuarioLogado');
+            if (!logado) {
+                alert('Faça login primeiro!');
+                window.location.href = '../login/index.html';
+                return;
+            }
+
+            usuarioAtual = JSON.parse(logado);
+
+            if (usuarioAtual.tipo !== 'admin' && usuarioAtual.tipo !== 'bibliotecario') {
+                alert('Acesso negado. Área restrita para administradores.');
+                window.location.href = 'home.html';
+                return;
+            }
+
+            document.getElementById('badge-tipo').textContent =
+                usuarioAtual.tipo === 'admin' ? 'Administrador' : 'Bibliotecário';
+
+            document.getElementById('btn-sair').addEventListener('click', () => {
+                localStorage.removeItem('usuarioLogado');
+                window.location.href = '../login/index.html';
+            });
+
+            await carregarSuspensoes();
+        });
+
+        // ===== CARREGAR LISTA =====
+        async function carregarSuspensoes() {
+            document.getElementById('tbody-suspensoes').innerHTML =
+                '<tr><td colspan="9" class="tabela-vazia">🔄 Carregando...</td></tr>';
+
+            try {
+                const res = await fetch('/suspensoes', {
+                    headers: { 'usuario-id': usuarioAtual.id }
+                });
+
+                if (!res.ok) throw new Error(await res.text());
+
+                todasSuspensoes = await res.json();
+                atualizarStats();
+                renderTabela();
+
+            } catch (err) {
+                document.getElementById('tbody-suspensoes').innerHTML =
+                    `<tr><td colspan="9" class="tabela-vazia">❌ Erro ao carregar: ${err.message}</td></tr>`;
+            }
+        }
+
+        // ===== STATS =====
+        function atualizarStats() {
+            const ativas    = todasSuspensoes.filter(s => s.status === 'ativa').length;
+            const cumpridas = todasSuspensoes.filter(s => s.status === 'cumprida').length;
+            document.getElementById('total-ativas').textContent    = ativas;
+            document.getElementById('total-cumpridas').textContent = cumpridas;
+            document.getElementById('total-geral').textContent     = todasSuspensoes.length;
+        }
+
+        // ===== RENDER TABELA =====
+        function renderTabela() {
+            const lista = filtroAtual === 'todas'
+                ? todasSuspensoes
+                : todasSuspensoes.filter(s => s.status === filtroAtual);
+
+            document.getElementById('contador-label').textContent = `(${lista.length})`;
+
+            const tbody = document.getElementById('tbody-suspensoes');
+
+            if (lista.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="tabela-vazia">📭 Nenhuma suspensão encontrada.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = lista.map(s => {
+                const nome    = s.usuario?.nome  || `ID ${s.usuario_id}`;
+                const email   = s.usuario?.email || '—';
+                const inicio  = fmtData(s.data_inicio);
+                const fim     = fmtData(s.data_fim);
+                const badge   = s.status === 'ativa'
+                    ? '<span class="badge-status badge-ativa">🔴 Ativa</span>'
+                    : '<span class="badge-status badge-cumprida">✅ Cumprida</span>';
+                const btn = s.status === 'ativa'
+                    ? `<button class="btn-encerrar-susp" onclick="encerrarSuspensao(${s.id})">Encerrar</button>`
+                    : '—';
+
+                return `
+                    <tr>
+                        <td>${s.id}</td>
+                        <td><strong>${nome}</strong></td>
+                        <td style="font-size:12px;">${email}</td>
+                        <td style="max-width:200px; font-size:12px;">${s.motivo || '—'}</td>
+                        <td style="text-align:center;">${s.dias_atraso}d</td>
+                        <td>${inicio}</td>
+                        <td>${fim}</td>
+                        <td>${badge}</td>
+                        <td>${btn}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ===== FILTRAR =====
+        function filtrar(status, btn) {
+            filtroAtual = status;
+            document.querySelectorAll('.filtro-pill').forEach(b => b.classList.remove('ativo'));
+            btn.classList.add('ativo');
+            renderTabela();
+        }
+
+        // ===== VERIFICAR ALUNO =====
+        async function verificarAluno() {
+            const id = document.getElementById('input-id-aluno').value.trim();
+            if (!id) { showToast('Digite o ID do aluno.', 'warning'); return; }
+
+            try {
+                const [resUsuarios, resSusp] = await Promise.all([
+                    fetch('/admin/usuarios', { headers: { 'usuario-id': usuarioAtual.id } }),
+                    fetch(`/usuarios/${id}/suspensao`)
+                ]);
+
+                const usuarios = await resUsuarios.json();
+                const susp     = await resSusp.json();
+                const aluno    = usuarios.find(u => u.id == id);
+
+                const box = document.getElementById('aluno-result');
+                box.style.display = 'block';
+                box.className = 'aluno-result ' + (susp.suspenso ? 'suspenso' : 'livre');
+
+                document.getElementById('res-nome').textContent  = aluno ? aluno.nome : `Usuário ID ${id}`;
+                document.getElementById('res-email').textContent = aluno ? aluno.email : '';
+
+                if (susp.suspenso) {
+                    document.getElementById('res-detalhe').textContent =
+                        `Motivo: ${susp.motivo} | Até: ${fmtData(susp.data_fim)} | Atraso: ${susp.dias_atraso} dia(s)`;
+                    document.getElementById('res-badge').className   = 'result-badge badge-suspenso';
+                    document.getElementById('res-badge').textContent = '⛔ SUSPENSO';
+                } else {
+                    document.getElementById('res-detalhe').textContent = 'Sem suspensão ativa no momento.';
+                    document.getElementById('res-badge').className   = 'result-badge badge-livre';
+                    document.getElementById('res-badge').textContent = '✅ SEM SUSPENSÃO';
+                }
+
+            } catch (err) {
+                showToast('Erro ao verificar aluno: ' + err.message, 'error');
+            }
+        }
+
+        // ===== APLICAR SUSPENSÃO =====
+        async function aplicarSuspensao() {
+            const usuario_id    = document.getElementById('susp-usuario-id').value.trim();
+            const emprestimo_id = document.getElementById('susp-emprestimo-id').value.trim();
+            const motivo        = document.getElementById('susp-motivo').value.trim();
+
+            if (!usuario_id || !emprestimo_id) {
+                showToast('Preencha o ID do aluno e o ID do empréstimo.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-aplicar');
+            btn.disabled = true;
+            btn.textContent = '⏳ Aplicando...';
+
+            try {
+                const res = await fetch('/suspensoes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'usuario-id': usuarioAtual.id
+                    },
+                    body: JSON.stringify({ usuario_id, emprestimo_id, motivo })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) { showToast(data.error || 'Erro ao aplicar suspensão.', 'error'); return; }
+
+                showToast('✅ ' + data.message, 'success');
+                document.getElementById('susp-usuario-id').value    = '';
+                document.getElementById('susp-emprestimo-id').value = '';
+                document.getElementById('susp-motivo').value        = '';
+                await carregarSuspensoes();
+
+            } catch (err) {
+                showToast('Erro de conexão: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '⛔ Aplicar Suspensão e Enviar E-mail';
+            }
+        }
+
+        // ===== ENCERRAR SUSPENSÃO =====
+        async function encerrarSuspensao(id) {
+            if (!confirm('Deseja encerrar esta suspensão manualmente?')) return;
+            try {
+                const res  = await fetch(`/suspensoes/${id}/encerrar`, {
+                    method: 'PUT',
+                    headers: { 'usuario-id': usuarioAtual.id }
+                });
+                const data = await res.json();
+                if (!res.ok) { showToast(data.error || 'Erro.', 'error'); return; }
+                showToast('✅ Suspensão encerrada.', 'success');
+                await carregarSuspensoes();
+            } catch (err) {
+                showToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        // ===== ENCERRAR VENCIDAS =====
+        async function encerrarVencidas() {
+            try {
+                const res  = await fetch('/suspensoes/verificar', {
+                    headers: { 'usuario-id': usuarioAtual.id }
+                });
+                const data = await res.json();
+                showToast('✅ ' + data.message, 'success');
+                await carregarSuspensoes();
+            } catch (err) {
+                showToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        // ===== UTILITÁRIO =====
+        function fmtData(str) {
+            if (!str) return '—';
+            return new Date(str + 'T00:00:00').toLocaleDateString('pt-BR');
+        }
+    </script>
+</body>
+</html>
