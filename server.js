@@ -1043,7 +1043,7 @@ server.put("/usuarios/:id/tipo", isAdmin, async (req, res) => {
 });
 
 //apenas admin pode listar todos os usuarios
-server.get("/admin/usuarios", isAdmin, async (req, res) => {
+server.get("/admin/usuarios", isAdminOrBibliotecario, async (req, res) => {
 	try {
 		const Pusuarios = await usuarios.findAll({
 			attributes: { exclude: ['senha'] }
