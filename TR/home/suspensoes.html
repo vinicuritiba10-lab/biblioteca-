@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Libro | Suspensões</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/toast.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ec380b 0%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #2d3436;
+        }
+
+        /* ===== HEADER ===== */
+        .princ {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 0 60px;
+            height: 90px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            color: #764ba2;
+            letter-spacing: -1px;
+        }
+
+        .img { height: 45px; }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover { color: #764ba2; }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            color: #fff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        /* ===== CARDS STATS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+        }
+
+        .stat-info h3 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2d3436;
+        }
+
+        .stat-info p {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        /* ===== SEÇÕES ===== */
+        .section-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3436;
+        }
+
+        .section-title span {
+            font-size: 13px;
+            font-weight: 500;
+            color: #888;
+            margin-left: 8px;
+        }
+
+        /* ===== FORMULÁRIO DE APLICAR SUSPENSÃO ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #764ba2;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .form-full {
+            grid-column: 1 / -1;
+        }
+
+        /* ===== BOTÕES ===== */
+        .btn-primary {
+            background: linear-gradient(135deg, #ec380b, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #555;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-secondary:hover { background: #e0e0e0; }
+
+        .btn-encerrar {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-encerrar:hover { opacity: 0.85; }
+
+        /* ===== BUSCA DE ALUNO ===== */
+        .busca-aluno {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .busca-aluno input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .busca-aluno input:focus { border-color: #764ba2; }
+
+        /* ===== INFO DO ALUNO ===== */
+        .aluno-info {
+            background: #f8f4ff;
+            border: 2px solid #764ba2;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .aluno-info.visible { display: block; }
+
+        .aluno-info h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #764ba2;
+            margin-bottom: 4px;
+        }
+
+        .aluno-info p {
+            font-size: 13px;
+            color: #555;
+        }
+
+        .aluno-info .badge-suspenso {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+
+        .aluno-info .badge-ok {
+            display: inline-block;
+            background: #27ae60;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+
+        /* ===== TABELA DE SUSPENSÕES ===== */
+        .tabela-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead th {
+            background: #f4f0ff;
+            color: #764ba2;
+            font-weight: 700;
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover { background: #fafafa; }
+
+        tbody td {
+            padding: 12px 14px;
+            color: #444;
+            vertical-align: middle;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-ativa { background: #fdecea; color: #e53935; }
+        .badge-cumprida { background: #e8f5e9; color: #27ae60; }
+
+        .empty-msg {
+            text-align: center;
+            padding: 40px 20px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .loading-msg {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* ===== FILTROS ===== */
+        .filtros {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .filtro-btn {
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+            color: #666;
+        }
+
+        .filtro-btn.ativo {
+            background: #764ba2;
+            border-color: #764ba2;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .princ { padding: 0 20px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .filtros { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="princ">
+        <div class="logo-container">
+            <img src="g10.png" alt="logo" class="img">
+            <span class="logo-text" id="logo-text">📚 Libro | Suspensões</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="home.html" class="nav-link">← Voltar à Home</a></li>
+                <li><a href="#" id="btn-sair" class="nav-link">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <h1 class="page-title">⛔ Gerenciar Suspensões</h1>
+        <p class="page-subtitle">Aplique, consulte e encerre suspensões de alunos com atraso na devolução.</p>
+
+        <!-- ESTATÍSTICAS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">⛔</div>
+                <div class="stat-info">
+                    <h3 id="total-ativas">—</h3>
+                    <p>Suspensões ativas</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <h3 id="total-cumpridas">—</h3>
+                    <p>Já cumpridas</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <h3 id="total-geral">—</h3>
+                    <p>Total de suspensões</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VERIFICAR ALUNO -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">🔍 Verificar situação de um aluno</h2>
+            </div>
+            <div class="busca-aluno">
+                <input type="number" id="input-id-aluno" placeholder="Digite o ID do aluno...">
+                <button class="btn-primary" onclick="verificarAluno()">Verificar</button>
+            </div>
+            <div class="aluno-info" id="aluno-info-box">
+                <h4 id="aluno-nome">—</h4>
+                <p id="aluno-email">—</p>
+                <p id="aluno-suspensao-detalhe"></p>
+                <span id="aluno-badge"></span>
+            </div>
+        </div>
+
+        <!-- APLICAR SUSPENSÃO -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">➕ Aplicar suspensão manualmente</h2>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>ID do Aluno *</label>
+                    <input type="number" id="susp-usuario-id" placeholder="Ex: 5">
+                </div>
+                <div class="form-group">
+                    <label>ID do Empréstimo em atraso *</label>
+                    <input type="number" id="susp-emprestimo-id" placeholder="Ex: 12">
+                </div>
+                <div class="form-group form-full">
+                    <label>Motivo (opcional)</label>
+                    <textarea id="susp-motivo" placeholder="Ex: Devolução em atraso do livro Dom Casmurro"></textarea>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="btn-aplicar" onclick="aplicarSuspensao()">
+                ⛔ Aplicar Suspensão e Enviar E-mail
+            </button>
+            <p style="font-size:12px; color:#999; margin-top:10px;">
+                💡 A duração é calculada automaticamente: 1 dia suspenso por dia de atraso. Um e-mail é enviado automaticamente ao aluno.
+            </p>
+        </div>
+
+        <!-- LISTA DE SUSPENSÕES -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">📋 Todas as suspensões <span id="contador-lista"></span></h2>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-secondary" onclick="encerrarVencidas()">🔄 Encerrar vencidas</button>
+                    <button class="btn-secondary" onclick="carregarSuspensoes()">↺ Atualizar</button>
+                </div>
+            </div>
+
+            <div class="filtros">
+                <button class="filtro-btn ativo" onclick="filtrar('todas', this)">Todas</button>
+                <button class="filtro-btn" onclick="filtrar('ativa', this)">Apenas ativas</button>
+                <button class="filtro-btn" onclick="filtrar('cumprida', this)">Já cumpridas</button>
+            </div>
+
+            <div class="tabela-wrapper">
+                <div class="loading-msg" id="loading-suspensoes">🔄 Carregando...</div>
+                <table id="tabela-suspensoes" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Aluno</th>
+                            <th>E-mail</th>
+                            <th>Motivo</th>
+                            <th>Dias atraso</th>
+                            <th>Início</th>
+                            <th>Até</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-suspensoes"></tbody>
+                </table>
+                <div class="empty-msg" id="empty-suspensoes" style="display:none;">
+                    📭 Nenhuma suspensão encontrada.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/toast.js"></script>
+    <script>
+        let usuarioAtual = null;
+        let todasSuspensoes = [];
+        let filtroAtual = 'todas';
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            const logado = localStorage.getItem('usuarioLogado');
+            if (!logado) {
+                alert('Faça login primeiro!');
+                window.location.href = '../login/index.html';
+                return;
+            }
+
+            usuarioAtual = JSON.parse(logado);
+
+            if (usuarioAtual.tipo !== 'admin' && usuarioAtual.tipo !== 'bibliotecario') {
+                alert('Acesso negado. Área restrita para administradores.');
+                window.location.href = 'home.html';
+                return;
+            }
+
+            document.getElementById('logo-text').textContent = `📚 Libro | ${usuarioAtual.nome}`;
+
+            document.getElementById('btn-sair').addEventListener('click', () => {
+                localStorage.removeItem('usuarioLogado');
+                window.location.href = '../login/index.html';
+            });
+
+            await carregarSuspensoes();
+        });
+
+        // ===== CARREGAR LISTA =====
+        async function carregarSuspensoes() {
+            document.getElementById('loading-suspensoes').style.display = 'block';
+            document.getElementById('tabela-suspensoes').style.display = 'none';
+            document.getElementById('empty-suspensoes').style.display = 'none';
+
+            try {
+                const res = await fetch('/suspensoes', {
+                    headers: { 'usuario-id': usuarioAtual.id }
+                });
+
+                if (!res.ok) throw new Error('Erro ao carregar suspensões');
+
+                todasSuspensoes = await res.json();
+                atualizarStats();
+                renderTabela(todasSuspensoes);
+
+            } catch (err) {
+                document.getElementById('loading-suspensoes').style.display = 'none';
+                mostrarToast('Erro ao carregar suspensões: ' + err.message, 'error');
+            }
+        }
+
+        // ===== ATUALIZAR ESTATÍSTICAS =====
+        function atualizarStats() {
+            const ativas = todasSuspensoes.filter(s => s.status === 'ativa').length;
+            const cumpridas = todasSuspensoes.filter(s => s.status === 'cumprida').length;
+            document.getElementById('total-ativas').textContent = ativas;
+            document.getElementById('total-cumpridas').textContent = cumpridas;
+            document.getElementById('total-geral').textContent = todasSuspensoes.length;
+        }
+
+        // ===== RENDERIZAR TABELA =====
+        function renderTabela(lista) {
+            document.getElementById('loading-suspensoes').style.display = 'none';
+
+            const filtradas = filtroAtual === 'todas'
+                ? lista
+                : lista.filter(s => s.status === filtroAtual);
+
+            document.getElementById('contador-lista').textContent = `(${filtradas.length})`;
+
+            if (filtradas.length === 0) {
+                document.getElementById('tabela-suspensoes').style.display = 'none';
+                document.getElementById('empty-suspensoes').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('empty-suspensoes').style.display = 'none';
+            document.getElementById('tabela-suspensoes').style.display = 'table';
+
+            const tbody = document.getElementById('tbody-suspensoes');
+            tbody.innerHTML = '';
+
+            for (const s of filtradas) {
+                const nome = s.usuario?.nome || `ID ${s.usuario_id}`;
+                const email = s.usuario?.email || '—';
+                const inicio = formatarData(s.data_inicio);
+                const fim = formatarData(s.data_fim);
+                const badgeClass = s.status === 'ativa' ? 'badge-ativa' : 'badge-cumprida';
+                const badgeLabel = s.status === 'ativa' ? '🔴 Ativa' : '✅ Cumprida';
+                const btnEncerrar = s.status === 'ativa'
+                    ? `<button class="btn-encerrar" onclick="encerrarSuspensao(${s.id})">Encerrar</button>`
+                    : '—';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${s.id}</td>
+                        <td><strong>${nome}</strong></td>
+                        <td>${email}</td>
+                        <td>${s.motivo || '—'}</td>
+                        <td style="text-align:center;">${s.dias_atraso}</td>
+                        <td>${inicio}</td>
+                        <td>${fim}</td>
+                        <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+                        <td>${btnEncerrar}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        // ===== FILTRAR =====
+        function filtrar(status, btn) {
+            filtroAtual = status;
+            document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+            btn.classList.add('ativo');
+            renderTabela(todasSuspensoes);
+        }
+
+        // ===== VERIFICAR ALUNO =====
+        async function verificarAluno() {
+            const id = document.getElementById('input-id-aluno').value.trim();
+            if (!id) {
+                mostrarToast('Digite o ID do aluno.', 'warning');
+                return;
+            }
+
+            try {
+                // busca dados do usuario
+                const resUser = await fetch(`/admin/usuarios`, {
+                    headers: { 'usuario-id': usuarioAtual.id }
+                });
+                const usuarios = await resUser.json();
+                const aluno = usuarios.find(u => u.id == id);
+
+                // busca situacao de suspensao
+                const resSusp = await fetch(`/usuarios/${id}/suspensao`);
+                const susp = await resSusp.json();
+
+                const box = document.getElementById('aluno-info-box');
+                box.classList.add('visible');
+
+                document.getElementById('aluno-nome').textContent = aluno ? aluno.nome : `Usuário ID ${id}`;
+                document.getElementById('aluno-email').textContent = aluno ? aluno.email : '';
+
+                if (susp.suspenso) {
+                    document.getElementById('aluno-suspensao-detalhe').textContent =
+                        `Motivo: ${susp.motivo} | Suspenso até: ${formatarData(susp.data_fim)} | Atraso: ${susp.dias_atraso} dia(s)`;
+                    document.getElementById('aluno-badge').className = 'badge-suspenso';
+                    document.getElementById('aluno-badge').textContent = '⛔ SUSPENSO';
+                } else {
+                    document.getElementById('aluno-suspensao-detalhe').textContent = 'Sem suspensão ativa no momento.';
+                    document.getElementById('aluno-badge').className = 'badge-ok';
+                    document.getElementById('aluno-badge').textContent = '✅ SEM SUSPENSÃO';
+                }
+
+            } catch (err) {
+                mostrarToast('Erro ao verificar aluno: ' + err.message, 'error');
+            }
+        }
+
+        // ===== APLICAR SUSPENSÃO =====
+        async function aplicarSuspensao() {
+            const usuario_id = document.getElementById('susp-usuario-id').value.trim();
+            const emprestimo_id = document.getElementById('susp-emprestimo-id').value.trim();
+            const motivo = document.getElementById('susp-motivo').value.trim();
+
+            if (!usuario_id || !emprestimo_id) {
+                mostrarToast('Preencha o ID do aluno e o ID do empréstimo.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-aplicar');
+            btn.disabled = true;
+            btn.textContent = '⏳ Aplicando...';
+
+            try {
+                const res = await fetch('/suspensoes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'usuario-id': usuarioAtual.id
+                    },
+                    body: JSON.stringify({ usuario_id, emprestimo_id, motivo })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    mostrarToast(data.error || 'Erro ao aplicar suspensão.', 'error');
+                    return;
+                }
+
+                mostrarToast(`✅ ${data.message}`, 'success');
+
+                // limpa o form
+                document.getElementById('susp-usuario-id').value = '';
+                document.getElementById('susp-emprestimo-id').value = '';
+                document.getElementById('susp-motivo').value = '';
+
+                await carregarSuspensoes();
+
+            } catch (err) {
+                mostrarToast('Erro de conexão: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '⛔ Aplicar Suspensão e Enviar E-mail';
+            }
+        }
+
+        // ===== ENCERRAR SUSPENSÃO =====
+        async function encerrarSuspensao(id) {
+            if (!confirm('Deseja encerrar esta suspensão manualmente?')) return;
+
+            try {
+                const res = await fetch(`/suspensoes/${id}/encerrar`, {
+                    method: 'PUT',
+                    headers: { 'usuario-id': usuarioAtual.id }
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    mostrarToast(data.error || 'Erro ao encerrar.', 'error');
+                    return;
+                }
+
+                mostrarToast('✅ Suspensão encerrada com sucesso.', 'success');
+                await carregarSuspensoes();
+
+            } catch (err) {
+                mostrarToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        // ===== ENCERRAR VENCIDAS =====
+        async function encerrarVencidas() {
+            try {
+                const res = await fetch('/suspensoes/verificar', {
+                    headers: { 'usuario-id': usuarioAtual.id }
+                });
+                const data = await res.json();
+                mostrarToast(`✅ ${data.message}`, 'success');
+                await carregarSuspensoes();
+            } catch (err) {
+                mostrarToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        // ===== UTILITÁRIO: FORMATAR DATA =====
+        function formatarData(str) {
+            if (!str) return '—';
+            const d = new Date(str + 'T00:00:00');
+            return d.toLocaleDateString('pt-BR');
+        }
+
+        // ===== TOAST FALLBACK =====
+        function mostrarToast(msg, tipo) {
+            if (typeof showToast === 'function') {
+                showToast(msg, tipo);
+            } else {
+                alert(msg);
+            }
+        }
+    </script>
+</body>
+</html>
