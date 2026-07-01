@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 //configuracao de transporte (usando gmail)
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
@@ -13,7 +13,8 @@ const transporter = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false
-    }
+    },
+    family: 4
 });
 
 //funcao para enviar lembrete de devolucao
