@@ -23,4 +23,4 @@ const resetPasswordLimiter = rateLimit({
     }
 });
 
-modelue.exports = { loginLimiter, resetPasswordLimiter };
+module.exports = { loginLimiter, resetPasswordLimiter };
