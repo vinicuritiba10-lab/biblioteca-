@@ -15,7 +15,7 @@ const { sequelize } = require('./models/db');
 const PDFDocument = require('pdfkit');
 const Suspensao = require("./models/Suspensoes");
 const { enviarlembreteDevolucao, enviarEmailSuspensao } = require("./TR/email/config/email");
-const { loginLimiter } = require('./middlewares');
+const { loginLimiter } = require('./middlewares/ratelimiter');
 const router = express.Router();
 
  
