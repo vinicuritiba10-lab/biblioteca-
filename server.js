@@ -15,6 +15,8 @@ const { sequelize } = require('./models/db');
 const PDFDocument = require('pdfkit');
 const Suspensao = require("./models/Suspensoes");
 const { enviarlembreteDevolucao, enviarEmailSuspensao } = require("./TR/email/config/email");
+const { loginLimiter } = require('./middlewares');
+const router = express.Router();
 
  
 server.use(cors());
@@ -112,7 +114,7 @@ server.get("/usuarios", async (req, res) => {
 });
 
 //login do usuario
-server.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
 	try {
 		const {email, senha} = req.body;
 
