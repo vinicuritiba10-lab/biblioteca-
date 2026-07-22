@@ -1,27 +1,27 @@
 const db = require("./db");
 
 const Emprestimo = db.sequelize.define("emprestimos", {
-    // O Sequelize cria o ID automático, mas se quiser deixar explícito:
+
     id: {
         type: db.Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    
+
     usuario_id: {
         type: db.Sequelize.INTEGER,
-        allowNull: false // Obrigatório, conforme seu SQL
+        allowNull: false
     },
 
     livro_id: {
         type: db.Sequelize.INTEGER,
-        allowNull: false // Obrigatório
+        allowNull: false
     },
 
     data_emprestimo: {
         type: db.Sequelize.DATE,
         allowNull: false,
-        defaultValue: db.Sequelize.NOW // Sugestão: preenche com a data atual
+        defaultValue: db.Sequelize.NOW
     },
 
     data_prevista_devolucao: {
@@ -31,12 +31,16 @@ const Emprestimo = db.sequelize.define("emprestimos", {
 
     data_devolucao_real: {
         type: db.Sequelize.DATE,
-        allowNull: true // Pode ser nulo até o livro ser devolvido
+        allowNull: true
     },
 
+    // ENUM trocado por STRING para compatibilidade com PostgreSQL
     status: {
-        type: db.Sequelize.ENUM('ativo', 'devolvido', 'atrasado'),
-        defaultValue: 'ativo'
+        type: db.Sequelize.STRING,
+        defaultValue: 'ativo',
+        validate: {
+            isIn: [['ativo', 'devolvido', 'atrasado']]
+        }
     },
 
     renovacoes_restantes: {
@@ -46,9 +50,7 @@ const Emprestimo = db.sequelize.define("emprestimos", {
 
 }, {
     timestamps: false,
-    tablename: 'emprestimos'
-
+    tableName: 'emprestimos'
 });
-
 
 module.exports = Emprestimo;

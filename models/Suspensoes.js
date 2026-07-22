@@ -15,7 +15,7 @@ const Suspensao = db.sequelize.define("suspensoes", {
 
     emprestimo_id: {
         type: db.Sequelize.INTEGER,
-        allowNull: true // referencia ao emprestimo que gerou a suspensao
+        allowNull: true
     },
 
     motivo: {
@@ -40,9 +40,13 @@ const Suspensao = db.sequelize.define("suspensoes", {
         allowNull: false
     },
 
+    // ENUM trocado por STRING para compatibilidade com PostgreSQL
     status: {
-        type: db.Sequelize.ENUM("ativa", "cumprida"),
-        defaultValue: "ativa"
+        type: db.Sequelize.STRING,
+        defaultValue: "ativa",
+        validate: {
+            isIn: [["ativa", "cumprida"]]
+        }
     }
 
 }, {
