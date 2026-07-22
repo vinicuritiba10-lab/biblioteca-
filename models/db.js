@@ -6,9 +6,9 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
         ssl: {
             require: true,
             rejectUnauthorized: false
-        }
+        },
+        family: 4
     },
-    host: process.env.DB_HOST,
     logging: false
 });
 
