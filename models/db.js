@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
-const { setdefaultResultOrder } = require('dns');
-setdefaultResultOrder('ipv4first');
+const { setDefaultResultOrder } = require('dns');
+setDefaultResultOrder('ipv4first');
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
