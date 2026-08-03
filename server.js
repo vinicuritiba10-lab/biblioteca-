@@ -22,7 +22,7 @@ const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const { validarCadastro, validarLogin } = require('./middlewares/validacao');
 
- 
+server.use(router);
 server.use(cors());
 //config bodyparser
 server.use(bodyParser.urlencoded({extended: false}));
