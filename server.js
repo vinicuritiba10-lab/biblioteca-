@@ -17,6 +17,9 @@ const Suspensao = require("./models/Suspensoes");
 const { enviarlembreteDevolucao, enviarEmailSuspensao } = require("./TR/email/config/email");
 const { loginLimiter } = require('./middlewares/ratelimiter');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
+const helmet = require('helmet');
+const { validarCadastro, validarLogin } = require('./middlewares/validacao');
 
  
 server.use(cors());
