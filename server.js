@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const server = express();
+server.use(helmet({ contentSecurityPolicy: false }));
 const port = 3000;
 const usuarios = require("./models/usuarios");
 const livros = require("./models/livros");
@@ -56,7 +57,7 @@ Emprestimo.hasOne(Suspensao, { foreignKey: "emprestimo_id" });
 Suspensao.belongsTo(Emprestimo, { foreignKey: "emprestimo_id" });
 
 //cadastrar usuarios
-server.post("/usuarios", async (req, res) => {
+server.post("/usuarios", validarCadastro, async (req, res) => {
 	try {
 		const { nome, email, senha, tipo} = req.body;
 
@@ -82,10 +83,13 @@ server.post("/usuarios", async (req, res) => {
 		}
 
 		//cria o usuario
+
+		const saltRounds = 10;
+		const senhaCripto = await bcrypt.hash(senha, saltRounds);
 		const novoUsuario = await usuarios.create({
 			nome: nome,
 			email: email,
-			senha: senha,
+			senha: senhaCripto,
 			tipo: tipo || 'aluno'
 		});
 
@@ -117,7 +121,7 @@ server.get("/usuarios", async (req, res) => {
 });
 
 //login do usuario
-router.post("/login", loginLimiter, async (req, res) => {
+router.post("/login", loginLimiter, validarLogin, async (req, res) => {
 	try {
 		const {email, senha} = req.body;
 
@@ -131,7 +135,8 @@ router.post("/login", loginLimiter, async (req, res) => {
 			}); 
 		}
 
-		if (usuario.senha !== senha ) {
+		const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
+		if (!senhaCorreta) {
 			return res.status(401).json({
 				error: "senha incorreta"
 			});		
@@ -1325,6 +1330,7 @@ server.get("/:nome", function(req,res){
 })
 
 server.patch("/atualizar/:id", function(req,res){
+	
 	usuarios.update({
 		nome: req.body.nome,
 		email: req.body.email,
