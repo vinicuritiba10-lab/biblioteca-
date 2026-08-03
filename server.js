@@ -22,7 +22,7 @@ const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const { validarCadastro, validarLogin } = require('./middlewares/validacao');
 
-server.use(router);
+
 server.use(cors());
 //config bodyparser
 server.use(bodyParser.urlencoded({extended: false}));
@@ -1356,6 +1356,8 @@ server.delete("/deletar/:id",function(req,res){
 // server.listen(port, () =>{
 // 	console.log(`example app listening on port ${port}`);
 // });
+
+server.use(router);
 
 sequelize.sync({ alter: true })
   .then(() => {
