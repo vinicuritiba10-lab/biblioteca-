@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const server = express();
-server.use(helmet({ contentSecurityPolicy: false }));
 const port = 3000;
 const usuarios = require("./models/usuarios");
 const livros = require("./models/livros");
@@ -23,6 +22,7 @@ const helmet = require('helmet');
 const { validarCadastro, validarLogin } = require('./middlewares/validacao');
 
 
+server.use(helmet({ contentSecurityPolicy: false }));
 server.use(cors());
 //config bodyparser
 server.use(bodyParser.urlencoded({extended: false}));
