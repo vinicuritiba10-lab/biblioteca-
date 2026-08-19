@@ -39,21 +39,21 @@ function validarCadastro(req, res, next) {
     next();
 }
 
-function validarLogin(req, res, next) {
-    const { email, senha } = req.body;
+//function validarLogin(req, res, next) {
+    //const { email, senha } = req.body;
 
-    if (!email || !senha) {
-        return res.status(400).json({ error: 'E-mail e senha sao obrigatorios.' });
-    }
+    //if (!email || !senha) {
+        //return res.status(400).json({ error: 'E-mail e senha sao obrigatorios.' });
+    //}
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({ error: 'E-mail invalido.' });
-    }
+    //const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //if (!emailRegex.test(email)) {
+        //return res.status(400).json({ error: 'E-mail invalido.' });
+    //}
 
-    req.body.email = email.trim().toLowerCase();
+    //req.body.email = email.trim().toLowerCase();
 
-    next();
-}
+    //next();
+//}
 
 module.exports = { validarCadastro, validarLogin };
