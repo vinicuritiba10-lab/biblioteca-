@@ -56,4 +56,4 @@ function validarCadastro(req, res, next) {
     //next();
 //}
 
-module.exports = { validarCadastro, validarLogin };
+module.exports = { validarCadastro };
