@@ -19,7 +19,7 @@ const { loginLimiter } = require('./middlewares/ratelimiter');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
-const { validarCadastro, validarLogin } = require('./middlewares/validacao');
+const { validarCadastro } = require('./middlewares/validacao');
 
 
 server.use(helmet({ contentSecurityPolicy: false }));
@@ -121,7 +121,7 @@ server.get("/usuarios", async (req, res) => {
 });
 
 //login do usuario
-router.post("/login", loginLimiter, validarLogin, async (req, res) => {
+router.post("/login", loginLimiter,  async (req, res) => {
 	try {
 		const {email, senha} = req.body;
 
