@@ -12,7 +12,7 @@ const usuarios = db.sequelize.define("usuarios",{
     },
 
     senha: {
-        type: db.Sequelize.STRING,
+        type: db.Sequelize.TEXT,
         allowNull: true
     },
 
