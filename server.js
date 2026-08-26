@@ -15,14 +15,8 @@ const { sequelize } = require('./models/db');
 const PDFDocument = require('pdfkit');
 const Suspensao = require("./models/Suspensoes");
 const { enviarlembreteDevolucao, enviarEmailSuspensao } = require("./TR/email/config/email");
-const { loginLimiter } = require('./middlewares/ratelimiter');
-const router = express.Router();
-const bcrypt = require('bcryptjs');
-const helmet = require('helmet');
-const { validarCadastro } = require('./middlewares/validacao');
 
-
-server.use(helmet({ contentSecurityPolicy: false }));
+ 
 server.use(cors());
 //config bodyparser
 server.use(bodyParser.urlencoded({extended: false}));
@@ -57,7 +51,7 @@ Emprestimo.hasOne(Suspensao, { foreignKey: "emprestimo_id" });
 Suspensao.belongsTo(Emprestimo, { foreignKey: "emprestimo_id" });
 
 //cadastrar usuarios
-server.post("/usuarios", validarCadastro, async (req, res) => {
+server.post("/usuarios", async (req, res) => {
 	try {
 		const { nome, email, senha, tipo} = req.body;
 
@@ -83,13 +77,10 @@ server.post("/usuarios", validarCadastro, async (req, res) => {
 		}
 
 		//cria o usuario
-
-		const saltRounds = 10;
-		const senhaCripto = await bcrypt.hash(senha, saltRounds);
 		const novoUsuario = await usuarios.create({
 			nome: nome,
 			email: email,
-			senha: senhaCripto,
+			senha: senha,
 			tipo: tipo || 'aluno'
 		});
 
@@ -121,7 +112,7 @@ server.get("/usuarios", async (req, res) => {
 });
 
 //login do usuario
-router.post("/login", loginLimiter,  async (req, res) => {
+server.post("/login", async (req, res) => {
 	try {
 		const {email, senha} = req.body;
 
@@ -135,8 +126,7 @@ router.post("/login", loginLimiter,  async (req, res) => {
 			}); 
 		}
 
-		const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
-		if (!senhaCorreta) {
+		if (usuario.senha !== senha ) {
 			return res.status(401).json({
 				error: "senha incorreta"
 			});		
@@ -1330,7 +1320,6 @@ server.get("/:nome", function(req,res){
 })
 
 server.patch("/atualizar/:id", function(req,res){
-	
 	usuarios.update({
 		nome: req.body.nome,
 		email: req.body.email,
@@ -1356,8 +1345,6 @@ server.delete("/deletar/:id",function(req,res){
 // server.listen(port, () =>{
 // 	console.log(`example app listening on port ${port}`);
 // });
-
-server.use(router);
 
 sequelize.sync({ alter: true })
   .then(() => {
