@@ -851,15 +851,11 @@ async function mostrarEstatisticas() {
     conteudo.innerHTML = '<div class="stats-loading">Carregando estatísticas...</div>';
     
     try {
-        const response = await fetch('/admin/estatisticas', {
-            headers: { 'usuario-id': usuarioAtual.id }
+        const { data: stats, error } = await db.rpc('obter_estatisticas', {
+            p_solicitante_id: usuarioAtual.id
         });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao carregar estatísticas');
-        }
-        
-        const stats = await response.json();
+
+        if (error) throw error;
 
         const totalCopias = stats.total_copias || 0;
         const copiasEmprestadas = stats.livros_emprestados || 0;
@@ -1008,15 +1004,11 @@ async function mostrarSolicitacoes() {
     conteudo.innerHTML = '<p>Carregando solicitações...</p>';
 
     try {
-        const response = await fetch('/solicitacoes', {
-            headers: { 'usuario-id': usuarioAtual.id }
+        const { data: solicitacoes, error } = await db.rpc('listar_solicitacoes_pendentes', {
+            p_solicitante_id: usuarioAtual.id
         });
 
-        if (!response.ok) {
-            throw new Error('Erro ao carregar solicitações');
-        }
-
-        const solicitacoes = await response.json();
+        if (error) throw error;
 
         if (solicitacoes.length === 0) {
             conteudo.innerHTML = `
@@ -1059,21 +1051,18 @@ window.responderSolicitacao = async function(id, acao) {
     if (!await showConfirm(acao === 'aprovar' ? 'Aprovar essa solicitação?' : 'Rejeitar essa solicitação?', acao === 'aprovar' ? 'Aprovar' : 'Rejeitar')) return;
 
     try {
-        const response = await fetch(`/solicitacoes/${id}/${acao}`, {
-            method: 'PUT',
-            headers: { 'usuario-id': usuarioAtual.id }
+        const funcao = acao === 'aprovar' ? 'aprovar_solicitacao' : 'rejeitar_solicitacao';
+        const { data, error } = await db.rpc(funcao, {
+            p_solicitante_id: usuarioAtual.id,
+            p_solicitacao_id: id
         });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        if (response.ok) {
-            showToast(data.message, 'success');
-            mostrarSolicitacoes();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        showToast(data.message, 'success');
+        mostrarSolicitacoes();
     } catch (error) {
-        showToast('Erro ao responder solicitação', 'error');
+        showToast(error.message || 'Erro ao responder solicitação', 'error');
     }
 };
 
