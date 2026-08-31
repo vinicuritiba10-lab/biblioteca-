@@ -327,8 +327,11 @@ async function mostrarMeusEmprestimos() {
     emprestimosGrid.innerHTML = '<p style="text-align:center;">Carregando seus empréstimos...</p>';
     
     try {
-        const response = await fetch(`/usuarios/${usuarioAtual.id}/emprestimos`);
-        const emprestimos = await response.json();
+        const { data: emprestimos, error } = await db.rpc('listar_meus_emprestimos', {
+            p_usuario_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
         
         if (emprestimos.length === 0) {
             emprestimosGrid.innerHTML = '<p style="text-align:center;">📭 Você não possui empréstimos ativos</p>';
@@ -390,8 +393,11 @@ async function mostrarMinhasReservas() {
     reservasGrid.innerHTML = '<p style="text-align:center;">Carregando suas reservas...</p>';
 
     try {
-        const response = await fetch(`/usuarios/${usuarioAtual.id}/reservas`);
-        const reservas = await response.json();
+        const { data: reservas, error } = await db.rpc('listar_minhas_reservas', {
+            p_usuario_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
 
         if (!reservas || reservas.length === 0) {
             reservasGrid.innerHTML = '<p style="text-align:center;">📭 Você não possui reservas no momento</p>';
@@ -428,21 +434,16 @@ window.reservarLivro = async function(livroId) {
     if (!await showConfirm('Esse livro está indisponível agora. Deseja reservar para quando ele voltar?', 'Reservar')) return;
 
     try {
-        const response = await fetch('/reservas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: usuarioAtual.id, livro_id: livroId })
+        const { data, error } = await db.rpc('reservar_livro', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
         });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        if (response.ok) {
-            showToast('Reserva feita! Você será avisado em Minhas Reservas quando o livro voltar.', 'success');
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        showToast(data.message, 'success');
     } catch (error) {
-        showToast('Erro ao reservar livro', 'error');
+        showToast(error.message || 'Erro ao reservar livro', 'error');
     }
 };
 
@@ -450,17 +451,17 @@ window.cancelarReserva = async function(reservaId) {
     if (!await showConfirm('Deseja cancelar essa reserva?', 'Cancelar reserva', 'Não')) return;
 
     try {
-        const response = await fetch(`/reservas/${reservaId}`, { method: 'DELETE' });
-        const data = await response.json();
+        const { data, error } = await db.rpc('cancelar_reserva', {
+            p_usuario_id: usuarioAtual.id,
+            p_reserva_id: reservaId
+        });
 
-        if (response.ok) {
-            showToast('Reserva cancelada', 'success');
-            mostrarMinhasReservas();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        mostrarMinhasReservas();
     } catch (error) {
-        showToast('Erro ao cancelar reserva', 'error');
+        showToast(error.message || 'Erro ao cancelar reserva', 'error');
     }
 };
 
@@ -469,123 +470,100 @@ window.renovarEmprestimo = async function(emprestimoId) {
     if(!await showConfirm('Deseja renovar este empréstimo por mais 7 dias?', 'Renovar')) return;
 
     try {
-        const response = await fetch(`/emprestimos/${emprestimoId}/renovar`,{
-            method: 'PUT'
+        const { data, error } = await db.rpc('renovar_emprestimo', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: emprestimoId
         });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        if (response.ok) {
-            showToast(`Empréstimo renovado! Nova data: ${new Date(data.nova_data_devolucao).toLocaleDateString()} — Renovações restantes: ${data.renovacoes_restantes}`, 'success', 5000);
-            mostrarMeusEmprestimos(); //recarrega a lista
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        showToast(`Empréstimo renovado! Nova data: ${new Date(data.nova_data_devolucao).toLocaleDateString()} — Renovações restantes: ${data.renovacoes_restantes}`, 'success', 5000);
+        mostrarMeusEmprestimos();
     } catch (error) {
         console.error('erro:', error);
-        showToast('Erro ao renovar empréstimo', 'error');
+        showToast(error.message || 'Erro ao renovar empréstimo', 'error');
     }
 };
 
 async function deletarEmprestimo(idEmprestimo, botaoClicado) {
-    
+
     if(!await showConfirm("Tem certeza que deseja apagar este registro de empréstimo?", "Apagar", "Cancelar")){
         return;
     }
     try{
-        const response = await fetch(`/emprestimos/${idEmprestimo}`,{
-            method: 'DELETE'
+        const { error } = await db.rpc('apagar_emprestimo', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: idEmprestimo
         });
 
-        if(response.ok){
-            botaoClicado.closest('.book-card').remove();
-            showToast("Empréstimo apagado com sucesso!", "success");
-        } else {
-            showToast("Não foi possível apagar empréstimo no servidor.", "error");
-        }
+        if (error) throw error;
+
+        botaoClicado.closest('.book-card').remove();
+        showToast("Empréstimo apagado com sucesso!", "success");
     } catch (error) {
         console.error("erro ao deletar:", error);
-        showToast("Erro de conexão ao tentar apagar empréstimo.", "error");
+        showToast(error.message || "Erro ao apagar empréstimo.", "error");
     }
 }
 
 window.solicitarEmprestimo = async function(livroId) {
-    const dataDevolucao = new Date();
-    dataDevolucao.setDate(dataDevolucao.getDate() + 7);
-    
     if (!await showConfirm('Deseja pegar este livro emprestado?', 'Pegar emprestado')) return;
-    
+
     try {
-        const response = await fetch('/emprestimos', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                usuario_id: usuarioAtual.id,
-                livro_id: livroId,
-                data_devolucao_prevista: dataDevolucao.toISOString().split('T')[0]
-            })
+        const { data, error } = await db.rpc('pegar_emprestado', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast('Empréstimo realizado! Devolva em até 7 dias.', 'success');
-            if (categoriaAtual) {
-                buscarPorCategoria(categoriaAtual);
-            } else {
-                buscarLivros();
-            }
-        } else if (data.error && data.error.includes('limite')) {
-            //usuario atingiu o limite de livros simultaneos: oferece solicitar aprovacao
-            if (await showConfirm(`${data.error}. Deseja enviar uma solicitação para o bibliotecário aprovar esse empréstimo extra?`, 'Enviar solicitação')) {
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        if (categoriaAtual) {
+            buscarPorCategoria(categoriaAtual);
+        } else {
+            buscarLivros();
+        }
+    } catch (error) {
+        if (error.message && error.message.includes('limite')) {
+            if (await showConfirm(`${error.message}. Deseja enviar uma solicitação para o bibliotecário aprovar esse empréstimo extra?`, 'Enviar solicitação')) {
                 solicitarEmprestimoExtra(livroId);
             }
         } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
+            showToast(error.message || 'Erro ao solicitar empréstimo', 'error');
         }
-    } catch (error) {
-        showToast('Erro ao solicitar empréstimo', 'error');
     }
 };
 
 window.solicitarEmprestimoExtra = async function(livroId) {
     try {
-        const response = await fetch('/solicitacoes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: usuarioAtual.id, livro_id: livroId })
+        const { data, error } = await db.rpc('solicitar_emprestimo_extra', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
         });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        if (response.ok) {
-            showToast('Solicitação enviada! Aguarde a aprovação do bibliotecário.', 'success');
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        showToast(data.message, 'success');
     } catch (error) {
-        showToast('Erro ao enviar solicitação', 'error');
+        showToast(error.message || 'Erro ao enviar solicitação', 'error');
     }
 };
 
 window.devolverLivro = async function(emprestimoId) {
     if (!await showConfirm('Confirmar devolução do livro?', 'Devolver')) return;
-    
+
     try {
-        const response = await fetch(`/emprestimos/${emprestimoId}/devolver`, {
-            method: 'PUT'
+        const { data, error } = await db.rpc('devolver_livro', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: emprestimoId
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast('Livro devolvido com sucesso!', 'success');
-            mostrarMeusEmprestimos();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        mostrarMeusEmprestimos();
     } catch (error) {
-        showToast('Erro ao devolver livro', 'error');
+        showToast(error.message || 'Erro ao devolver livro', 'error');
     }
 };
 
