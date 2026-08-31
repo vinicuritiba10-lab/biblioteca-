@@ -199,20 +199,13 @@ async function buscarPorCategoria(categoria) {
     booksGrid.innerHTML = '<p style="text-align:center;">Carregando livros...</p>';
    
     try {
-        const response = await fetch(`/livros/categoria/${categoria}`);
+        const { data: livros, error } = await db
+            .from('livros')
+            .select('*')
+            .eq('categoria', categoria)
+            .order('id');
 
-        if(!response.ok) {
-            throw new Error (`HTTP ${response.status}`);
-        }
-        const livros = await response.json();
-
-        if(!Array.isArray(livros)) {
-            console.error("resposta nao e array", livros);
-            booksGrid.innerHTML = '<p style="text-align:center;">❌ Erro: Dados inválidos do servidor</p>';
-            return;
-        }
-
-        //exibirLivros(livros);
+        if (error) throw error;
 
         if (livros.length === 0) {
             booksGrid.innerHTML = `
@@ -248,16 +241,14 @@ async function buscarLivros() {
     booksGrid.innerHTML = '<p style="text-align:center;">Buscando...</p>';
     
     try {
-        const response = await fetch(`/livros/buscar/${encodeURIComponent(termo)}`);
-        
-        
-        if (!response.ok) {
-            throw new Error("erro na busca");
-        }
+        const termoBusca = termo.replace(/[%,]/g, '');
+        const { data: livros, error } = await db
+            .from('livros')
+            .select('*')
+            .or(`titulo.ilike.%${termoBusca}%,autor.ilike.%${termoBusca}%`)
+            .order('id');
 
-        const livros = await response.json();
-
-        console.log("livros encontrados:", livros);
+        if (error) throw error;
 
           if (livros.length === 0) {
             booksGrid.innerHTML = `
@@ -282,7 +273,7 @@ function exibirLivros(livros) {
     const cores = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
     const icones = ['📖', '📘', '📙', '📕', '📗', '📓', '📔', '📒'];
 
-    if(!livros || livros.lenght === 0) {
+    if(!livros || livros.length === 0) {
         booksGrid.innerHTML = '<p style="text-align:center;"> nenhum livro disponivel';
         return;
     }
@@ -603,10 +594,11 @@ async function carregarTodosLivros() {
     booksGrid.innerHTML = '<p style="text-align:center;"> carregando livros...</p>';
 
     try {
-        const response = await fetch("/livros");
-        const livros = await response.json();
+        const { data: livros, error } = await db.from('livros').select('*').order('id');
 
-        if (livros.lenght === 0) {
+        if (error) throw error;
+
+        if (livros.length === 0) {
             booksGrid.innerHTML = '<p style="text-align:center;">📭 Nenhum livro cadastrado ainda.</p>';
         } else {
             exibirLivros(livros);
