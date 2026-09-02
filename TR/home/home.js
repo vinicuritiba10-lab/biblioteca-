@@ -939,30 +939,99 @@ async function mostrarEstatisticas() {
     }
 }
 
-// baixa o relatorio de emprestimos em pdf (usa fetch + blob porque a rota exige cabecalho de autenticacao)
+// gera o relatorio de emprestimos em pdf direto no navegador (jsPDF + AutoTable)
 window.baixarRelatorioPDF = async function() {
     try {
-        const response = await fetch('/relatorio/emprestimos/pdf', {
-            headers: { 'usuario-id': usuarioAtual.id }
+        const { data: emprestimos, error } = await db.rpc('listar_meus_emprestimos_admin', {
+            p_solicitante_id: usuarioAtual.id
+        });
+        if (error) throw error;
+
+        const { data: stats, error: statsError } = await db.rpc('obter_estatisticas', {
+            p_solicitante_id: usuarioAtual.id
+        });
+        if (statsError) throw statsError;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const corPrimaria = [30, 58, 95];      // azul escuro
+        const corAcento = [212, 165, 32];      // dourado
+        const larguraPagina = doc.internal.pageSize.getWidth();
+
+        // ---- Cabeçalho ----
+        doc.setFillColor(...corPrimaria);
+        doc.rect(0, 0, larguraPagina, 90, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('📚 Libro', 40, 40);
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Relatório de Empréstimos', 40, 62);
+        doc.setFontSize(9);
+        doc.setTextColor(220, 220, 220);
+        doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 40, 78);
+
+        // ---- Cartões de resumo ----
+        const cartoes = [
+            { titulo: 'Usuários', valor: stats.total_usuarios },
+            { titulo: 'Livros no catálogo', valor: stats.total_livros },
+            { titulo: 'Empréstimos ativos', valor: stats.emprestimos_ativos },
+            { titulo: 'Cópias disponíveis', valor: stats.copias_disponiveis }
+        ];
+        const margemCartao = 40;
+        const espacoCartao = 12;
+        const larguraCartao = (larguraPagina - margemCartao * 2 - espacoCartao * 3) / 4;
+        const yCartao = 112;
+
+        cartoes.forEach((c, i) => {
+            const x = margemCartao + i * (larguraCartao + espacoCartao);
+            doc.setDrawColor(...corAcento);
+            doc.setFillColor(248, 246, 240);
+            doc.roundedRect(x, yCartao, larguraCartao, 54, 6, 6, 'FD');
+            doc.setTextColor(...corPrimaria);
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(c.valor), x + larguraCartao / 2, yCartao + 26, { align: 'center' });
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(90, 90, 90);
+            doc.text(c.titulo, x + larguraCartao / 2, yCartao + 42, { align: 'center' });
         });
 
-        if (!response.ok) {
-            showToast('Não foi possível gerar o relatório', 'error');
-            return;
-        }
+        // ---- Tabela de histórico ----
+        const linhas = emprestimos.map((emp, i) => [
+            i + 1,
+            emp.livro?.titulo || '(livro removido)',
+            emp.usuario?.nome || '(usuário removido)',
+            emp.data_emprestimo ? new Date(emp.data_emprestimo).toLocaleDateString('pt-BR') : '-',
+            emp.data_prevista_devolucao ? new Date(emp.data_prevista_devolucao).toLocaleDateString('pt-BR') : '-',
+            emp.status === 'ativo' ? 'Ativo' : emp.status === 'devolvido' ? 'Devolvido' : 'Atrasado'
+        ]);
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'relatorio-emprestimos.pdf';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
+        doc.autoTable({
+            startY: yCartao + 74,
+            head: [['#', 'Livro', 'Usuário', 'Emprestado em', 'Previsto', 'Status']],
+            body: linhas.length ? linhas : [['-', 'Nenhum empréstimo registrado ainda.', '-', '-', '-', '-']],
+            theme: 'striped',
+            headStyles: { fillColor: corPrimaria, textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            styles: { fontSize: 9, cellPadding: 6 },
+            columnStyles: { 0: { cellWidth: 24, halign: 'center' } },
+            margin: { left: 40, right: 40 },
+            didParseCell: function(data) {
+                if (data.section === 'body' && data.column.index === 5) {
+                    if (data.cell.raw === 'Atrasado') data.cell.styles.textColor = [180, 40, 40];
+                    if (data.cell.raw === 'Ativo') data.cell.styles.textColor = [30, 120, 60];
+                }
+            }
+        });
+
+        doc.save('relatorio-emprestimos.pdf');
+        showToast('Relatório gerado com sucesso!', 'success');
     } catch (error) {
-        console.error('Erro ao baixar relatorio:', error);
-        showToast('Erro ao baixar relatório em PDF', 'error');
+        console.error('Erro ao gerar relatorio:', error);
+        showToast(error.message || 'Erro ao gerar relatório em PDF', 'error');
     }
 };
 
