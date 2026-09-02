@@ -1,786 +1,1200 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <script>
-    (function() {
-        try {
-            var salvo = localStorage.getItem('libro-tema');
-            var prefereEscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            var tema = salvo || (prefereEscuro ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-theme', tema);
-        } catch (e) {}
-    })();
-    </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin - Suspensões | Libro</title>
-    <link rel="stylesheet" href="/tokens.css">
-    <link rel="stylesheet" href="admin.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#e8491d">
-    <link rel="apple-touch-icon" href="/img/icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Libro">
-    <link rel="stylesheet" href="/toast.css">
-    <link rel="stylesheet" href="/theme.css">
-    <style>
-        /* ===== STATS CARDS ===== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 32px;
+// home.js
+let usuarioAtual = null;
+let categoriaAtual = '';
+
+document.addEventListener('DOMContentLoaded', async function() {
+    // Verifica se usuário está logado
+    const usuarioLogado = localStorage.getItem('usuarioLogado');
+    
+    if (!usuarioLogado) {
+        showToast('Faça login primeiro!', 'warning');
+        window.location.href = '../login/index.html';
+        return;
+    }
+    
+    usuarioAtual = JSON.parse(usuarioLogado);
+    
+    // Mostra nome do usuário no menu (opcional)
+    const contaBtn = document.getElementById('btn-conta');
+    if (contaBtn) {
+        contaBtn.textContent = `Olá, ${usuarioAtual.nome.split(' ')[0]}`;
+    }
+
+    await carregarCategorias();
+    await carregarTodosLivros();
+    configurarEventos();
+    
+    // Se for bibliotecário, mostra botão de adicionar livro
+    if (usuarioAtual.tipo === 'bibliotecario') {
+        const btnAdmin = document.getElementById('btn-adicionar-livro');
+        if(btnAdmin) {
+            btnAdmin.style.display = 'block';
+        }
+    }
+
+    // Relatório de empréstimos: visível para bibliotecário E admin
+    if (usuarioAtual.tipo === 'bibliotecario' || usuarioAtual.tipo === 'admin') {
+        const relatoriosSection = document.getElementById('relatorios-section');
+        if (relatoriosSection) {
+            relatoriosSection.style.display = 'block';
+            await carregarRelatoriosEmprestimos();
+        }
+    }
+
+    // Adicionar botão para bibliotecário
+    if (usuarioAtual.tipo === 'bibliotecario') {
+        const btnContainer = document.getElementById('lembretes');
+        if (btnContainer) {
+            btnContainer.innerHTML = '<button id="btn-enviar-lembretes" class="btn-notificacao">📧 Enviar Lembretes</button>';
+            document.getElementById('btn-enviar-lembretes').addEventListener('click', enviarLembretes);
+        }
+    }
+   
+    //se for bibliotecario ou admin, mostra menu de administracao
+    if (usuarioAtual.tipo === 'admin' || usuarioAtual.tipo === 'bibliotecario') {
+        const adminMenu = document.getElementById('admin-menu');
+        if (adminMenu) {
+            adminMenu.style.display = 'block';
         }
 
-        .stat-card {
-            background: var(--cor-fundo-card, white);
-            border-radius: var(--raio-md, 14px);
-            padding: 20px 24px;
-            box-shadow: var(--sombra-card);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            transition: transform var(--transicao-suave), box-shadow var(--transicao-suave);
+        //se for admin, mostra opcoes extras
+        if (usuarioAtual.tipo === 'admin') {
+            const adminExtra = document.getElementById('admin-extra');
+            if (adminExtra) {
+                adminExtra.style.display = 'block';
+            }
         }
 
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--sombra-elevada);
+    }
+
+   
+    
+
+
+    
+    // Carrega as categorias
+    
+    
+    // Configura eventos
+    document.getElementById('btn-buscar').addEventListener('click', buscarLivros);
+    document.getElementById('pesquisa').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+           buscarLivros();
         }
+    });
+    
+    document.getElementById('btn-inicio').addEventListener('click', function(e) {
+        e.preventDefault();
+        mostrarInicio();
+    });
+    
+    document.getElementById('btn-emprestimos').addEventListener('click', function(e) {
+        e.preventDefault();
+        mostrarMeusEmprestimos();
+    });
+    
+    document.getElementById('btn-sair').addEventListener('click', function(e) {
+        e.preventDefault();
+        localStorage.removeItem('usuarioLogado');
+        window.location.href = '../login/index.html';
+    });
+    
+    document.getElementById("btn-adicionar-livro").addEventListener("click", function(e){
+        e.preventDefault();
+        window.location.href = "admin-livros.html";
+    });
 
-        .stat-icon-box {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            flex-shrink: 0;
-        }
+    //remover elemento
+    const botaoDelete =  document.getElementById("apagar");
+    const elementoParaRemover = document.getElementById("book-card");
 
-        .icon-ativas   { background: rgba(231, 76, 60, 0.12); }
-        .icon-cumpridas { background: rgba(46, 204, 113, 0.12); }
-        .icon-total    { background: rgba(118, 75, 162, 0.12); }
+    botaoDelete.addEventListener('click', () => {
+        elementoParaRemover.remove();
+    });
 
-        .stat-info h3 {
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--cor-texto);
-            line-height: 1;
-        }
 
-        .stat-info p {
-            font-size: 12px;
-            color: var(--cor-texto-suave);
-            margin-top: 3px;
-        }
 
-        /* ===== SECTION CARDS ===== */
-        .section-card {
-            background: var(--cor-fundo-card, white);
-            border-radius: var(--raio-lg, 22px);
-            padding: 28px 30px;
-            margin-bottom: 24px;
-            box-shadow: var(--sombra-card);
-        }
+    document.getElementById('btn-voltar').addEventListener('click', mostrarInicio);
+    document.getElementById('btn-voltar-emprestimos').addEventListener('click', mostrarInicio);
 
-        .section-card h2 {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--cor-texto);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    // Executa após a página e os livros carregarem
+    document.addEventListener('click', function(event) {
+    // 1. Verifica se o que foi clicado foi um link de sinopse
+    if (event.target.classList.contains('link-sinopse')) {
+        event.preventDefault(); // Impede a página de pular para o topo
 
-        .section-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+        const linkClicado = event.target;
+        const sinopseTexto = linkClicado.dataset.sinopse;
 
-        .section-header-row h2 { margin-bottom: 0; }
+        // 2. Captura os elementos do balão
+        const balao = document.getElementById('notificacao-sinopse');
+        const spanTexto = document.getElementById('texto-da-sinopse');
 
-        /* ===== BUSCA ===== */
-        .busca-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
+        // 3. Altera o texto e mostra o balão
+        spanTexto.textContent = sinopseTexto || "Este livro não possui descrição cadastrada.";
+        balao.classList.add('mostrar');
+    }
+});
 
-        .busca-row input {
-            flex: 1;
-            padding: 10px 16px;
-            border: 2px solid var(--cor-borda);
-            border-radius: var(--raio-sm);
-            font-size: 14px;
-            font-family: 'Poppins', sans-serif;
-            background: var(--cor-fundo-sutil);
-            color: var(--cor-texto);
-            outline: none;
-            transition: border-color var(--transicao-rapida);
-        }
+// 2. Lógica para fechar o balão ao clicar no 'X'
+document.getElementById('fechar-balao').addEventListener('click', () => {
+    document.getElementById('notificacao-sinopse').classList.remove('mostrar');
+});
 
-        .busca-row input:focus { border-color: var(--cor-secundaria); background: var(--cor-fundo-card); }
+});
 
-        /* ===== INFO ALUNO ===== */
-        .aluno-result {
-            display: none;
-            border-radius: var(--raio-md);
-            padding: 16px 20px;
-            margin-top: 8px;
-            border-left: 4px solid;
-        }
-
-        .aluno-result.suspenso {
-            background: rgba(231, 76, 60, 0.08);
-            border-color: var(--cor-erro);
-        }
-
-        .aluno-result.livre {
-            background: rgba(46, 204, 113, 0.08);
-            border-color: var(--cor-sucesso);
-        }
-
-        .aluno-result h4 {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--cor-texto);
-            margin-bottom: 4px;
-        }
-
-        .aluno-result p {
-            font-size: 13px;
-            color: var(--cor-texto-suave);
-            margin-bottom: 4px;
-        }
-
-        .result-badge {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: var(--raio-pill);
-            font-size: 11px;
-            font-weight: 700;
-            margin-top: 6px;
-        }
-
-        .badge-suspenso { background: var(--cor-erro); color: #fff; }
-        .badge-livre    { background: var(--cor-sucesso); color: #fff; }
-
-        /* ===== FORM GRID ===== */
-        .form-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px 20px;
-            margin-bottom: 16px;
-        }
-
-        .form-grid-2 .span-full { grid-column: 1 / -1; }
-
-        .form-group-s label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--cor-texto-suave);
-            margin-bottom: 6px;
-        }
-
-        .form-group-s input,
-        .form-group-s textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 2px solid var(--cor-borda);
-            border-radius: var(--raio-sm);
-            font-size: 14px;
-            font-family: 'Poppins', sans-serif;
-            background: var(--cor-fundo-sutil);
-            color: var(--cor-texto);
-            outline: none;
-            transition: border-color var(--transicao-rapida), background var(--transicao-rapida);
-        }
-
-        .form-group-s textarea { resize: vertical; min-height: 72px; }
-
-        .form-group-s input:focus,
-        .form-group-s textarea:focus {
-            border-color: var(--cor-secundaria);
-            background: var(--cor-fundo-card);
-        }
-
-        .hint {
-            font-size: 12px;
-            color: var(--cor-texto-suave);
-            margin-top: 10px;
-        }
-
-        /* ===== BOTÕES ===== */
-        .btn-aplicar {
-            background: var(--gradiente-marca);
-            color: white;
-            border: none;
-            padding: 12px 26px;
-            border-radius: var(--raio-md);
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            transition: opacity var(--transicao-rapida), transform var(--transicao-rapida), box-shadow var(--transicao-rapida);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-aplicar:hover:not(:disabled) {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: var(--sombra-marca);
-        }
-
-        .btn-aplicar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        .btn-acao {
-            background: var(--cor-fundo-sutil);
-            color: var(--cor-texto);
-            border: 1.5px solid var(--cor-borda);
-            padding: 8px 16px;
-            border-radius: var(--raio-sm);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            transition: background var(--transicao-rapida), border-color var(--transicao-rapida);
-        }
-
-        .btn-acao:hover { background: var(--cor-borda); }
-
-        .btn-verificar {
-            background: var(--cor-secundaria);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: var(--raio-sm);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            transition: opacity var(--transicao-rapida);
-        }
-
-        .btn-verificar:hover { opacity: 0.85; }
-
-        .btn-encerrar-susp {
-            background: rgba(46, 204, 113, 0.12);
-            color: var(--cor-sucesso-escura);
-            border: 1.5px solid var(--cor-sucesso);
-            padding: 5px 12px;
-            border-radius: var(--raio-sm);
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            transition: background var(--transicao-rapida);
-            white-space: nowrap;
-        }
-
-        .btn-encerrar-susp:hover { background: rgba(46, 204, 113, 0.22); }
-
-        /* ===== FILTROS ===== */
-        .filtros {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 18px;
-        }
-
-        .filtro-pill {
-            padding: 6px 16px;
-            border-radius: var(--raio-pill);
-            border: 2px solid var(--cor-borda);
-            background: var(--cor-fundo-card);
-            color: var(--cor-texto-suave);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transicao-rapida);
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .filtro-pill.ativo {
-            background: var(--gradiente-marca);
-            border-color: transparent;
-            color: white;
-        }
-
-        /* ===== TABELA ===== */
-        .tabela-scroll {
-            overflow-x: auto;
-            border-radius: var(--raio-md);
-            border: 1px solid var(--cor-borda);
-        }
-
-        .tabela-suspensoes {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 700px;
-            font-size: 13.5px;
-        }
-
-        .tabela-suspensoes thead th {
-            background: var(--gradiente-marca);
-            color: white;
-            padding: 13px 16px;
-            text-align: left;
-            font-weight: 700;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            white-space: nowrap;
-        }
-
-        .tabela-suspensoes tbody tr {
-            background: var(--cor-fundo-card);
-            border-bottom: 1px solid var(--cor-borda);
-            transition: background var(--transicao-rapida);
-        }
-
-        .tabela-suspensoes tbody tr:nth-child(even) { background: var(--cor-fundo-sutil); }
-        .tabela-suspensoes tbody tr:hover { background: rgba(118, 75, 162, 0.06); }
-
-        .tabela-suspensoes tbody td {
-            padding: 12px 16px;
-            color: var(--cor-texto);
-            vertical-align: middle;
-        }
-
-        .badge-status {
-            display: inline-block;
-            padding: 4px 11px;
-            border-radius: var(--raio-pill);
-            font-size: 11.5px;
-            font-weight: 700;
-        }
-
-        .badge-ativa    { background: rgba(231, 76, 60, 0.12); color: var(--cor-erro-escura); }
-        .badge-cumprida { background: rgba(46, 204, 113, 0.12); color: var(--cor-sucesso-escura); }
-
-        .tabela-vazia {
-            text-align: center;
-            padding: 48px 16px;
-            color: var(--cor-texto-suave);
-            font-size: 14px;
-        }
-
-        /* ===== DARK MODE extras ===== */
-        [data-theme="dark"] .section-card,
-        [data-theme="dark"] .stat-card {
-            background: var(--cor-fundo-card);
-        }
-
-        [data-theme="dark"] .busca-row input,
-        [data-theme="dark"] .form-group-s input,
-        [data-theme="dark"] .form-group-s textarea {
-            background: #14151e;
-            color: var(--cor-texto);
-            border-color: var(--cor-borda);
-        }
-
-        [data-theme="dark"] .btn-acao { background: #14151e; color: var(--cor-texto); border-color: var(--cor-borda); }
-        [data-theme="dark"] .btn-acao:hover { background: #1e2030; }
-
-        [data-theme="dark"] .filtro-pill {
-            background: var(--cor-fundo-card);
-            border-color: var(--cor-borda);
-            color: var(--cor-texto-suave);
-        }
-
-        [data-theme="dark"] .tabela-suspensoes tbody tr { background: var(--cor-fundo-card); }
-        [data-theme="dark"] .tabela-suspensoes tbody tr:nth-child(even) { background: var(--cor-fundo-sutil); }
-        [data-theme="dark"] .tabela-suspensoes tbody td { color: var(--cor-texto); border-bottom-color: var(--cor-borda); }
-        [data-theme="dark"] .tabela-scroll { border-color: var(--cor-borda); }
-
-        /* ===== RESPONSIVO ===== */
-        @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .form-grid-2 { grid-template-columns: 1fr; }
-            .section-card { padding: 20px 16px; }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- HEADER -->
-    <header class="princ">
-        <div class="logo-container">
-            <span class="logo-text">📚 Libro</span>
-            <span class="admin-badge">Suspensões</span>
+function carregarCategorias() {
+    const categorias = [
+        { nome: "Literatura Brasileira", icone: "📚", categoria: "literatura" },
+        { nome: "Biologia Celular", icone: "🧬", categoria: "ciencias" },
+        { nome: "Economia", icone: "📊", categoria: "economia" },
+        { nome: "Direito Civil", icone: "⚖️", categoria: "direito" },
+        { nome: "Programação", icone: "💻", categoria: "tecnologia" },
+        { nome: "Engenharia", icone: "📐", categoria: "engenharia" },
+        { nome: "Filosofia", icone: "🎭", categoria: "filosofia" },
+        { nome: "Medicina", icone: "🏥", categoria: "medicina" },
+        { nome: "História Universal", icone: "🏛️", categoria: "historia" },
+        { nome: "Culinária & Gastronomia", icone: "👨‍🍳", categoria: "culinaria" }
+    ];
+    
+    const grid = document.getElementById('category-grid');
+    grid.innerHTML = categorias.map(cat => `
+        <div class="cat-card" data-categoria="${cat.categoria}">
+            <span>${cat.icone}</span> ${cat.nome}
         </div>
-        <nav class="navigation">
-            <ul class="nav-menu">
-                <li><a href="home.html" class="nav-link">🏠 Início</a></li>
-                <li><a href="admin-livros.html" class="nav-link">📚 Livros</a></li>
-                <li><a href="#" id="btn-sair" class="nav-link">🚪 Sair</a></li>
-                <li><button class="btn-tema" onclick="libroAlternarTema()" aria-label="Alternar modo escuro" title="Modo escuro">🌙</button></li>
-            </ul>
-        </nav>
-    </header>
+    `).join('');
+    
+    // Adiciona evento de clique nas categorias
+    document.querySelectorAll('.cat-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const categoria = this.getAttribute('data-categoria');
+            buscarPorCategoria(categoria);
+        });
+    });
+}
 
-    <main class="main-content">
-        <div class="container">
+async function buscarPorCategoria(categoria) {
+    categoriaAtual = categoria;
+    const nomesCategorias = {
+        'literatura': 'Literatura Brasileira',
+        'ciencias': 'Ciências',
+        'economia': 'Economia',
+        'direito': 'Direito',
+        'tecnologia': 'Tecnologia',
+        'engenharia': 'Engenharia',
+        'filosofia': '🎭 Filosofia',
+        'medicina': 'Medicina',
+        'historia': 'História',
+        'culinaria': 'Culinária'
+    };
+    
+    document.getElementById('categorias-section').style.display = 'none';
+    document.getElementById('livros-section').style.display = 'block';
+    document.getElementById('livros-titulo').textContent = `${nomesCategorias[categoria] || categoria}`;
+    document.getElementById('livros-desc').textContent = `Livros disponíveis na categoria`;
+    document.getElementById('btn-voltar').style.display = 'inline-block';
+    
+    const booksGrid = document.getElementById('books-grid');
+    booksGrid.innerHTML = '<p style="text-align:center;">Carregando livros...</p>';
+   
+    try {
+        const { data: livros, error } = await db
+            .from('livros')
+            .select('*')
+            .eq('categoria', categoria)
+            .order('id');
 
-            <h1>
-                <span>⛔</span>
-                Gerenciar Suspensões
-                <span style="font-size:13px; background: var(--cor-erro); color:white; padding:4px 12px; border-radius:20px;" id="badge-tipo">Bibliotecário</span>
-            </h1>
+        if (error) throw error;
 
-            <!-- STATS -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon-box icon-ativas">⛔</div>
-                    <div class="stat-info">
-                        <h3 id="total-ativas">—</h3>
-                        <p>Suspensões ativas</p>
-                    </div>
+        if (livros.length === 0) {
+            booksGrid.innerHTML = `
+                <div style="text-align:center; padding:40px;">
+                    <p>📭 Nenhum livro encontrado na categoria "${nomesCategorias[categoria] || categoria}"</p>
+                    <p>Você precisa cadastrar livros com esta categoria.</p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon-box icon-cumpridas">✅</div>
-                    <div class="stat-info">
-                        <h3 id="total-cumpridas">—</h3>
-                        <p>Já cumpridas</p>
-                    </div>
+            `;
+        } else {
+            exibirLivros(livros);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        booksGrid.innerHTML = '<p style="text-align:center;">Erro ao carregar livros</p>';
+    }
+}
+
+async function buscarLivros() {
+    const termo = document.getElementById('pesquisa').value.trim();
+    
+    if (!termo) {
+        showToast('Digite um termo para buscar', 'warning');
+        return;
+    }
+    
+    document.getElementById('categorias-section').style.display = 'none';
+    document.getElementById('livros-section').style.display = 'block';
+    document.getElementById('livros-titulo').textContent = `Resultados da busca`;
+    document.getElementById('livros-desc').textContent = `Exibindo resultados para: "${termo}"`;
+    document.getElementById('btn-voltar').style.display = 'inline-block';
+    
+    const booksGrid = document.getElementById('books-grid');
+    booksGrid.innerHTML = '<p style="text-align:center;">Buscando...</p>';
+    
+    try {
+        const termoBusca = termo.replace(/[%,]/g, '');
+        const { data: livros, error } = await db
+            .from('livros')
+            .select('*')
+            .or(`titulo.ilike.%${termoBusca}%,autor.ilike.%${termoBusca}%`)
+            .order('id');
+
+        if (error) throw error;
+
+          if (livros.length === 0) {
+            booksGrid.innerHTML = `
+                <div style="text-align:center; padding:40px;">
+                    <p>📭 Nenhum livro encontrado para "${termo}"</p>
+                    <p>Tente outro termo ou verifique se já existem livros cadastrados.</p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon-box icon-total">📋</div>
-                    <div class="stat-info">
-                        <h3 id="total-geral">—</h3>
-                        <p>Total registrado</p>
-                    </div>
+            `;
+        } else {
+            exibirLivros(livros);
+        }
+        
+    } catch (error) {
+        console.error('Erro na busca:', error);
+        booksGrid.innerHTML = '<p style="text-align:center;">❌ Erro ao buscar livros. Verifique se o servidor está rodando.</p>';
+    }
+}
+
+function exibirLivros(livros) {
+    const booksGrid = document.getElementById('books-grid');
+    
+    const cores = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
+    const icones = ['📖', '📘', '📙', '📕', '📗', '📓', '📔', '📒'];
+
+    if(!livros || livros.length === 0) {
+        booksGrid.innerHTML = '<p style="text-align:center;"> nenhum livro disponivel';
+        return;
+    }
+    
+    booksGrid.innerHTML = livros.map((livro, index) => `
+        <div class="book-card">
+            <div class="book-cover ${cores[index % cores.length]}" ${livro.capa_url ? 'style="padding:0;"' : ''}>
+                ${livro.capa_url
+                    ? `<img src="${livro.capa_url}" alt="Capa de ${livro.titulo}" class="book-cover-img" onerror="this.parentElement.innerHTML='${icones[index % icones.length]}'">`
+                    : icones[index % icones.length]}
+            </div>
+            <div class="book-info">
+                <h3>${livro.titulo}</h3>
+                <p class="author">${livro.autor}</p>
+                <div class="livro-item">
+                    <!-- O link que aciona a notificação -->
+                    <a href="#" class="link-sinopse" data-sinopse="${livro.descricao}">
+                        📖 ${livro.titulo}
+                    </a>
+                </div>
+                <span class="status ${livro.quantidade_disponivel > 0 ? 'disponivel' : 'ocupado'}">
+                    ${livro.quantidade_disponivel > 0 ? '● Disponível' : '● Emprestado'}
+                </span>
+                ${livro.quantidade_disponivel > 0 ? 
+                    `<button class="btn-borrow" onclick="solicitarEmprestimo(${livro.id})">Pegar Empréstimo</button>` : 
+                    `<button class="btn-borrow btn-reservar" onclick="reservarLivro(${livro.id})">🔖 Reservar</button>`}
+            </div>
+        </div>
+    `).join('');
+}
+
+function mostrarInicio() {
+    document.getElementById('categorias-section').style.display = 'block';
+    document.getElementById('livros-section').style.display = 'none';
+    document.getElementById('emprestimos-section').style.display = 'none';
+    const reservasSection = document.getElementById('reservas-section');
+    if (reservasSection) reservasSection.style.display = 'none';
+    document.getElementById('pesquisa').value = '';
+    categoriaAtual = '';
+}
+
+//
+async function mostrarMeusEmprestimos() {
+    document.getElementById('categorias-section').style.display = 'none';
+    document.getElementById('livros-section').style.display = 'none';
+    document.getElementById('emprestimos-section').style.display = 'block';
+    const reservasSection = document.getElementById('reservas-section');
+    if (reservasSection) reservasSection.style.display = 'none';
+    
+    const emprestimosGrid = document.getElementById('emprestimos-grid');
+    emprestimosGrid.innerHTML = '<p style="text-align:center;">Carregando seus empréstimos...</p>';
+    
+    try {
+        const { data: emprestimos, error } = await db.rpc('listar_meus_emprestimos', {
+            p_usuario_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
+        
+        if (emprestimos.length === 0) {
+            emprestimosGrid.innerHTML = '<p style="text-align:center;">📭 Você não possui empréstimos ativos</p>';
+            return;
+        }
+        
+        const cores = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
+        const icones = ['📖', '📘', '📙', '📕', '📗'];
+        
+        emprestimosGrid.innerHTML = emprestimos.map((emp, index) => {
+        const dataPrevista = new Date(emp.data_prevista_devolucao);
+        const hoje = new Date();
+        const podeRenovar = emp.status === 'ativo' && emp.renovacoes_restantes > 0;
+        
+        return `
+            <div class="book-card">
+            <div class="book-cover ${cores[index % cores.length]}">${icones[index % icones.length]}</div>
+                <div class="book-info">
+                    <h3>${emp.livro.titulo}</h3>
+                    <p>Autor: ${emp.livro.autor}</p>
+                    <p><small>Emprestado em: ${new Date(emp.data_emprestimo).toLocaleDateString()}</small></p>
+                    <p><small>Data prevista: ${dataPrevista.toLocaleDateString()}</small></p>
+                    <p><small>Renovações restantes: ${emp.renovacoes_restantes}</small></p>
+                    <p><small><button onclick="deletarEmprestimo(${emp.id}, this)">Apagar</button></small></p>
+                    <span class="status ${emp.status === 'ativo' ? 'disponivel' : 'ocupado'}">
+                        ${emp.status === 'ativo' ? '● Ativo' : '● Devolvido'}
+                    </span>
+                </div>
+                <div class="livro-acoes">
+                    ${emp.status === 'ativo' ? `
+                        ${podeRenovar ? 
+                            `<button onclick="renovarEmprestimo(${emp.id})" class="btn-renovar">🔄 Renovar (mais 7 dias)</button>` : 
+                            `<button disabled class="btn-renovar disabled">❌ Sem renovações</button>`
+                        }
+                        <button onclick="devolverLivro(${emp.id})" class="btn-devolver">📚 Devolver</button>
+                    ` : ''}
                 </div>
             </div>
+        `;
+       }).join('');
+        
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        emprestimosGrid.innerHTML = '<p style="text-align:center;">❌ Erro ao carregar empréstimos</p>';
+    }
 
-            <!-- VERIFICAR ALUNO -->
-            <div class="section-card">
-                <h2>🔍 Verificar situação de um aluno</h2>
-                <div class="busca-row">
-                    <input type="number" id="input-id-aluno" placeholder="Digite o ID do aluno...">
-                    <button class="btn-verificar" onclick="verificarAluno()">Verificar</button>
-                </div>
-                <div class="aluno-result" id="aluno-result">
-                    <h4 id="res-nome">—</h4>
-                    <p id="res-email"></p>
-                    <p id="res-detalhe"></p>
-                    <span class="result-badge" id="res-badge"></span>
-                </div>
-            </div>
+    
+}
 
-            <!-- APLICAR SUSPENSÃO -->
-            <div class="section-card">
-                <h2>➕ Aplicar suspensão manualmente</h2>
+// funcao mostrar minhas reservas
+async function mostrarMinhasReservas() {
+    document.getElementById('categorias-section').style.display = 'none';
+    document.getElementById('livros-section').style.display = 'none';
+    document.getElementById('emprestimos-section').style.display = 'none';
+    document.getElementById('reservas-section').style.display = 'block';
 
-                <div class="form-grid-2">
-                    <div class="form-group-s">
-                        <label>ID do Aluno *</label>
-                        <input type="number" id="susp-usuario-id" placeholder="Ex: 5">
+    const reservasGrid = document.getElementById('reservas-grid');
+    reservasGrid.innerHTML = '<p style="text-align:center;">Carregando suas reservas...</p>';
+
+    try {
+        const { data: reservas, error } = await db.rpc('listar_minhas_reservas', {
+            p_usuario_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
+
+        if (!reservas || reservas.length === 0) {
+            reservasGrid.innerHTML = '<p style="text-align:center;">📭 Você não possui reservas no momento</p>';
+            return;
+        }
+
+        reservasGrid.innerHTML = reservas.map((res) => {
+            const disponivel = res.status === 'disponivel';
+            return `
+                <div class="book-card">
+                    <div class="book-cover color-2">🔖</div>
+                    <div class="book-info">
+                        <h3>${res.livro.titulo}</h3>
+                        <p>Autor: ${res.livro.autor}</p>
+                        <p><small>Reservado em: ${new Date(res.data_reserva).toLocaleDateString()}</small></p>
+                        <span class="status ${disponivel ? 'disponivel' : 'ocupado'}">
+                            ${disponivel ? '● Disponível para retirada' : '● Aguardando devolução'}
+                        </span>
+                        <div class="livro-acoes">
+                            <button onclick="cancelarReserva(${res.id})" class="btn-devolver">✖ Cancelar reserva</button>
+                        </div>
                     </div>
-                    <div class="form-group-s">
-                        <label>ID do Empréstimo em atraso *</label>
-                        <input type="number" id="susp-emprestimo-id" placeholder="Ex: 12">
-                    </div>
-                    <div class="form-group-s span-full">
-                        <label>Motivo (opcional)</label>
-                        <textarea id="susp-motivo" placeholder="Ex: Devolução em atraso — Dom Casmurro"></textarea>
-                    </div>
                 </div>
+            `;
+        }).join('');
 
-                <div class="form-actions">
-                    <button class="btn-aplicar" id="btn-aplicar" onclick="aplicarSuspensao()">
-                        ⛔ Aplicar Suspensão e Enviar E-mail
-                    </button>
-                </div>
-                <p class="hint">💡 Duração automática: 1 dia suspenso por dia de atraso. O aluno recebe um e-mail imediatamente.</p>
-            </div>
+    } catch (error) {
+        console.error('Erro:', error);
+        reservasGrid.innerHTML = '<p style="text-align:center;">❌ Erro ao carregar reservas</p>';
+    }
+}
 
-            <!-- LISTA DE SUSPENSÕES -->
-            <div class="section-card">
-                <div class="section-header-row">
-                    <h2>📋 Todas as suspensões <span id="contador-label" style="font-size:14px; font-weight:500; color:var(--cor-texto-suave);"></span></h2>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button class="btn-acao" onclick="encerrarVencidas()">🔄 Encerrar vencidas</button>
-                        <button class="btn-acao" onclick="carregarSuspensoes()">↺ Atualizar</button>
-                    </div>
-                </div>
+window.reservarLivro = async function(livroId) {
+    if (!await showConfirm('Esse livro está indisponível agora. Deseja reservar para quando ele voltar?', 'Reservar')) return;
 
-                <div class="filtros">
-                    <button class="filtro-pill ativo" onclick="filtrar('todas', this)">Todas</button>
-                    <button class="filtro-pill" onclick="filtrar('ativa', this)">🔴 Ativas</button>
-                    <button class="filtro-pill" onclick="filtrar('cumprida', this)">✅ Cumpridas</button>
-                </div>
+    try {
+        const { data, error } = await db.rpc('reservar_livro', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
+        });
 
-                <div class="tabela-scroll">
-                    <table class="tabela-suspensoes" id="tabela-suspensoes">
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+    } catch (error) {
+        showToast(error.message || 'Erro ao reservar livro', 'error');
+    }
+};
+
+window.cancelarReserva = async function(reservaId) {
+    if (!await showConfirm('Deseja cancelar essa reserva?', 'Cancelar reserva', 'Não')) return;
+
+    try {
+        const { data, error } = await db.rpc('cancelar_reserva', {
+            p_usuario_id: usuarioAtual.id,
+            p_reserva_id: reservaId
+        });
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        mostrarMinhasReservas();
+    } catch (error) {
+        showToast(error.message || 'Erro ao cancelar reserva', 'error');
+    }
+};
+
+
+window.renovarEmprestimo = async function(emprestimoId) {
+    if(!await showConfirm('Deseja renovar este empréstimo por mais 7 dias?', 'Renovar')) return;
+
+    try {
+        const { data, error } = await db.rpc('renovar_emprestimo', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: emprestimoId
+        });
+
+        if (error) throw error;
+
+        showToast(`Empréstimo renovado! Nova data: ${new Date(data.nova_data_devolucao).toLocaleDateString()} — Renovações restantes: ${data.renovacoes_restantes}`, 'success', 5000);
+        mostrarMeusEmprestimos();
+    } catch (error) {
+        console.error('erro:', error);
+        showToast(error.message || 'Erro ao renovar empréstimo', 'error');
+    }
+};
+
+async function deletarEmprestimo(idEmprestimo, botaoClicado) {
+
+    if(!await showConfirm("Tem certeza que deseja apagar este registro de empréstimo?", "Apagar", "Cancelar")){
+        return;
+    }
+    try{
+        const { error } = await db.rpc('apagar_emprestimo', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: idEmprestimo
+        });
+
+        if (error) throw error;
+
+        botaoClicado.closest('.book-card').remove();
+        showToast("Empréstimo apagado com sucesso!", "success");
+    } catch (error) {
+        console.error("erro ao deletar:", error);
+        showToast(error.message || "Erro ao apagar empréstimo.", "error");
+    }
+}
+
+window.solicitarEmprestimo = async function(livroId) {
+    if (!await showConfirm('Deseja pegar este livro emprestado?', 'Pegar emprestado')) return;
+
+    try {
+        const { data, error } = await db.rpc('pegar_emprestado', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
+        });
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        if (categoriaAtual) {
+            buscarPorCategoria(categoriaAtual);
+        } else {
+            buscarLivros();
+        }
+    } catch (error) {
+        if (error.message && error.message.includes('limite')) {
+            if (await showConfirm(`${error.message}. Deseja enviar uma solicitação para o bibliotecário aprovar esse empréstimo extra?`, 'Enviar solicitação')) {
+                solicitarEmprestimoExtra(livroId);
+            }
+        } else {
+            showToast(error.message || 'Erro ao solicitar empréstimo', 'error');
+        }
+    }
+};
+
+window.solicitarEmprestimoExtra = async function(livroId) {
+    try {
+        const { data, error } = await db.rpc('solicitar_emprestimo_extra', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
+        });
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+    } catch (error) {
+        showToast(error.message || 'Erro ao enviar solicitação', 'error');
+    }
+};
+
+window.devolverLivro = async function(emprestimoId) {
+    if (!await showConfirm('Confirmar devolução do livro?', 'Devolver')) return;
+
+    try {
+        const { data, error } = await db.rpc('devolver_livro', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: emprestimoId
+        });
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        mostrarMeusEmprestimos();
+    } catch (error) {
+        showToast(error.message || 'Erro ao devolver livro', 'error');
+    }
+};
+
+async function carregarTodosLivros() {
+    const booksGrid = document.getElementById("books-grid");
+    booksGrid.innerHTML = '<p style="text-align:center;"> carregando livros...</p>';
+
+    try {
+        const { data: livros, error } = await db.from('livros').select('*').order('id');
+
+        if (error) throw error;
+
+        if (livros.length === 0) {
+            booksGrid.innerHTML = '<p style="text-align:center;">📭 Nenhum livro cadastrado ainda.</p>';
+        } else {
+            exibirLivros(livros);
+        }
+
+      
+    } catch (error) {
+        console.error("erro:", error);
+        booksGrid.innerHTML = '<p style="text-align:center;">❌ Erro ao carregar livros</p>';
+    }
+}
+
+async function carregarRelatoriosEmprestimos() {
+    try {
+
+        const resposta = await fetch("/emprestimos");
+
+        if(!resposta.ok) {
+            throw new Error("erro ao buscar emprestimos");
+        }
+
+        const emprestimos = await resposta.json();
+        const tabelaBody = document.querySelector("#tabela-emprestimos tbody");
+
+        if (!tabelaBody) {
+            console.warn("tabela de emprestimos nao encontrada no HTML");
+            return;
+        }
+
+        tabelaBody.innerHTML = "";
+
+        if (emprestimos.length === 0) {
+            tabelaBody.innerHTML = '<tr><td colspan="4" class="tabela-vazia">📭 Nenhum empréstimo encontrado</td></tr>';
+            return;
+        }
+
+        emprestimos.forEach(emp => {
+            const linha = document.createElement("tr");
+            const nomeUsuario = emp.usuario?.nome || emp.usuarios?.nome || 'sem nome';
+            const tituloLivro = emp.livro?.titulo || emp.livros?.titulo || 'sem titulo';
+            const isbnLivro = emp.livro?.isbn || emp.livros?.isbn || 'sem isbn';
+            const status = emp.status || 'ativo';
+
+            linha.innerHTML = `
+                <td>${nomeUsuario}</td>
+                <td>${tituloLivro}</td>
+                <td>${isbnLivro}</td>
+                <td><span class="status-badge status-${status}">${status}</span></td>
+            `;
+                
+            tabelaBody.appendChild(linha);
+
+        });
+
+    } catch (error) {
+        console.error("erro ao carregar relatorio:", error);
+        const tabelaBody = document.querySelector("#tabela-emprestimos tbody");
+        if (tabelaBody) {
+            tabelaBody.innerHTML = '<tr><td colspan="4" class="tabela-vazia">❌ Erro ao carregar empréstimos</td></tr>'
+        }
+    }
+           
+}
+
+// ========== FUNÇÃO CONFIGURAR EVENTOS ==========
+function configurarEventos() {
+    // Botão de busca
+    const btnBuscar = document.getElementById('btn-buscar');
+    if (btnBuscar) {
+        btnBuscar.addEventListener('click', buscarLivros);
+    }
+    
+    // Campo de pesquisa (tecla Enter)
+    const pesquisa = document.getElementById('pesquisa');
+    if (pesquisa) {
+        pesquisa.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarLivros();
+            }
+        });
+    }
+    
+    // Botão Início
+    const btnInicio = document.getElementById('btn-inicio');
+    if (btnInicio) {
+        btnInicio.addEventListener('click', function(e) {
+            e.preventDefault();
+            mostrarInicio();
+        });
+    }
+    
+    // Botão Meus Empréstimos
+    const btnEmprestimos = document.getElementById('btn-emprestimos');
+    if (btnEmprestimos) {
+        btnEmprestimos.addEventListener('click', function(e) {
+            e.preventDefault();
+            mostrarMeusEmprestimos();
+        });
+    }
+
+    // Botão Minhas Reservas
+    const btnReservas = document.getElementById('btn-reservas');
+    if (btnReservas) {
+        btnReservas.addEventListener('click', function(e) {
+            e.preventDefault();
+            mostrarMinhasReservas();
+        });
+    }
+    
+    // Botão Sair
+    const btnSair = document.getElementById('btn-sair');
+    if (btnSair) {
+        btnSair.addEventListener('click', function(e) {
+            e.preventDefault();
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = '../login/index.html';
+        });
+    }
+    
+    // Botões Voltar
+    const btnVoltar = document.getElementById('btn-voltar');
+    if (btnVoltar) {
+        btnVoltar.addEventListener('click', mostrarInicio);
+    }
+    
+    const btnVoltarEmprestimos = document.getElementById('btn-voltar-emprestimos');
+    if (btnVoltarEmprestimos) {
+        btnVoltarEmprestimos.addEventListener('click', mostrarInicio);
+    }
+
+    const btnVoltarReservas = document.getElementById('btn-voltar-reservas');
+    if (btnVoltarReservas) {
+        btnVoltarReservas.addEventListener('click', mostrarInicio);
+    }
+}
+
+//botao enviar lembretes
+async function enviarLembretes () {
+    const btn = document.getElementById('btn-enviar-lembretes');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+    }
+
+    try {
+        const response = await fetch('/notificacoes/verificar');
+
+        const data = await response.json();
+
+        showToast(data.message, 'info', 5000);
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        showToast('Erro ao enviar notificações', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '📧 Enviar Lembretes';
+        }
+    }
+}
+
+// Função mostrarGerenciarUsuarios corrigida
+async function mostrarGerenciarUsuarios() {
+    const conteudo = document.getElementById('conteudo-area');
+    
+    // VERIFICA SE O ELEMENTO EXISTE
+    if (!conteudo) {
+        console.error("❌ Elemento 'conteudo-area' não encontrado no HTML!");
+        showToast('Erro interno: elemento de conteúdo não encontrado', 'error');
+        return;
+    }
+    
+    conteudo.innerHTML = '<p>Carregando usuários...</p>';
+    
+    try {
+        const { data: usuarios, error } = await db.rpc('listar_usuarios', {
+            p_solicitante_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
+
+        conteudo.innerHTML = `
+            <div class="admin-panel">
+                <h2>👥 Gerenciar Usuários</h2>
+                <div style="overflow-x: auto;">
+                    <table class="tabela-usuarios">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Aluno</th>
-                                <th>E-mail</th>
-                                <th>Motivo</th>
-                                <th>Atraso</th>
-                                <th>Início</th>
-                                <th>Até</th>
-                                <th>Status</th>
-                                <th>Ação</th>
-                            </tr>
+                            <tr><th>ID</th><th>Nome</th><th>Email</th><th>Tipo</th><th>Ações</th></tr>
                         </thead>
-                        <tbody id="tbody-suspensoes">
-                            <tr><td colspan="9" class="tabela-vazia">🔄 Carregando...</td></tr>
+                        <tbody>
+                            ${usuarios.map(user => `
+                                <tr>
+                                    <td>${user.id}</td>
+                                    <td>${user.nome}</td>
+                                    <td>${user.email}</td>
+                                    <td>
+                                        ${user.tipo === 'admin'
+                                            ? '<span title="Só pode ser alterado direto no banco de dados">👑 Admin</span>'
+                                            : `<select onchange="alterarTipoUsuario(${user.id}, this.value)">
+                                                <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>📖 Aluno</option>
+                                                <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>📚 Bibliotecário</option>
+                                               </select>`
+                                        }
+                                    </td>
+                                    <td>${usuarioAtual.tipo === 'admin' ? `<button onclick="deletarUsuario(${user.id})" class="btn-danger" ${user.id === usuarioAtual.id ? 'disabled' : ''}>🗑️ Excluir</button>` : ''}</td>
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                 </div>
+                <button onclick="fecharAdminPanel()" class="btn-voltar" style="margin-top: 20px;">← Fechar</button>
             </div>
+        `;
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        conteudo.innerHTML = '<p>❌ Erro ao carregar usuários.</p>';
+    }
+}
 
-        </div><!-- /container -->
-    </main>
+// Função para fechar o painel admin
+function fecharAdminPanel() {
+    const conteudo = document.getElementById('conteudo-area');
+    if (conteudo) {
+        conteudo.innerHTML = '';
+    }
+}
 
-    <script src="/toast.js"></script>
-    <script src="/theme-toggle.js"></script>
-    <script>
-        let usuarioAtual = null;
-        let todasSuspensoes = [];
-        let filtroAtual = 'todas';
-
-        // ===== INIT =====
-        document.addEventListener('DOMContentLoaded', async () => {
-            const logado = localStorage.getItem('usuarioLogado');
-            if (!logado) {
-                alert('Faça login primeiro!');
-                window.location.href = '../login/index.html';
-                return;
-            }
-
-            usuarioAtual = JSON.parse(logado);
-
-            if (usuarioAtual.tipo !== 'admin' && usuarioAtual.tipo !== 'bibliotecario') {
-                alert('Acesso negado. Área restrita para administradores.');
-                window.location.href = 'home.html';
-                return;
-            }
-
-            document.getElementById('badge-tipo').textContent =
-                usuarioAtual.tipo === 'admin' ? 'Administrador' : 'Bibliotecário';
-
-            document.getElementById('btn-sair').addEventListener('click', () => {
-                localStorage.removeItem('usuarioLogado');
-                window.location.href = '../login/index.html';
-            });
-
-            await carregarSuspensoes();
+// Painel de estatísticas — construído do zero
+async function mostrarEstatisticas() {
+    const conteudo = document.getElementById('conteudo-area');
+    
+    if (!conteudo) {
+        console.error("❌ Elemento 'conteudo-area' não encontrado!");
+        return;
+    }
+    
+    conteudo.innerHTML = '<div class="stats-loading">Carregando estatísticas...</div>';
+    
+    try {
+        const { data: stats, error } = await db.rpc('obter_estatisticas', {
+            p_solicitante_id: usuarioAtual.id
         });
 
-        // ===== CARREGAR LISTA =====
-        async function carregarSuspensoes() {
-            document.getElementById('tbody-suspensoes').innerHTML =
-                '<tr><td colspan="9" class="tabela-vazia">🔄 Carregando...</td></tr>';
+        if (error) throw error;
 
-            try {
-                const res = await fetch('/suspensoes', {
-                    headers: { 'usuario-id': usuarioAtual.id }
-                });
+        const totalCopias = stats.total_copias || 0;
+        const copiasEmprestadas = stats.livros_emprestados || 0;
+        const copiasDisponiveis = stats.copias_disponiveis ?? Math.max(totalCopias - copiasEmprestadas, 0);
+        const utilizacao = totalCopias > 0 ? Math.round((copiasEmprestadas / totalCopias) * 100) : 0;
 
-                if (!res.ok) throw new Error(await res.text());
+        // matemática do anel de progresso (SVG)
+        const raio = 52;
+        const circunferencia = 2 * Math.PI * raio;
+        const offset = circunferencia * (1 - utilizacao / 100);
 
-                todasSuspensoes = await res.json();
-                atualizarStats();
-                renderTabela();
+        const dataFormatada = stats.data
+            ? new Date(stats.data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+            : '-';
 
-            } catch (err) {
-                document.getElementById('tbody-suspensoes').innerHTML =
-                    `<tr><td colspan="9" class="tabela-vazia">❌ Erro ao carregar: ${err.message}</td></tr>`;
+        conteudo.innerHTML = `
+            <div class="stats-dashboard">
+                <div class="stats-header">
+                    <div>
+                        <h2>📊 Visão Geral da Biblioteca</h2>
+                        <p class="stats-timestamp">Atualizado em ${dataFormatada}</p>
+                    </div>
+                    <button onclick="mostrarEstatisticas()" class="btn-refresh" title="Atualizar agora">⟳</button>
+                </div>
+
+                <div class="stats-hero">
+                    <div class="stats-gauge">
+                        <svg viewBox="0 0 120 120" class="gauge-svg">
+                            <defs>
+                                <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ec380b" />
+                                    <stop offset="100%" stop-color="#764ba2" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="gauge-track" cx="60" cy="60" r="${raio}"></circle>
+                            <circle class="gauge-fill" cx="60" cy="60" r="${raio}"
+                                stroke-dasharray="${circunferencia}"
+                                stroke-dashoffset="${circunferencia}"
+                                data-offset="${offset}"></circle>
+                        </svg>
+                        <div class="gauge-center">
+                            <span class="gauge-number">${utilizacao}%</span>
+                            <span class="gauge-label">em uso</span>
+                        </div>
+                    </div>
+                    <div class="stats-hero-text">
+                        <h3>Taxa de utilização do acervo</h3>
+                        <p>${copiasEmprestadas} de ${totalCopias} exemplares físicos estão emprestados agora.</p>
+                        <div class="stats-composicao">
+                            <div class="composicao-barra">
+                                <div class="composicao-emprestado" style="width: ${utilizacao}%;"></div>
+                            </div>
+                            <div class="composicao-legenda">
+                                <span><i class="bolinha bolinha-emprestado"></i> Emprestados (${copiasEmprestadas})</span>
+                                <span><i class="bolinha bolinha-disponivel"></i> Disponíveis (${copiasDisponiveis})</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-cards-grid">
+                    <div class="stat-card-new">
+                        <div class="stat-icon stat-icon-usuarios">👥</div>
+                        <div class="stat-texto">
+                            <span class="stat-value">${stats.total_usuarios}</span>
+                            <span class="stat-label">Usuários cadastrados</span>
+                        </div>
+                    </div>
+                    <div class="stat-card-new">
+                        <div class="stat-icon stat-icon-acervo">📚</div>
+                        <div class="stat-texto">
+                            <span class="stat-value">${stats.total_livros}</span>
+                            <span class="stat-label">Títulos no acervo</span>
+                        </div>
+                    </div>
+                    <div class="stat-card-new">
+                        <div class="stat-icon stat-icon-emprestimos">🔄</div>
+                        <div class="stat-texto">
+                            <span class="stat-value">${stats.emprestimos_ativos}</span>
+                            <span class="stat-label">Empréstimos ativos</span>
+                        </div>
+                    </div>
+                    <div class="stat-card-new">
+                        <div class="stat-icon stat-icon-disponivel">✅</div>
+                        <div class="stat-texto">
+                            <span class="stat-value">${copiasDisponiveis}</span>
+                            <span class="stat-label">Exemplares disponíveis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-actions">
+                    <button onclick="baixarRelatorioPDF()" class="btn-admin">📄 Baixar relatório em PDF</button>
+                    <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button>
+                </div>
+            </div>
+        `;
+
+        // anima o anel de progresso depois de inserir no DOM
+        requestAnimationFrame(() => {
+            const aro = conteudo.querySelector('.gauge-fill');
+            if (aro) {
+                aro.style.transition = 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)';
+                aro.style.strokeDashoffset = aro.dataset.offset;
             }
-        }
+        });
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        conteudo.innerHTML = '<p>❌ Erro ao carregar estatísticas. Verifique se o backend está rodando.</p>';
+    }
+}
 
-        // ===== STATS =====
-        function atualizarStats() {
-            const ativas    = todasSuspensoes.filter(s => s.status === 'ativa').length;
-            const cumpridas = todasSuspensoes.filter(s => s.status === 'cumprida').length;
-            document.getElementById('total-ativas').textContent    = ativas;
-            document.getElementById('total-cumpridas').textContent = cumpridas;
-            document.getElementById('total-geral').textContent     = todasSuspensoes.length;
-        }
+// gera o relatorio de emprestimos em pdf direto no navegador (jsPDF + AutoTable)
+window.baixarRelatorioPDF = async function() {
+    try {
+        const { data: emprestimos, error } = await db.rpc('listar_meus_emprestimos_admin', {
+            p_solicitante_id: usuarioAtual.id
+        });
+        if (error) throw error;
 
-        // ===== RENDER TABELA =====
-        function renderTabela() {
-            const lista = filtroAtual === 'todas'
-                ? todasSuspensoes
-                : todasSuspensoes.filter(s => s.status === filtroAtual);
+        const { data: stats, error: statsError } = await db.rpc('obter_estatisticas', {
+            p_solicitante_id: usuarioAtual.id
+        });
+        if (statsError) throw statsError;
 
-            document.getElementById('contador-label').textContent = `(${lista.length})`;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const corPrimaria = [30, 58, 95];      // azul escuro
+        const corAcento = [212, 165, 32];      // dourado
+        const larguraPagina = doc.internal.pageSize.getWidth();
 
-            const tbody = document.getElementById('tbody-suspensoes');
+        // ---- Cabeçalho ----
+        doc.setFillColor(...corPrimaria);
+        doc.rect(0, 0, larguraPagina, 90, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('📚 Libro', 40, 40);
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Relatório de Empréstimos', 40, 62);
+        doc.setFontSize(9);
+        doc.setTextColor(220, 220, 220);
+        doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 40, 78);
 
-            if (lista.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="tabela-vazia">📭 Nenhuma suspensão encontrada.</td></tr>';
-                return;
-            }
+        // ---- Cartões de resumo ----
+        const cartoes = [
+            { titulo: 'Usuários', valor: stats.total_usuarios },
+            { titulo: 'Livros no catálogo', valor: stats.total_livros },
+            { titulo: 'Empréstimos ativos', valor: stats.emprestimos_ativos },
+            { titulo: 'Cópias disponíveis', valor: stats.copias_disponiveis }
+        ];
+        const margemCartao = 40;
+        const espacoCartao = 12;
+        const larguraCartao = (larguraPagina - margemCartao * 2 - espacoCartao * 3) / 4;
+        const yCartao = 112;
 
-            tbody.innerHTML = lista.map(s => {
-                const nome    = s.usuario?.nome  || `ID ${s.usuario_id}`;
-                const email   = s.usuario?.email || '—';
-                const inicio  = fmtData(s.data_inicio);
-                const fim     = fmtData(s.data_fim);
-                const badge   = s.status === 'ativa'
-                    ? '<span class="badge-status badge-ativa">🔴 Ativa</span>'
-                    : '<span class="badge-status badge-cumprida">✅ Cumprida</span>';
-                const btn = s.status === 'ativa'
-                    ? `<button class="btn-encerrar-susp" onclick="encerrarSuspensao(${s.id})">Encerrar</button>`
-                    : '—';
+        cartoes.forEach((c, i) => {
+            const x = margemCartao + i * (larguraCartao + espacoCartao);
+            doc.setDrawColor(...corAcento);
+            doc.setFillColor(248, 246, 240);
+            doc.roundedRect(x, yCartao, larguraCartao, 54, 6, 6, 'FD');
+            doc.setTextColor(...corPrimaria);
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(c.valor), x + larguraCartao / 2, yCartao + 26, { align: 'center' });
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(90, 90, 90);
+            doc.text(c.titulo, x + larguraCartao / 2, yCartao + 42, { align: 'center' });
+        });
 
-                return `
-                    <tr>
-                        <td>${s.id}</td>
-                        <td><strong>${nome}</strong></td>
-                        <td style="font-size:12px;">${email}</td>
-                        <td style="max-width:200px; font-size:12px;">${s.motivo || '—'}</td>
-                        <td style="text-align:center;">${s.dias_atraso}d</td>
-                        <td>${inicio}</td>
-                        <td>${fim}</td>
-                        <td>${badge}</td>
-                        <td>${btn}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
+        // ---- Tabela de histórico ----
+        const linhas = emprestimos.map((emp, i) => [
+            i + 1,
+            emp.livro?.titulo || '(livro removido)',
+            emp.usuario?.nome || '(usuário removido)',
+            emp.data_emprestimo ? new Date(emp.data_emprestimo).toLocaleDateString('pt-BR') : '-',
+            emp.data_prevista_devolucao ? new Date(emp.data_prevista_devolucao).toLocaleDateString('pt-BR') : '-',
+            emp.status === 'ativo' ? 'Ativo' : emp.status === 'devolvido' ? 'Devolvido' : 'Atrasado'
+        ]);
 
-        // ===== FILTRAR =====
-        function filtrar(status, btn) {
-            filtroAtual = status;
-            document.querySelectorAll('.filtro-pill').forEach(b => b.classList.remove('ativo'));
-            btn.classList.add('ativo');
-            renderTabela();
-        }
-
-        // ===== VERIFICAR ALUNO =====
-        async function verificarAluno() {
-            const id = document.getElementById('input-id-aluno').value.trim();
-            if (!id) { showToast('Digite o ID do aluno.', 'warning'); return; }
-
-            try {
-                const [resUsuarios, resSusp] = await Promise.all([
-                    fetch('/admin/usuarios', { headers: { 'usuario-id': usuarioAtual.id } }),
-                    fetch(`/usuarios/${id}/suspensao`)
-                ]);
-
-                const usuarios = await resUsuarios.json();
-                const susp     = await resSusp.json();
-                const aluno    = usuarios.find(u => u.id == id);
-
-                const box = document.getElementById('aluno-result');
-                box.style.display = 'block';
-                box.className = 'aluno-result ' + (susp.suspenso ? 'suspenso' : 'livre');
-
-                document.getElementById('res-nome').textContent  = aluno ? aluno.nome : `Usuário ID ${id}`;
-                document.getElementById('res-email').textContent = aluno ? aluno.email : '';
-
-                if (susp.suspenso) {
-                    document.getElementById('res-detalhe').textContent =
-                        `Motivo: ${susp.motivo} | Até: ${fmtData(susp.data_fim)} | Atraso: ${susp.dias_atraso} dia(s)`;
-                    document.getElementById('res-badge').className   = 'result-badge badge-suspenso';
-                    document.getElementById('res-badge').textContent = '⛔ SUSPENSO';
-                } else {
-                    document.getElementById('res-detalhe').textContent = 'Sem suspensão ativa no momento.';
-                    document.getElementById('res-badge').className   = 'result-badge badge-livre';
-                    document.getElementById('res-badge').textContent = '✅ SEM SUSPENSÃO';
+        doc.autoTable({
+            startY: yCartao + 74,
+            head: [['#', 'Livro', 'Usuário', 'Emprestado em', 'Previsto', 'Status']],
+            body: linhas.length ? linhas : [['-', 'Nenhum empréstimo registrado ainda.', '-', '-', '-', '-']],
+            theme: 'striped',
+            headStyles: { fillColor: corPrimaria, textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            styles: { fontSize: 9, cellPadding: 6 },
+            columnStyles: { 0: { cellWidth: 24, halign: 'center' } },
+            margin: { left: 40, right: 40 },
+            didParseCell: function(data) {
+                if (data.section === 'body' && data.column.index === 5) {
+                    if (data.cell.raw === 'Atrasado') data.cell.styles.textColor = [180, 40, 40];
+                    if (data.cell.raw === 'Ativo') data.cell.styles.textColor = [30, 120, 60];
                 }
-
-            } catch (err) {
-                showToast('Erro ao verificar aluno: ' + err.message, 'error');
             }
+        });
+
+        doc.save('relatorio-emprestimos.pdf');
+        showToast('Relatório gerado com sucesso!', 'success');
+    } catch (error) {
+        console.error('Erro ao gerar relatorio:', error);
+        showToast(error.message || 'Erro ao gerar relatório em PDF', 'error');
+    }
+};
+
+// mostra as solicitacoes pendentes de emprestimo extra (bibliotecario/admin)
+async function mostrarSolicitacoes() {
+    const conteudo = document.getElementById('conteudo-area');
+    if (!conteudo) return;
+
+    conteudo.innerHTML = '<p>Carregando solicitações...</p>';
+
+    try {
+        const { data: solicitacoes, error } = await db.rpc('listar_solicitacoes_pendentes', {
+            p_solicitante_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
+
+        if (solicitacoes.length === 0) {
+            conteudo.innerHTML = `
+                <div class="admin-panel">
+                    <h2>📋 Solicitações de Empréstimo Extra</h2>
+                    <p>📭 Nenhuma solicitação pendente no momento.</p>
+                    <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button>
+                </div>
+            `;
+            return;
         }
 
-        // ===== APLICAR SUSPENSÃO =====
-        async function aplicarSuspensao() {
-            const usuario_id    = document.getElementById('susp-usuario-id').value.trim();
-            const emprestimo_id = document.getElementById('susp-emprestimo-id').value.trim();
-            const motivo        = document.getElementById('susp-motivo').value.trim();
+        const listaHtml = solicitacoes.map(sol => `
+            <div class="solicitacao-card">
+                <p><strong>${sol.usuario.nome}</strong> (${sol.usuario.email})</p>
+                <p>📖 ${sol.livro.titulo} — ${sol.livro.autor}</p>
+                <p><small>Solicitado em: ${new Date(sol.data_solicitacao).toLocaleString()}</small></p>
+                <div class="livro-acoes">
+                    <button onclick="responderSolicitacao(${sol.id}, 'aprovar')" class="btn-renovar">✅ Aprovar</button>
+                    <button onclick="responderSolicitacao(${sol.id}, 'rejeitar')" class="btn-devolver">✖ Rejeitar</button>
+                </div>
+            </div>
+        `).join('');
 
-            if (!usuario_id || !emprestimo_id) {
-                showToast('Preencha o ID do aluno e o ID do empréstimo.', 'warning');
-                return;
-            }
+        conteudo.innerHTML = `
+            <div class="admin-panel">
+                <h2>📋 Solicitações de Empréstimo Extra</h2>
+                ${listaHtml}
+                <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button>
+            </div>
+        `;
 
-            const btn = document.getElementById('btn-aplicar');
-            btn.disabled = true;
-            btn.textContent = '⏳ Aplicando...';
+    } catch (error) {
+        console.error('Erro:', error);
+        conteudo.innerHTML = '<p>❌ Erro ao carregar solicitações.</p>';
+    }
+}
 
-            try {
-                const res = await fetch('/suspensoes', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'usuario-id': usuarioAtual.id
-                    },
-                    body: JSON.stringify({ usuario_id, emprestimo_id, motivo })
-                });
+window.responderSolicitacao = async function(id, acao) {
+    if (!await showConfirm(acao === 'aprovar' ? 'Aprovar essa solicitação?' : 'Rejeitar essa solicitação?', acao === 'aprovar' ? 'Aprovar' : 'Rejeitar')) return;
 
-                const data = await res.json();
+    try {
+        const funcao = acao === 'aprovar' ? 'aprovar_solicitacao' : 'rejeitar_solicitacao';
+        const { data, error } = await db.rpc(funcao, {
+            p_solicitante_id: usuarioAtual.id,
+            p_solicitacao_id: id
+        });
 
-                if (!res.ok) { showToast(data.error || 'Erro ao aplicar suspensão.', 'error'); return; }
+        if (error) throw error;
 
-                showToast('✅ ' + data.message, 'success');
-                document.getElementById('susp-usuario-id').value    = '';
-                document.getElementById('susp-emprestimo-id').value = '';
-                document.getElementById('susp-motivo').value        = '';
-                await carregarSuspensoes();
+        showToast(data.message, 'success');
+        mostrarSolicitacoes();
+    } catch (error) {
+        showToast(error.message || 'Erro ao responder solicitação', 'error');
+    }
+};
 
-            } catch (err) {
-                showToast('Erro de conexão: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '⛔ Aplicar Suspensão e Enviar E-mail';
-            }
-        }
+// Função para mostrar logs (placeholder)
+function mostrarLogs() {
+    const conteudo = document.getElementById('conteudo-area');
+    if (!conteudo) {
+        console.error("Elemento 'conteudo-area' não encontrado");
+        return;
+    }
+    
+    conteudo.innerHTML = `
+        <div class="admin-panel">
+            <h2>🔐 Logs do Sistema</h2>
+            <p>Funcionalidade em desenvolvimento.</p>
+            <p>Em breve: histórico de ações de usuários, empréstimos, etc.</p>
+            <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar">← Voltar</button>
+        </div>
+    `;
+}
 
-        // ===== ENCERRAR SUSPENSÃO =====
-        async function encerrarSuspensao(id) {
-            if (!confirm('Deseja encerrar esta suspensão manualmente?')) return;
-            try {
-                const res  = await fetch(`/suspensoes/${id}/encerrar`, {
-                    method: 'PUT',
-                    headers: { 'usuario-id': usuarioAtual.id }
-                });
-                const data = await res.json();
-                if (!res.ok) { showToast(data.error || 'Erro.', 'error'); return; }
-                showToast('✅ Suspensão encerrada.', 'success');
-                await carregarSuspensoes();
-            } catch (err) {
-                showToast('Erro: ' + err.message, 'error');
-            }
-        }
+// Função para mostrar backup (placeholder)
+function mostrarBackup() {
+    const conteudo = document.getElementById('conteudo-area');
+    if (!conteudo) {
+        console.error("Elemento 'conteudo-area' não encontrado");
+        return;
+    }
+    
+    conteudo.innerHTML = `
+        <div class="admin-panel">
+            <h2>💾 Backup do Sistema</h2>
+            <p>Funcionalidade em desenvolvimento.</p>
+            <p>Em breve: exportar dados, backup do banco, etc.</p>
+            <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar">← Voltar</button>
+        </div>
+    `;
+}
 
-        // ===== ENCERRAR VENCIDAS =====
-        async function encerrarVencidas() {
-            try {
-                const res  = await fetch('/suspensoes/verificar', {
-                    headers: { 'usuario-id': usuarioAtual.id }
-                });
-                const data = await res.json();
-                showToast('✅ ' + data.message, 'success');
-                await carregarSuspensoes();
-            } catch (err) {
-                showToast('Erro: ' + err.message, 'error');
-            }
-        }
+// ========== FUNÇÕES DE ADMIN  ==========
 
-        // ===== UTILITÁRIO =====
-        function fmtData(str) {
-            if (!str) return '—';
-            return new Date(str + 'T00:00:00').toLocaleDateString('pt-BR');
-        }
-    </script>
-</body>
-</html>
+// Função para alterar tipo de usuário
+window.alterarTipoUsuario = async function(userId, novoTipo) {
+    if (!await showConfirm(`Tem certeza que quer alterar este usuário para ${novoTipo.toUpperCase()}?`, 'Alterar')) {
+        await mostrarGerenciarUsuarios();
+        return;
+    }
+
+    try {
+        const { data, error } = await db.rpc('alterar_tipo_usuario', {
+            p_solicitante_id: usuarioAtual.id,
+            p_usuario_id: userId,
+            p_novo_tipo: novoTipo
+        });
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        await mostrarGerenciarUsuarios();
+    } catch (error) {
+        console.error('Erro:', error);
+        showToast(error.message || 'Erro ao alterar tipo', 'error');
+        await mostrarGerenciarUsuarios();
+    }
+};
+
+// Função para deletar usuário
+window.deletarUsuario = async function(userId) {
+    if (userId === usuarioAtual.id) {
+        showToast('Você não pode deletar seu próprio usuário!', 'error');
+        return;
+    }
+
+    if (!await showConfirm('⚠️ ATENÇÃO! Deseja realmente excluir este usuário permanentemente?', 'Excluir', 'Cancelar')) return;
+
+    try {
+        const { data, error } = await db.rpc('deletar_usuario', {
+            p_solicitante_id: usuarioAtual.id,
+            p_usuario_id: userId
+        });
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        await mostrarGerenciarUsuarios();
+    } catch (error) {
+        console.error('Erro:', error);
+        showToast(error.message || 'Erro ao excluir usuário', 'error');
+    }
+};
+
+// Função para fechar o painel admin
+function fecharAdminPanel() {
+    const conteudo = document.getElementById('conteudo-area');
+    if (conteudo) {
+        conteudo.innerHTML = '';
+    }
+}
