@@ -754,16 +754,12 @@ async function mostrarGerenciarUsuarios() {
     conteudo.innerHTML = '<p>Carregando usuários...</p>';
     
     try {
-        const response = await fetch('/admin/usuarios', {
-            headers: { 'usuario-id': usuarioAtual.id }
+        const { data: usuarios, error } = await db.rpc('listar_usuarios', {
+            p_solicitante_id: usuarioAtual.id
         });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao carregar');
-        }
-        
-        const usuarios = await response.json();
-        
+
+        if (error) throw error;
+
         conteudo.innerHTML = `
             <div class="admin-panel">
                 <h2>👥 Gerenciar Usuários</h2>
@@ -779,13 +775,15 @@ async function mostrarGerenciarUsuarios() {
                                     <td>${user.nome}</td>
                                     <td>${user.email}</td>
                                     <td>
-                                        <select onchange="alterarTipoUsuario(${user.id}, this.value)">
-                                            <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>📖 Aluno</option>
-                                            <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>📚 Bibliotecário</option>
-                                            <option value="admin" ${user.tipo === 'admin' ? 'selected' : ''}>👑 Admin</option>
-                                        </select>
+                                        ${user.tipo === 'admin'
+                                            ? '<span title="Só pode ser alterado direto no banco de dados">👑 Admin</span>'
+                                            : `<select onchange="alterarTipoUsuario(${user.id}, this.value)">
+                                                <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>📖 Aluno</option>
+                                                <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>📚 Bibliotecário</option>
+                                               </select>`
+                                        }
                                     </td>
-                                    <td><button onclick="deletarUsuario(${user.id})" class="btn-danger">🗑️ Excluir</button></td>
+                                    <td>${usuarioAtual.tipo === 'admin' ? `<button onclick="deletarUsuario(${user.id})" class="btn-danger" ${user.id === usuarioAtual.id ? 'disabled' : ''}>🗑️ Excluir</button>` : ''}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -797,7 +795,7 @@ async function mostrarGerenciarUsuarios() {
         
     } catch (error) {
         console.error('Erro:', error);
-        conteudo.innerHTML = '<p>❌ Erro ao carregar usuários. Verifique se o backend está rodando.</p>';
+        conteudo.innerHTML = '<p>❌ Erro ao carregar usuários.</p>';
     }
 }
 
@@ -1145,68 +1143,51 @@ function mostrarBackup() {
 
 // Função para alterar tipo de usuário
 window.alterarTipoUsuario = async function(userId, novoTipo) {
-    console.log("Alterando usuário:", userId, "para:", novoTipo);
-    
     if (!await showConfirm(`Tem certeza que quer alterar este usuário para ${novoTipo.toUpperCase()}?`, 'Alterar')) {
         await mostrarGerenciarUsuarios();
         return;
     }
-    
+
     try {
-        const response = await fetch(`/usuarios/${userId}/tipo`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'usuario-id': usuarioAtual.id
-            },
-            body: JSON.stringify({ tipo: novoTipo })
+        const { data, error } = await db.rpc('alterar_tipo_usuario', {
+            p_solicitante_id: usuarioAtual.id,
+            p_usuario_id: userId,
+            p_novo_tipo: novoTipo
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast(data.message, 'success');
-            await mostrarGerenciarUsuarios();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-            await mostrarGerenciarUsuarios();
-        }
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        await mostrarGerenciarUsuarios();
     } catch (error) {
         console.error('Erro:', error);
-        showToast('Erro de conexão com o servidor', 'error');
+        showToast(error.message || 'Erro ao alterar tipo', 'error');
+        await mostrarGerenciarUsuarios();
     }
 };
 
 // Função para deletar usuário
 window.deletarUsuario = async function(userId) {
-    console.log("Deletando usuário:", userId);
-    
     if (userId === usuarioAtual.id) {
         showToast('Você não pode deletar seu próprio usuário!', 'error');
         return;
     }
-    
+
     if (!await showConfirm('⚠️ ATENÇÃO! Deseja realmente excluir este usuário permanentemente?', 'Excluir', 'Cancelar')) return;
-    
+
     try {
-        const response = await fetch(`/usuarios/${userId}`, {
-            method: 'DELETE',
-            headers: {
-                'usuario-id': usuarioAtual.id
-            }
+        const { data, error } = await db.rpc('deletar_usuario', {
+            p_solicitante_id: usuarioAtual.id,
+            p_usuario_id: userId
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast('Usuário excluído com sucesso!', 'success');
-            await mostrarGerenciarUsuarios();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        await mostrarGerenciarUsuarios();
     } catch (error) {
         console.error('Erro:', error);
-        showToast('Erro de conexão com o servidor', 'error');
+        showToast(error.message || 'Erro ao excluir usuário', 'error');
     }
 };
 
