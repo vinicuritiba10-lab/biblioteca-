@@ -512,6 +512,7 @@
                     <h2>📋 Todas as suspensões <span id="contador-label" style="font-size:14px; font-weight:500; color:var(--cor-texto-suave);"></span></h2>
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
                         <button class="btn-acao" onclick="encerrarVencidas()">🔄 Encerrar vencidas</button>
+                        <button class="btn-acao" onclick="verificarLembretes()">📧 Enviar Lembretes de Devolução</button>
                         <button class="btn-acao" onclick="carregarSuspensoes()">↺ Atualizar</button>
                     </div>
                 </div>
@@ -551,6 +552,7 @@
     <script src="../theme-toggle.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="../supabaseClient.js"></script>
+    <script src="../emailHelper.js"></script>
     <script>
         let usuarioAtual = null;
         let todasSuspensoes = [];
@@ -733,6 +735,13 @@
                 if (error) { showToast(error.message || 'Erro ao aplicar suspensão.', 'error'); return; }
 
                 showToast('✅ ' + data.message, 'success');
+
+                enviarEmail(
+                    data.usuario_email,
+                    `⚠️ Conta suspensa por atraso na devolução - ${data.livro_titulo}`,
+                    templateSuspensao(data.usuario_nome, data.livro_titulo, data.dias_atraso, data.data_fim_suspensao)
+                );
+
                 document.getElementById('susp-usuario-id').value    = '';
                 document.getElementById('susp-emprestimo-id').value = '';
                 document.getElementById('susp-motivo').value        = '';
@@ -773,6 +782,37 @@
                 await carregarSuspensoes();
             } catch (err) {
                 showToast('Erro: ' + err.message, 'error');
+            }
+        }
+
+        // ===== VERIFICAR E ENVIAR LEMBRETES DE DEVOLUÇÃO =====
+        async function verificarLembretes() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ Enviando...';
+
+            try {
+                const { data: emprestimos, error } = await db.rpc('listar_lembretes_devolucao', {
+                    p_solicitante_id: usuarioAtual.id
+                });
+                if (error) throw error;
+
+                let enviados = 0;
+                for (const emp of emprestimos) {
+                    const ok = await enviarEmail(
+                        emp.usuario_email,
+                        `📚 Lembrete: Prazo de devolução - ${emp.livro_titulo}`,
+                        templateLembreteDevolucao(emp.usuario_nome, emp.livro_titulo, emp.data_prevista_devolucao, emp.dias_restantes)
+                    );
+                    if (ok) enviados++;
+                }
+
+                showToast(`✅ ${enviados} de ${emprestimos.length} lembrete(s) enviado(s).`, 'success');
+            } catch (err) {
+                showToast('Erro: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📧 Enviar Lembretes de Devolução';
             }
         }
 
