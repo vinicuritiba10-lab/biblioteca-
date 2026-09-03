@@ -478,6 +478,13 @@ window.renovarEmprestimo = async function(emprestimoId) {
         if (error) throw error;
 
         showToast(`Empréstimo renovado! Nova data: ${new Date(data.nova_data_devolucao).toLocaleDateString()} — Renovações restantes: ${data.renovacoes_restantes}`, 'success', 5000);
+
+        enviarEmail(
+            data.usuario_email,
+            `📚 Lembrete: Prazo de devolução - ${data.livro_titulo}`,
+            templateLembreteDevolucao(data.usuario_nome, data.livro_titulo, data.nova_data_devolucao, 7)
+        );
+
         mostrarMeusEmprestimos();
     } catch (error) {
         console.error('erro:', error);
@@ -561,6 +568,15 @@ window.devolverLivro = async function(emprestimoId) {
         if (error) throw error;
 
         showToast(data.message, 'success');
+
+        if (data.suspensao_criada) {
+            enviarEmail(
+                data.usuario_email,
+                `⚠️ Conta suspensa por atraso na devolução - ${data.livro_titulo}`,
+                templateSuspensao(data.usuario_nome, data.livro_titulo, data.dias_atraso, data.data_fim_suspensao)
+            );
+        }
+
         mostrarMeusEmprestimos();
     } catch (error) {
         showToast(error.message || 'Erro ao devolver livro', 'error');
