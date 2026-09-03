@@ -1,14 +1,6 @@
-
 const form = document.getElementById("form");
 const emailInput = document.getElementById("email");
-const senhaInput = document.getElementById("password"); 
-const nomeInput = document.getElementById("nome");
-const tipoInput = document.getElementById("tipo");
-
-tipoInput.addEventListener("blur", checkInputTipo);
-nomeInput.addEventListener("blur", checkInputNome);
-emailInput.addEventListener("blur", checkInputEmail);
-senhaInput.addEventListener("blur", checkInputPassword);
+const senhaInput = document.getElementById("password");
 
 // sugestao de dominio em tempo real, enquanto a pessoa digita
 const opcaoDominioLogin = document.getElementById('opcao-dominio-login');
@@ -16,57 +8,21 @@ if (opcaoDominioLogin) {
     emailInput.addEventListener('input', function() {
         const valor = emailInput.value.trim();
         const parteLocal = valor.split('@')[0];
-        if (parteLocal) {
-            opcaoDominioLogin.value = parteLocal + "@escola.pr.gov.br";
-        } else {
-            opcaoDominioLogin.value = '';
-        }
+        opcaoDominioLogin.value = parteLocal ? parteLocal + "@escola.pr.gov.br" : '';
     });
 }
 
-
-function checkInputNome() {
-    const nomeValue = nomeInput.value;
-    if (nomeValue === "") {
-        errorInput(nomeInput, "O nome é obrigatório.");
-        return false;
-    } else {
-        const formItem = nomeInput.closest('.form-group');
-        formItem.className = "form-group";
-        return true;
-    }
-}
-
 function checkInputEmail() {
-    // completa o dominio da escola so se a pessoa ainda nao digitou nenhum @
-    // (no login nao forcamos o dominio, pra nao quebrar contas antigas de teste)
     const valorAtual = emailInput.value.trim();
     if (valorAtual && !valorAtual.includes('@')) {
         emailInput.value = valorAtual + "@escola.pr.gov.br";
     }
-
-    const emailValue = emailInput.value;
-    if (emailValue === "") {
+    if (emailInput.value === "") {
         errorInput(emailInput, "O email é obrigatório.");
         return false;
-    } else {
-        const formItem = emailInput.closest('.form-group');
-        formItem.className = "form-group";
-        return true;
     }
-}
-
-function checkInputTipo(){
-  const tipoValue = tipoInput.value;
-  if(tipoValue === ""){
-    errorInput(tipoInput, "O tipo de conta é obrigatorio.");
-    return false;
-
-  } else {
-    const formItem = tipoInput.closest('.form-group');
-    formItem.className = "form-group";
+    emailInput.closest('.form-group').className = "form-group";
     return true;
-  }
 }
 
 function checkInputPassword() {
@@ -74,14 +30,9 @@ function checkInputPassword() {
     if (passwordValue === "") {
         errorInput(senhaInput, "A senha é obrigatória.");
         return false;
-    } else if (passwordValue.length < 8) {
-        errorInput(senhaInput, "A senha precisa ter no mínimo 8 caracteres.");
-        return false;
-    } else {
-        const formItem = senhaInput.closest('.form-group');
-        formItem.className = "form-group";
-        return true;
     }
+    senhaInput.closest('.form-group').className = "form-group";
+    return true;
 }
 
 function errorInput(input, message) {
@@ -91,57 +42,44 @@ function errorInput(input, message) {
     formItem.className = "form-group error";
 }
 
+emailInput.addEventListener("blur", checkInputEmail);
+senhaInput.addEventListener("blur", checkInputPassword);
 
-//acessar home apos login
-document.getElementById("btn-login").addEventListener("click", async function(e){
-    e.preventDefault();
+// ── Envio do login (única fonte: submit do form) ──────────────────
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-    const email = document.getElementById("email").value;
-    const senha = document.getElementById("password").value;
-    
+    const isEmailValid = checkInputEmail();
+    const isPassValid = checkInputPassword();
+    if (!isEmailValid || !isPassValid) return;
 
-    if (!email || !senha) {
-        showToast("Preencha todos os campos", "warning");
-        return;
-    }
+    const email = emailInput.value.trim();
+    const senha = senhaInput.value;
 
     const btn = document.getElementById('btn-login');
     btn.disabled = true;
     btn.textContent = 'Entrando...';
 
     try {
-        const response = await fetch("/login",{
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                senha: senha
-            })
+        const { data, error } = await db.rpc('login_usuario', {
+            p_email: email,
+            p_senha: senha
         });
 
-        const data = await response.json();
-
-        if(response.ok && data.success) {
-            localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario));
-            
-            showToast(`Bem-vindo, ${data.usuario.nome}! 👋`, "success", 2500);
-
-            window.location.href = "../home/home.html";
-        } else {
-
-            showToast(data.error || "Erro ao fazer login", "error");
+        if (error) {
+            showToast(error.message || "E-mail ou senha inválidos", "error");
+            return;
         }
 
-    } catch (error) {
-        console.error("erro:", error);
-        showToast("Erro de conexão com o servidor", "error");
+        localStorage.setItem("usuarioLogado", JSON.stringify(data));
+        showToast(`Bem-vindo, ${data.nome}! 👋`, "success", 2000);
+        setTimeout(() => { window.location.href = "../home/home.html"; }, 1000);
 
+    } catch (err) {
+        console.error("Erro:", err);
+        showToast("Erro de conexão com o Supabase", "error");
     } finally {
         btn.disabled = false;
-        btn.textContent = "entrar";
+        btn.textContent = "Entrar";
     }
-
-    
 });

@@ -199,20 +199,13 @@ async function buscarPorCategoria(categoria) {
     booksGrid.innerHTML = '<p style="text-align:center;">Carregando livros...</p>';
    
     try {
-        const response = await fetch(`/livros/categoria/${categoria}`);
+        const { data: livros, error } = await db
+            .from('livros')
+            .select('*')
+            .eq('categoria', categoria)
+            .order('id');
 
-        if(!response.ok) {
-            throw new Error (`HTTP ${response.status}`);
-        }
-        const livros = await response.json();
-
-        if(!Array.isArray(livros)) {
-            console.error("resposta nao e array", livros);
-            booksGrid.innerHTML = '<p style="text-align:center;">❌ Erro: Dados inválidos do servidor</p>';
-            return;
-        }
-
-        //exibirLivros(livros);
+        if (error) throw error;
 
         if (livros.length === 0) {
             booksGrid.innerHTML = `
@@ -248,16 +241,14 @@ async function buscarLivros() {
     booksGrid.innerHTML = '<p style="text-align:center;">Buscando...</p>';
     
     try {
-        const response = await fetch(`/livros/buscar/${encodeURIComponent(termo)}`);
-        
-        
-        if (!response.ok) {
-            throw new Error("erro na busca");
-        }
+        const termoBusca = termo.replace(/[%,]/g, '');
+        const { data: livros, error } = await db
+            .from('livros')
+            .select('*')
+            .or(`titulo.ilike.%${termoBusca}%,autor.ilike.%${termoBusca}%`)
+            .order('id');
 
-        const livros = await response.json();
-
-        console.log("livros encontrados:", livros);
+        if (error) throw error;
 
           if (livros.length === 0) {
             booksGrid.innerHTML = `
@@ -282,7 +273,7 @@ function exibirLivros(livros) {
     const cores = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
     const icones = ['📖', '📘', '📙', '📕', '📗', '📓', '📔', '📒'];
 
-    if(!livros || livros.lenght === 0) {
+    if(!livros || livros.length === 0) {
         booksGrid.innerHTML = '<p style="text-align:center;"> nenhum livro disponivel';
         return;
     }
@@ -336,8 +327,11 @@ async function mostrarMeusEmprestimos() {
     emprestimosGrid.innerHTML = '<p style="text-align:center;">Carregando seus empréstimos...</p>';
     
     try {
-        const response = await fetch(`/usuarios/${usuarioAtual.id}/emprestimos`);
-        const emprestimos = await response.json();
+        const { data: emprestimos, error } = await db.rpc('listar_meus_emprestimos', {
+            p_usuario_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
         
         if (emprestimos.length === 0) {
             emprestimosGrid.innerHTML = '<p style="text-align:center;">📭 Você não possui empréstimos ativos</p>';
@@ -399,8 +393,11 @@ async function mostrarMinhasReservas() {
     reservasGrid.innerHTML = '<p style="text-align:center;">Carregando suas reservas...</p>';
 
     try {
-        const response = await fetch(`/usuarios/${usuarioAtual.id}/reservas`);
-        const reservas = await response.json();
+        const { data: reservas, error } = await db.rpc('listar_minhas_reservas', {
+            p_usuario_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
 
         if (!reservas || reservas.length === 0) {
             reservasGrid.innerHTML = '<p style="text-align:center;">📭 Você não possui reservas no momento</p>';
@@ -437,21 +434,16 @@ window.reservarLivro = async function(livroId) {
     if (!await showConfirm('Esse livro está indisponível agora. Deseja reservar para quando ele voltar?', 'Reservar')) return;
 
     try {
-        const response = await fetch('/reservas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: usuarioAtual.id, livro_id: livroId })
+        const { data, error } = await db.rpc('reservar_livro', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
         });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        if (response.ok) {
-            showToast('Reserva feita! Você será avisado em Minhas Reservas quando o livro voltar.', 'success');
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        showToast(data.message, 'success');
     } catch (error) {
-        showToast('Erro ao reservar livro', 'error');
+        showToast(error.message || 'Erro ao reservar livro', 'error');
     }
 };
 
@@ -459,17 +451,17 @@ window.cancelarReserva = async function(reservaId) {
     if (!await showConfirm('Deseja cancelar essa reserva?', 'Cancelar reserva', 'Não')) return;
 
     try {
-        const response = await fetch(`/reservas/${reservaId}`, { method: 'DELETE' });
-        const data = await response.json();
+        const { data, error } = await db.rpc('cancelar_reserva', {
+            p_usuario_id: usuarioAtual.id,
+            p_reserva_id: reservaId
+        });
 
-        if (response.ok) {
-            showToast('Reserva cancelada', 'success');
-            mostrarMinhasReservas();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        mostrarMinhasReservas();
     } catch (error) {
-        showToast('Erro ao cancelar reserva', 'error');
+        showToast(error.message || 'Erro ao cancelar reserva', 'error');
     }
 };
 
@@ -478,123 +470,116 @@ window.renovarEmprestimo = async function(emprestimoId) {
     if(!await showConfirm('Deseja renovar este empréstimo por mais 7 dias?', 'Renovar')) return;
 
     try {
-        const response = await fetch(`/emprestimos/${emprestimoId}/renovar`,{
-            method: 'PUT'
+        const { data, error } = await db.rpc('renovar_emprestimo', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: emprestimoId
         });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        if (response.ok) {
-            showToast(`Empréstimo renovado! Nova data: ${new Date(data.nova_data_devolucao).toLocaleDateString()} — Renovações restantes: ${data.renovacoes_restantes}`, 'success', 5000);
-            mostrarMeusEmprestimos(); //recarrega a lista
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        showToast(`Empréstimo renovado! Nova data: ${new Date(data.nova_data_devolucao).toLocaleDateString()} — Renovações restantes: ${data.renovacoes_restantes}`, 'success', 5000);
+
+        enviarEmail(
+            data.usuario_email,
+            `📚 Lembrete: Prazo de devolução - ${data.livro_titulo}`,
+            templateLembreteDevolucao(data.usuario_nome, data.livro_titulo, data.nova_data_devolucao, 7)
+        );
+
+        mostrarMeusEmprestimos();
     } catch (error) {
         console.error('erro:', error);
-        showToast('Erro ao renovar empréstimo', 'error');
+        showToast(error.message || 'Erro ao renovar empréstimo', 'error');
     }
 };
 
 async function deletarEmprestimo(idEmprestimo, botaoClicado) {
-    
+
     if(!await showConfirm("Tem certeza que deseja apagar este registro de empréstimo?", "Apagar", "Cancelar")){
         return;
     }
     try{
-        const response = await fetch(`/emprestimos/${idEmprestimo}`,{
-            method: 'DELETE'
+        const { error } = await db.rpc('apagar_emprestimo', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: idEmprestimo
         });
 
-        if(response.ok){
-            botaoClicado.closest('.book-card').remove();
-            showToast("Empréstimo apagado com sucesso!", "success");
-        } else {
-            showToast("Não foi possível apagar empréstimo no servidor.", "error");
-        }
+        if (error) throw error;
+
+        botaoClicado.closest('.book-card').remove();
+        showToast("Empréstimo apagado com sucesso!", "success");
     } catch (error) {
         console.error("erro ao deletar:", error);
-        showToast("Erro de conexão ao tentar apagar empréstimo.", "error");
+        showToast(error.message || "Erro ao apagar empréstimo.", "error");
     }
 }
 
 window.solicitarEmprestimo = async function(livroId) {
-    const dataDevolucao = new Date();
-    dataDevolucao.setDate(dataDevolucao.getDate() + 7);
-    
     if (!await showConfirm('Deseja pegar este livro emprestado?', 'Pegar emprestado')) return;
-    
+
     try {
-        const response = await fetch('/emprestimos', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                usuario_id: usuarioAtual.id,
-                livro_id: livroId,
-                data_devolucao_prevista: dataDevolucao.toISOString().split('T')[0]
-            })
+        const { data, error } = await db.rpc('pegar_emprestado', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast('Empréstimo realizado! Devolva em até 7 dias.', 'success');
-            if (categoriaAtual) {
-                buscarPorCategoria(categoriaAtual);
-            } else {
-                buscarLivros();
-            }
-        } else if (data.error && data.error.includes('limite')) {
-            //usuario atingiu o limite de livros simultaneos: oferece solicitar aprovacao
-            if (await showConfirm(`${data.error}. Deseja enviar uma solicitação para o bibliotecário aprovar esse empréstimo extra?`, 'Enviar solicitação')) {
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        if (categoriaAtual) {
+            buscarPorCategoria(categoriaAtual);
+        } else {
+            buscarLivros();
+        }
+    } catch (error) {
+        if (error.message && error.message.includes('limite')) {
+            if (await showConfirm(`${error.message}. Deseja enviar uma solicitação para o bibliotecário aprovar esse empréstimo extra?`, 'Enviar solicitação')) {
                 solicitarEmprestimoExtra(livroId);
             }
         } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
+            showToast(error.message || 'Erro ao solicitar empréstimo', 'error');
         }
-    } catch (error) {
-        showToast('Erro ao solicitar empréstimo', 'error');
     }
 };
 
 window.solicitarEmprestimoExtra = async function(livroId) {
     try {
-        const response = await fetch('/solicitacoes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: usuarioAtual.id, livro_id: livroId })
+        const { data, error } = await db.rpc('solicitar_emprestimo_extra', {
+            p_usuario_id: usuarioAtual.id,
+            p_livro_id: livroId
         });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        if (response.ok) {
-            showToast('Solicitação enviada! Aguarde a aprovação do bibliotecário.', 'success');
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        showToast(data.message, 'success');
     } catch (error) {
-        showToast('Erro ao enviar solicitação', 'error');
+        showToast(error.message || 'Erro ao enviar solicitação', 'error');
     }
 };
 
 window.devolverLivro = async function(emprestimoId) {
     if (!await showConfirm('Confirmar devolução do livro?', 'Devolver')) return;
-    
+
     try {
-        const response = await fetch(`/emprestimos/${emprestimoId}/devolver`, {
-            method: 'PUT'
+        const { data, error } = await db.rpc('devolver_livro', {
+            p_usuario_id: usuarioAtual.id,
+            p_emprestimo_id: emprestimoId
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast('Livro devolvido com sucesso!', 'success');
-            mostrarMeusEmprestimos();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+
+        if (data.suspensao_criada) {
+            enviarEmail(
+                data.usuario_email,
+                `⚠️ Conta suspensa por atraso na devolução - ${data.livro_titulo}`,
+                templateSuspensao(data.usuario_nome, data.livro_titulo, data.dias_atraso, data.data_fim_suspensao)
+            );
         }
+
+        mostrarMeusEmprestimos();
     } catch (error) {
-        showToast('Erro ao devolver livro', 'error');
+        showToast(error.message || 'Erro ao devolver livro', 'error');
     }
 };
 
@@ -603,10 +588,11 @@ async function carregarTodosLivros() {
     booksGrid.innerHTML = '<p style="text-align:center;"> carregando livros...</p>';
 
     try {
-        const response = await fetch("/livros");
-        const livros = await response.json();
+        const { data: livros, error } = await db.from('livros').select('*').order('id');
 
-        if (livros.lenght === 0) {
+        if (error) throw error;
+
+        if (livros.length === 0) {
             booksGrid.innerHTML = '<p style="text-align:center;">📭 Nenhum livro cadastrado ainda.</p>';
         } else {
             exibirLivros(livros);
@@ -784,16 +770,12 @@ async function mostrarGerenciarUsuarios() {
     conteudo.innerHTML = '<p>Carregando usuários...</p>';
     
     try {
-        const response = await fetch('/admin/usuarios', {
-            headers: { 'usuario-id': usuarioAtual.id }
+        const { data: usuarios, error } = await db.rpc('listar_usuarios', {
+            p_solicitante_id: usuarioAtual.id
         });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao carregar');
-        }
-        
-        const usuarios = await response.json();
-        
+
+        if (error) throw error;
+
         conteudo.innerHTML = `
             <div class="admin-panel">
                 <h2>👥 Gerenciar Usuários</h2>
@@ -809,13 +791,15 @@ async function mostrarGerenciarUsuarios() {
                                     <td>${user.nome}</td>
                                     <td>${user.email}</td>
                                     <td>
-                                        <select onchange="alterarTipoUsuario(${user.id}, this.value)">
-                                            <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>📖 Aluno</option>
-                                            <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>📚 Bibliotecário</option>
-                                            <option value="admin" ${user.tipo === 'admin' ? 'selected' : ''}>👑 Admin</option>
-                                        </select>
+                                        ${user.tipo === 'admin'
+                                            ? '<span title="Só pode ser alterado direto no banco de dados">👑 Admin</span>'
+                                            : `<select onchange="alterarTipoUsuario(${user.id}, this.value)">
+                                                <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>📖 Aluno</option>
+                                                <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>📚 Bibliotecário</option>
+                                               </select>`
+                                        }
                                     </td>
-                                    <td><button onclick="deletarUsuario(${user.id})" class="btn-danger">🗑️ Excluir</button></td>
+                                    <td>${usuarioAtual.tipo === 'admin' ? `<button onclick="deletarUsuario(${user.id})" class="btn-danger" ${user.id === usuarioAtual.id ? 'disabled' : ''}>🗑️ Excluir</button>` : ''}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -827,7 +811,7 @@ async function mostrarGerenciarUsuarios() {
         
     } catch (error) {
         console.error('Erro:', error);
-        conteudo.innerHTML = '<p>❌ Erro ao carregar usuários. Verifique se o backend está rodando.</p>';
+        conteudo.innerHTML = '<p>❌ Erro ao carregar usuários.</p>';
     }
 }
 
@@ -851,15 +835,11 @@ async function mostrarEstatisticas() {
     conteudo.innerHTML = '<div class="stats-loading">Carregando estatísticas...</div>';
     
     try {
-        const response = await fetch('/admin/estatisticas', {
-            headers: { 'usuario-id': usuarioAtual.id }
+        const { data: stats, error } = await db.rpc('obter_estatisticas', {
+            p_solicitante_id: usuarioAtual.id
         });
-        
-        if (!response.ok) {
-            throw new Error('Erro ao carregar estatísticas');
-        }
-        
-        const stats = await response.json();
+
+        if (error) throw error;
 
         const totalCopias = stats.total_copias || 0;
         const copiasEmprestadas = stats.livros_emprestados || 0;
@@ -973,30 +953,99 @@ async function mostrarEstatisticas() {
     }
 }
 
-// baixa o relatorio de emprestimos em pdf (usa fetch + blob porque a rota exige cabecalho de autenticacao)
+// gera o relatorio de emprestimos em pdf direto no navegador (jsPDF + AutoTable)
 window.baixarRelatorioPDF = async function() {
     try {
-        const response = await fetch('/relatorio/emprestimos/pdf', {
-            headers: { 'usuario-id': usuarioAtual.id }
+        const { data: emprestimos, error } = await db.rpc('listar_meus_emprestimos_admin', {
+            p_solicitante_id: usuarioAtual.id
+        });
+        if (error) throw error;
+
+        const { data: stats, error: statsError } = await db.rpc('obter_estatisticas', {
+            p_solicitante_id: usuarioAtual.id
+        });
+        if (statsError) throw statsError;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const corPrimaria = [30, 58, 95];      // azul escuro
+        const corAcento = [212, 165, 32];      // dourado
+        const larguraPagina = doc.internal.pageSize.getWidth();
+
+        // ---- Cabeçalho ----
+        doc.setFillColor(...corPrimaria);
+        doc.rect(0, 0, larguraPagina, 90, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('📚 Libro', 40, 40);
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Relatório de Empréstimos', 40, 62);
+        doc.setFontSize(9);
+        doc.setTextColor(220, 220, 220);
+        doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 40, 78);
+
+        // ---- Cartões de resumo ----
+        const cartoes = [
+            { titulo: 'Usuários', valor: stats.total_usuarios },
+            { titulo: 'Livros no catálogo', valor: stats.total_livros },
+            { titulo: 'Empréstimos ativos', valor: stats.emprestimos_ativos },
+            { titulo: 'Cópias disponíveis', valor: stats.copias_disponiveis }
+        ];
+        const margemCartao = 40;
+        const espacoCartao = 12;
+        const larguraCartao = (larguraPagina - margemCartao * 2 - espacoCartao * 3) / 4;
+        const yCartao = 112;
+
+        cartoes.forEach((c, i) => {
+            const x = margemCartao + i * (larguraCartao + espacoCartao);
+            doc.setDrawColor(...corAcento);
+            doc.setFillColor(248, 246, 240);
+            doc.roundedRect(x, yCartao, larguraCartao, 54, 6, 6, 'FD');
+            doc.setTextColor(...corPrimaria);
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(c.valor), x + larguraCartao / 2, yCartao + 26, { align: 'center' });
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(90, 90, 90);
+            doc.text(c.titulo, x + larguraCartao / 2, yCartao + 42, { align: 'center' });
         });
 
-        if (!response.ok) {
-            showToast('Não foi possível gerar o relatório', 'error');
-            return;
-        }
+        // ---- Tabela de histórico ----
+        const linhas = emprestimos.map((emp, i) => [
+            i + 1,
+            emp.livro?.titulo || '(livro removido)',
+            emp.usuario?.nome || '(usuário removido)',
+            emp.data_emprestimo ? new Date(emp.data_emprestimo).toLocaleDateString('pt-BR') : '-',
+            emp.data_prevista_devolucao ? new Date(emp.data_prevista_devolucao).toLocaleDateString('pt-BR') : '-',
+            emp.status === 'ativo' ? 'Ativo' : emp.status === 'devolvido' ? 'Devolvido' : 'Atrasado'
+        ]);
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'relatorio-emprestimos.pdf';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
+        doc.autoTable({
+            startY: yCartao + 74,
+            head: [['#', 'Livro', 'Usuário', 'Emprestado em', 'Previsto', 'Status']],
+            body: linhas.length ? linhas : [['-', 'Nenhum empréstimo registrado ainda.', '-', '-', '-', '-']],
+            theme: 'striped',
+            headStyles: { fillColor: corPrimaria, textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            styles: { fontSize: 9, cellPadding: 6 },
+            columnStyles: { 0: { cellWidth: 24, halign: 'center' } },
+            margin: { left: 40, right: 40 },
+            didParseCell: function(data) {
+                if (data.section === 'body' && data.column.index === 5) {
+                    if (data.cell.raw === 'Atrasado') data.cell.styles.textColor = [180, 40, 40];
+                    if (data.cell.raw === 'Ativo') data.cell.styles.textColor = [30, 120, 60];
+                }
+            }
+        });
+
+        doc.save('relatorio-emprestimos.pdf');
+        showToast('Relatório gerado com sucesso!', 'success');
     } catch (error) {
-        console.error('Erro ao baixar relatorio:', error);
-        showToast('Erro ao baixar relatório em PDF', 'error');
+        console.error('Erro ao gerar relatorio:', error);
+        showToast(error.message || 'Erro ao gerar relatório em PDF', 'error');
     }
 };
 
@@ -1008,15 +1057,11 @@ async function mostrarSolicitacoes() {
     conteudo.innerHTML = '<p>Carregando solicitações...</p>';
 
     try {
-        const response = await fetch('/solicitacoes', {
-            headers: { 'usuario-id': usuarioAtual.id }
+        const { data: solicitacoes, error } = await db.rpc('listar_solicitacoes_pendentes', {
+            p_solicitante_id: usuarioAtual.id
         });
 
-        if (!response.ok) {
-            throw new Error('Erro ao carregar solicitações');
-        }
-
-        const solicitacoes = await response.json();
+        if (error) throw error;
 
         if (solicitacoes.length === 0) {
             conteudo.innerHTML = `
@@ -1059,21 +1104,18 @@ window.responderSolicitacao = async function(id, acao) {
     if (!await showConfirm(acao === 'aprovar' ? 'Aprovar essa solicitação?' : 'Rejeitar essa solicitação?', acao === 'aprovar' ? 'Aprovar' : 'Rejeitar')) return;
 
     try {
-        const response = await fetch(`/solicitacoes/${id}/${acao}`, {
-            method: 'PUT',
-            headers: { 'usuario-id': usuarioAtual.id }
+        const funcao = acao === 'aprovar' ? 'aprovar_solicitacao' : 'rejeitar_solicitacao';
+        const { data, error } = await db.rpc(funcao, {
+            p_solicitante_id: usuarioAtual.id,
+            p_solicitacao_id: id
         });
 
-        const data = await response.json();
+        if (error) throw error;
 
-        if (response.ok) {
-            showToast(data.message, 'success');
-            mostrarSolicitacoes();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+        showToast(data.message, 'success');
+        mostrarSolicitacoes();
     } catch (error) {
-        showToast('Erro ao responder solicitação', 'error');
+        showToast(error.message || 'Erro ao responder solicitação', 'error');
     }
 };
 
@@ -1117,68 +1159,51 @@ function mostrarBackup() {
 
 // Função para alterar tipo de usuário
 window.alterarTipoUsuario = async function(userId, novoTipo) {
-    console.log("Alterando usuário:", userId, "para:", novoTipo);
-    
     if (!await showConfirm(`Tem certeza que quer alterar este usuário para ${novoTipo.toUpperCase()}?`, 'Alterar')) {
         await mostrarGerenciarUsuarios();
         return;
     }
-    
+
     try {
-        const response = await fetch(`/usuarios/${userId}/tipo`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'usuario-id': usuarioAtual.id
-            },
-            body: JSON.stringify({ tipo: novoTipo })
+        const { data, error } = await db.rpc('alterar_tipo_usuario', {
+            p_solicitante_id: usuarioAtual.id,
+            p_usuario_id: userId,
+            p_novo_tipo: novoTipo
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast(data.message, 'success');
-            await mostrarGerenciarUsuarios();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-            await mostrarGerenciarUsuarios();
-        }
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        await mostrarGerenciarUsuarios();
     } catch (error) {
         console.error('Erro:', error);
-        showToast('Erro de conexão com o servidor', 'error');
+        showToast(error.message || 'Erro ao alterar tipo', 'error');
+        await mostrarGerenciarUsuarios();
     }
 };
 
 // Função para deletar usuário
 window.deletarUsuario = async function(userId) {
-    console.log("Deletando usuário:", userId);
-    
     if (userId === usuarioAtual.id) {
         showToast('Você não pode deletar seu próprio usuário!', 'error');
         return;
     }
-    
+
     if (!await showConfirm('⚠️ ATENÇÃO! Deseja realmente excluir este usuário permanentemente?', 'Excluir', 'Cancelar')) return;
-    
+
     try {
-        const response = await fetch(`/usuarios/${userId}`, {
-            method: 'DELETE',
-            headers: {
-                'usuario-id': usuarioAtual.id
-            }
+        const { data, error } = await db.rpc('deletar_usuario', {
+            p_solicitante_id: usuarioAtual.id,
+            p_usuario_id: userId
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            showToast('Usuário excluído com sucesso!', 'success');
-            await mostrarGerenciarUsuarios();
-        } else {
-            showToast(data.error || 'Erro desconhecido', 'error');
-        }
+
+        if (error) throw error;
+
+        showToast(data.message, 'success');
+        await mostrarGerenciarUsuarios();
     } catch (error) {
         console.error('Erro:', error);
-        showToast('Erro de conexão com o servidor', 'error');
+        showToast(error.message || 'Erro ao excluir usuário', 'error');
     }
 };
 
