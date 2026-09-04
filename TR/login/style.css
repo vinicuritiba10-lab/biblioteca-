@@ -42,14 +42,14 @@
 .welcome-content {
    position: absolute;
    right: 100px;
-   left: 170px;
+   left: 175px;
 }
 
 .apresentacao {
     position: absolute;
    right: 100px;
    left: 100px;
-    top: 500px;
+    top: 400px;
 }
 
 .apresentacao p {
@@ -199,7 +199,7 @@ button:hover {
 
 img{
     position: absolute;
-    left: 270px;
+    left: 275px;
     top: 100px;
     max-width: 100%; 
     height: 20%; 
