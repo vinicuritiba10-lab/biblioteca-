@@ -608,13 +608,12 @@ async function carregarTodosLivros() {
 async function carregarRelatoriosEmprestimos() {
     try {
 
-        const resposta = await fetch("/emprestimos");
+        const { data: emprestimos, error } = await db.rpc('listar_meus_emprestimos_admin', {
+            p_solicitante_id: usuarioAtual.id
+        });
 
-        if(!resposta.ok) {
-            throw new Error("erro ao buscar emprestimos");
-        }
+        if (error) throw error;
 
-        const emprestimos = await resposta.json();
         const tabelaBody = document.querySelector("#tabela-emprestimos tbody");
 
         if (!tabelaBody) {
