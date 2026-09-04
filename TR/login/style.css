@@ -41,7 +41,7 @@
 /* Conteúdo de boas-vindas */
 .welcome-content {
    position: absolute;
-   right: 200px;
+   right: 100px;
 }
 
 
@@ -53,7 +53,6 @@
 }
 
 .welcome-content p {
-    width: 50vw;
     font-size: 1.2rem;
     margin-bottom: 2rem;
     opacity: 0.9;
