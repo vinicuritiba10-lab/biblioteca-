@@ -44,16 +44,6 @@
    right: 100px;
 }
 
-.apresentacao{
-  position: absolute;
-   right: 100px;
-}
-
-.apresentacao p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    opacity: 0.9;
-}
 
 
 .welcome-content h1 {
@@ -63,6 +53,7 @@
 }
 
 .welcome-content p {
+    width: 60vw;
     font-size: 1.2rem;
     margin-bottom: 2rem;
     opacity: 0.9;
