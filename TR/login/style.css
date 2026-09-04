@@ -46,8 +46,8 @@
 
 .apresentacao {
     position: absolute;
-   right: 200px;
-   left: 200px;
+   right: 100px;
+   top: 200px;
 }
 
 .apresentacao p {
