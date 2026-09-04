@@ -45,11 +45,16 @@
 }
 
 .apresentacao{
-    max-width: 700px; /* Impede que o texto passe de 700px de largura */
-    width: 100%;       /* Garante que ele seja responsivo em telas menores */
-    margin: 0 auto;    /* Centraliza o bloco na tela */
-    padding: 0 20px;   /* Evita que o texto encoste nas bordas em celul */
+  position: absolute;
+   right: 100px;
 }
+
+.apresentacao p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
 
 .welcome-content h1 {
     font-size: 3rem;
