@@ -1166,7 +1166,7 @@ async function mostrarLogs() {
                         </tbody>
                     </table>
                 </div>
-                <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar" style="margin-top: 20px;">← Voltar</button>
+                <button onclick="fecharAdminPanel()" class="btn-voltar" style="margin-top: 20px;">← Fechar</button>
             </div>
         `;
     } catch (error) {
@@ -1174,7 +1174,7 @@ async function mostrarLogs() {
             <div class="admin-panel">
                 <h2>🔐 Logs do Sistema</h2>
                 <p>❌ ${error.message || 'Erro ao carregar logs.'}</p>
-                <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar">← Voltar</button>
+                <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button>
             </div>
         `;
     }
@@ -1193,7 +1193,7 @@ async function mostrarBackup() {
             <h2>💾 Backup do Sistema</h2>
             <p>Gera um arquivo .json com todos os dados atuais do banco (usuários, livros, empréstimos, reservas, solicitações e suspensões).</p>
             <button onclick="baixarBackup()" class="btn-admin">⬇️ Baixar Backup Agora</button>
-            <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar" style="margin-left: 10px;">← Voltar</button>
+            <button onclick="fecharAdminPanel()" class="btn-voltar" style="margin-left: 10px;">← Fechar</button>
         </div>
     `;
 }
