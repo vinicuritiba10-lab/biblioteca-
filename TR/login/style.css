@@ -54,7 +54,7 @@
     font-size: 1.2rem;
     margin-bottom: 2rem;
     opacity: 0.9;
-    width: 50vw;
+    max-width: 70ch;
 }
 
 .welcome-content h1 {
