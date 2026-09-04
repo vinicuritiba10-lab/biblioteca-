@@ -1118,41 +1118,101 @@ window.responderSolicitacao = async function(id, acao) {
     }
 };
 
-// Função para mostrar logs (placeholder)
-function mostrarLogs() {
+// Função para mostrar logs do sistema
+async function mostrarLogs() {
     const conteudo = document.getElementById('conteudo-area');
     if (!conteudo) {
         console.error("Elemento 'conteudo-area' não encontrado");
         return;
     }
-    
+
+    conteudo.innerHTML = '<div class="admin-panel"><h2>🔐 Logs do Sistema</h2><p>Carregando...</p></div>';
+
+    try {
+        const { data: logs, error } = await db.rpc('listar_logs', {
+            p_solicitante_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
+
+        conteudo.innerHTML = `
+            <div class="admin-panel">
+                <h2>🔐 Logs do Sistema</h2>
+                <p style="opacity:0.7; font-size: 13px;">Últimas ${logs.length} ações registradas</p>
+                <div style="overflow-x: auto;">
+                    <table class="tabela-usuarios">
+                        <thead>
+                            <tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Detalhes</th></tr>
+                        </thead>
+                        <tbody>
+                            ${logs.length === 0
+                                ? '<tr><td colspan="4" class="tabela-vazia">📭 Nenhum log registrado ainda</td></tr>'
+                                : logs.map(log => `
+                                    <tr>
+                                        <td>${new Date(log.created_at).toLocaleString('pt-BR')}</td>
+                                        <td>${log.usuario_nome || '(desconhecido)'}</td>
+                                        <td>${log.acao}</td>
+                                        <td>${log.detalhes || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar" style="margin-top: 20px;">← Voltar</button>
+            </div>
+        `;
+    } catch (error) {
+        conteudo.innerHTML = `
+            <div class="admin-panel">
+                <h2>🔐 Logs do Sistema</h2>
+                <p>❌ ${error.message || 'Erro ao carregar logs.'}</p>
+                <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar">← Voltar</button>
+            </div>
+        `;
+    }
+}
+
+// Função para exportar backup completo do banco (JSON)
+async function mostrarBackup() {
+    const conteudo = document.getElementById('conteudo-area');
+    if (!conteudo) {
+        console.error("Elemento 'conteudo-area' não encontrado");
+        return;
+    }
+
     conteudo.innerHTML = `
         <div class="admin-panel">
-            <h2>🔐 Logs do Sistema</h2>
-            <p>Funcionalidade em desenvolvimento.</p>
-            <p>Em breve: histórico de ações de usuários, empréstimos, etc.</p>
-            <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar">← Voltar</button>
+            <h2>💾 Backup do Sistema</h2>
+            <p>Gera um arquivo .json com todos os dados atuais do banco (usuários, livros, empréstimos, reservas, solicitações e suspensões).</p>
+            <button onclick="baixarBackup()" class="btn-admin">⬇️ Baixar Backup Agora</button>
+            <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar" style="margin-left: 10px;">← Voltar</button>
         </div>
     `;
 }
 
-// Função para mostrar backup (placeholder)
-function mostrarBackup() {
-    const conteudo = document.getElementById('conteudo-area');
-    if (!conteudo) {
-        console.error("Elemento 'conteudo-area' não encontrado");
-        return;
+window.baixarBackup = async function() {
+    try {
+        const { data, error } = await db.rpc('exportar_backup', {
+            p_solicitante_id: usuarioAtual.id
+        });
+
+        if (error) throw error;
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `backup-libro-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+
+        showToast('Backup baixado com sucesso!', 'success');
+    } catch (error) {
+        showToast(error.message || 'Erro ao gerar backup (apenas administradores podem exportar)', 'error');
     }
-    
-    conteudo.innerHTML = `
-        <div class="admin-panel">
-            <h2>💾 Backup do Sistema</h2>
-            <p>Funcionalidade em desenvolvimento.</p>
-            <p>Em breve: exportar dados, backup do banco, etc.</p>
-            <button onclick="mostrarGerenciarUsuarios()" class="btn-voltar">← Voltar</button>
-        </div>
-    `;
-}
+};
 
 // ========== FUNÇÕES DE ADMIN  ==========
 
