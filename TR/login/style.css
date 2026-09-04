@@ -44,7 +44,11 @@
    right: 100px;
 }
 
-
+.apresentacao {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
 
 .welcome-content h1 {
     font-size: 3rem;
