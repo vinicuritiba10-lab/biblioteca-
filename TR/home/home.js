@@ -39,6 +39,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             relatoriosSection.style.display = 'block';
             await carregarRelatoriosEmprestimos();
         }
+
+        const btnSuspensoes = document.getElementById('btn-suspensoes');
+        if (btnSuspensoes) {
+            btnSuspensoes.style.display = 'inline-flex';
+        }
     }
 
     // Adicionar botão para bibliotecário
