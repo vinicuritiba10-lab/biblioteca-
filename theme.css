@@ -1,0 +1,287 @@
+/* ============================================================
+   LIBRO — MODO ESCURO
+   Overrides para componentes que usam cor fixa (nao a variavel).
+   As variaveis de cor ja trocam automaticamente via tokens.css;
+   este arquivo cobre o que ainda esta com hexadecimal direto.
+   ============================================================ */
+
+[data-theme="dark"] body {
+    color: var(--cor-texto);
+}
+
+/* ===== Páginas de login / cadastro / bibliotecário ===== */
+
+[data-theme="dark"] .right-side {
+    background: var(--cor-fundo-sutil);
+}
+
+[data-theme="dark"] .login-container,
+[data-theme="dark"] .form-container {
+    background: var(--cor-fundo-card);
+    box-shadow: var(--sombra-elevada);
+}
+
+[data-theme="dark"] .login-container h2,
+[data-theme="dark"] .form-container h1 {
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .form-container .subtitle,
+[data-theme="dark"] .lib-subtitle {
+    color: var(--cor-texto-suave);
+}
+
+[data-theme="dark"] .form-group label {
+    color: var(--cor-texto-suave);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select {
+    background: #14151e;
+    border-color: var(--cor-borda);
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus {
+    background: #181a26;
+}
+
+[data-theme="dark"] .form-group input::placeholder {
+    color: #6b7080;
+}
+
+[data-theme="dark"] .signup-link,
+[data-theme="dark"] .login-link {
+    color: var(--cor-texto-suave);
+}
+
+[data-theme="dark"] .login-link {
+    border-top-color: var(--cor-borda);
+}
+
+[data-theme="dark"] .btn-voltar {
+    background: #14151e;
+    color: var(--cor-texto-suave);
+}
+
+[data-theme="dark"] .btn-voltar:hover {
+    background: #1c1d29;
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .sugestao-email-box {
+    background: rgba(61, 220, 132, 0.10);
+    border-color: var(--cor-sucesso);
+    color: #6ee8a4;
+}
+
+[data-theme="dark"] .sugestao-email-box:hover {
+    background: rgba(61, 220, 132, 0.16);
+}
+
+[data-theme="dark"] .message.success {
+    background: rgba(61, 220, 132, 0.10);
+    color: #6ee8a4;
+    border-color: rgba(61, 220, 132, 0.35);
+}
+
+[data-theme="dark"] .message.error {
+    background: rgba(255, 107, 94, 0.10);
+    color: #ff9a91;
+    border-color: rgba(255, 107, 94, 0.35);
+}
+
+[data-theme="dark"] .btn-tema {
+    background: rgba(29, 31, 43, 0.85);
+    border-color: var(--cor-borda);
+    color: #f1c40f;
+}
+
+/* ===== Página inicial (home) ===== */
+
+[data-theme="dark"] body {
+    background: linear-gradient(135deg, #6b1d05 0%, #3a2a52 100%);
+    background-attachment: fixed;
+}
+
+[data-theme="dark"] .princ {
+    background: rgba(20, 21, 30, 0.92);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .nav-link {
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .logo-text,
+[data-theme="dark"] .logo-container span {
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .form-wrapper input {
+    background: #14151e;
+    color: var(--cor-texto);
+    border-color: var(--cor-borda);
+}
+
+[data-theme="dark"] .book-card {
+    background: var(--cor-fundo-card);
+    box-shadow: var(--sombra-card);
+}
+
+[data-theme="dark"] .book-info h3 {
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .book-info .author {
+    color: var(--cor-texto-suave);
+}
+
+[data-theme="dark"] .main-content,
+[data-theme="dark"] .books-section,
+[data-theme="dark"] .section-header {
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .section-desc {
+    color: var(--cor-texto-suave);
+}
+
+[data-theme="dark"] .admin-menu,
+[data-theme="dark"] .admin-panel,
+[data-theme="dark"] .relatorios-section .container,
+[data-theme="dark"] .stats-hero,
+[data-theme="dark"] .stat-card-new,
+[data-theme="dark"] .solicitacao-card {
+    background: var(--cor-fundo-card);
+    box-shadow: var(--sombra-card);
+}
+
+[data-theme="dark"] .admin-menu h3,
+[data-theme="dark"] .relatorio-toolbar h2,
+[data-theme="dark"] .stats-hero-text h3,
+[data-theme="dark"] .gauge-number,
+[data-theme="dark"] .stat-value,
+[data-theme="dark"] .stats-header h2 {
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .btn-admin,
+[data-theme="dark"] .btn-admin-super,
+[data-theme="dark"] .btn-refresh {
+    background: var(--cor-fundo-card);
+    color: var(--cor-texto);
+    border-color: var(--cor-borda);
+}
+
+[data-theme="dark"] .btn-admin:hover {
+    background: linear-gradient(135deg, rgba(255,90,51,0.14), rgba(155,125,199,0.14));
+}
+
+[data-theme="dark"] .btn-admin-super {
+    color: #ff9a91;
+    border-color: rgba(255, 107, 94, 0.3);
+}
+
+[data-theme="dark"] .btn-admin-super:hover {
+    background: rgba(255, 107, 94, 0.12);
+}
+
+[data-theme="dark"] .tabela-scroll {
+    border-color: var(--cor-borda);
+}
+
+[data-theme="dark"] .tabela-emprestimos tbody tr,
+[data-theme="dark"] .tabela-usuarios tr {
+    background: var(--cor-fundo-card);
+}
+
+[data-theme="dark"] .tabela-emprestimos tbody tr:nth-child(even),
+[data-theme="dark"] .tabela-usuarios tr:nth-child(even) {
+    background: var(--cor-fundo-sutil);
+}
+
+[data-theme="dark"] .tabela-emprestimos tbody tr:hover {
+    background: rgba(155, 125, 199, 0.10);
+}
+
+[data-theme="dark"] .tabela-emprestimos tbody td,
+[data-theme="dark"] .tabela-usuarios td {
+    color: var(--cor-texto);
+    border-bottom-color: var(--cor-borda);
+}
+
+[data-theme="dark"] .gauge-track {
+    stroke: #2b2d3c;
+}
+
+[data-theme="dark"] .composicao-barra {
+    background: #2b2d3c;
+}
+
+[data-theme="dark"] #lista-usuarios-admin input,
+[data-theme="dark"] #lista-usuarios-admin select,
+[data-theme="dark"] .select-tipo {
+    background: #14151e;
+    color: var(--cor-texto);
+    border-color: var(--cor-borda);
+}
+
+/* ===== Painel de gerenciar livros (admin-livros.html) ===== */
+
+[data-theme="dark"] .container,
+[data-theme="dark"] .livro-card-admin,
+[data-theme="dark"] .form-livro,
+[data-theme="dark"] .livros-grid-admin {
+    background: var(--cor-fundo-card);
+}
+
+[data-theme="dark"] .livro-card-admin {
+    box-shadow: var(--sombra-card);
+}
+
+[data-theme="dark"] .container h1,
+[data-theme="dark"] .livro-titulo {
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .livro-autor,
+[data-theme="dark"] .livro-info {
+    color: var(--cor-texto-suave);
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="url"],
+[data-theme="dark"] input[type="email"] {
+    background: #14151e;
+    color: var(--cor-texto);
+    border-color: var(--cor-borda);
+}
+
+/* ===== Página de cadastro de livro legada (livros.html) ===== */
+/* (a regra de .princ já definida acima cobre o fundo desta página também) */
+
+[data-theme="dark"] .enviarStyle {
+    background: var(--cor-fundo-card);
+}
+
+[data-theme="dark"] .lista a {
+    color: var(--cor-texto);
+}
+
+/* ===== Toasts e confirmação (compartilhado em todo o site) ===== */
+
+[data-theme="dark"] .toast {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .confirm-box {
+    background: var(--cor-fundo-card);
+    color: var(--cor-texto);
+}
+
+[data-theme="dark"] .confirm-msg {
+    color: var(--cor-texto);
+}
