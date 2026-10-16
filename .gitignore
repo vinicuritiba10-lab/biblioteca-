@@ -1,0 +1,10 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente e chaves secretas
+.env
+client_secret*.json
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
