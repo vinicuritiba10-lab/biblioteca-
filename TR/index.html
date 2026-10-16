@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Libro: biblioteca escolar</title>
+<meta name="description" content="O Libro avisa o aluno antes do prazo vencer, organiza a fila de reservas e mostra à biblioteca quem está com cada livro.">
+<meta name="theme-color" content="#c92e08">
+<link rel="icon" href="img/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+html{scroll-behavior:smooth}
+body{margin:0;background:#ffffff}
+a{color:#764ba2}a:hover{color:#c92e08}
+*{box-sizing:border-box}
+h1,h2,h3,p{text-wrap:pretty}
+section{scroll-margin-top:12px}
+a:focus-visible{outline:3px solid #764ba2;outline-offset:3px;border-radius:6px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<!-- Página de apresentação do Libro (landing). O botão "Entrar no Libro" leva para login/index.html. -->
+<div style="font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif; color: #2d3436; background: #ffffff; font-size: 16px; line-height: 1.65">
+
+<!-- CABEÇALHO -->
+<header style="background: #ffffff; border-bottom: 1px solid #e4e7eb">
+<div style="max-width: 1200px; margin: 0 auto; padding: 18px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px">
+<a href="#inicio" style="display: flex; align-items: center; gap: 12px; text-decoration: none">
+<img src="img/g10.png" alt="" width="29" height="40" style="height: 40px; width: auto; display: block">
+<span style="font-size: 28px; font-weight: 800; color: #764ba2; letter-spacing: -1px; line-height: 1">Libro</span>
+</a>
+<nav aria-label="Seções da página" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; font-size: 15px; font-weight: 600">
+<a href="#alunos" style="color: #2d3436; text-decoration: none; padding: 10px 0">Para alunos</a>
+<a href="#biblioteca" style="color: #2d3436; text-decoration: none; padding: 10px 0">Para a biblioteca</a>
+<a href="#como-funciona" style="color: #2d3436; text-decoration: none; padding: 10px 0">Como funciona</a>
+<a href="#por-dentro" style="color: #2d3436; text-decoration: none; padding: 10px 0">Por dentro</a>
+<a href="login/index.html" style="background: #764ba2; color: #ffffff; text-decoration: none; padding: 12px 22px; border-radius: 12px; font-weight: 700">Entrar no Libro</a>
+</nav>
+</div>
+</header>
+
+<!-- HERO: o fundo laranja e roxo é o mesmo do aplicativo -->
+<section id="inicio" style="background: linear-gradient(135deg, #c92e08 0%, #764ba2 100%); color: #ffffff; overflow: hidden">
+<div style="max-width: 1200px; margin: 0 auto; padding: 88px 24px 112px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 64px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 28px">
+<h1 style="margin: 0; font-size: clamp(40px, 5.2vw, 64px); line-height: 1.06; font-weight: 800; letter-spacing: -0.025em">A biblioteca da escola, sem caderno de empréstimos.</h1>
+<p style="margin: 0; font-size: 19px; line-height: 1.6; max-width: 34em; color: #ffffff">O Libro avisa o aluno antes do prazo vencer, organiza a fila de reservas e mostra à biblioteca quem está com cada livro. Funciona no computador e no celular.</p>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px">
+<a href="login/index.html" style="background: #ffffff; color: #764ba2; text-decoration: none; padding: 16px 30px; border-radius: 14px; font-weight: 700; font-size: 17px; box-shadow: 0 10px 26px rgba(30, 10, 40, 0.25)">Entrar no Libro</a>
+<a href="#como-funciona" style="color: #ffffff; font-weight: 600; font-size: 16px; text-underline-offset: 5px">Ver como funciona</a>
+</div>
+</div>
+
+<div style="display: flex; align-items: flex-end; min-width: 0">
+<img src="img/landing/hero-desktop.jpg" alt="Página inicial do Libro para o aluno, com avisos de prazo e as categorias do acervo" width="1280" height="800" style="display: block; width: 100%; min-width: 0; height: auto; border-radius: 14px; box-shadow: 0 30px 70px rgba(25, 8, 35, 0.45)">
+<div style="flex: 0 0 auto; width: clamp(118px, 27%, 212px); margin-left: clamp(-120px, -12%, -48px); margin-bottom: -56px; background: #1d1f2b; padding: 7px; border-radius: 32px; box-shadow: 0 30px 60px rgba(25, 8, 35, 0.5)">
+<img src="img/landing/hero-celular.jpg" alt="Ficha do livro Dom Casmurro aberta no celular" width="780" height="1688" style="display: block; width: 100%; height: auto; border-radius: 26px">
+</div>
+</div>
+</div>
+</section>
+
+<!-- PARA O ALUNO -->
+<section id="alunos" style="background: #ffffff">
+<div style="max-width: 1200px; margin: 0 auto; padding: 120px 24px 112px; display: flex; flex-direction: column; gap: 80px">
+<div style="display: flex; flex-direction: column; gap: 16px; max-width: 720px">
+<h2 style="margin: 0; font-size: clamp(32px, 3.6vw, 46px); line-height: 1.12; font-weight: 800; letter-spacing: -0.02em">O aluno sabe o que ler e quando devolver</h2>
+<p style="margin: 0; font-size: 18px; color: #636e72">O que antes dependia de perguntar no balcão agora está na tela, do celular ou do computador da escola.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 56px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 460px">
+<h3 style="margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700">A ficha de cada livro</h3>
+<p style="margin: 0; font-size: 17px; color: #636e72">Sinopse, editora e ano, quantos exemplares estão na estante, quantas pessoas estão na fila e as notas que os colegas deram. Dá para pegar emprestado ou entrar na fila ali mesmo.</p>
+<p style="margin: 0; font-size: 17px; color: #636e72">Quem já leu pode avaliar de 1 a 5 estrelas e deixar um comentário curto para o próximo leitor.</p>
+</div>
+<img src="img/landing/ficha.jpg" loading="lazy" alt="Ficha do livro com sinopse, exemplares disponíveis e avaliações dos alunos" width="860" height="760" style="display: block; width: 100%; height: auto; border-radius: 22px; border: 1px solid #e4e7eb; box-shadow: 0 16px 40px rgba(45, 52, 54, 0.14)">
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 48px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<img src="img/landing/emprestimos.jpg" loading="lazy" alt="Cartões de empréstimo mostrando vence amanhã e atrasado há 2 dias" width="566" height="667" style="display: block; width: 100%; height: auto; border-radius: 22px; box-shadow: 0 16px 40px rgba(45, 52, 54, 0.14)">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 24px; line-height: 1.25; font-weight: 700">O prazo escrito em cada empréstimo</h3>
+<p style="margin: 0; font-size: 17px; color: #636e72">“Vence amanhã” em laranja, “atrasado há 2 dias” em vermelho. Renovar por mais 7 dias é um botão, e um aviso no topo da página lembra antes de vencer.</p>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 22px">
+<img src="img/landing/conta.jpg" loading="lazy" alt="Minha Conta com livros lidos, pontualidade e conquistas" width="1240" height="867" style="display: block; width: 100%; height: auto; border-radius: 22px; border: 1px solid #e4e7eb; box-shadow: 0 16px 40px rgba(45, 52, 54, 0.14)">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 24px; line-height: 1.25; font-weight: 700">Minha Conta</h3>
+<p style="margin: 0; font-size: 17px; color: #636e72">Livros lidos, devoluções no prazo, categoria favorita e o histórico completo. Sete conquistas dão um motivo a mais para ler, e a lista Quero ler guarda o que fica para depois.</p>
+<p style="margin: 0; font-size: 17px; color: #636e72">Na página inicial, o Libro recomenda livros das categorias que o aluno mais lê.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- REGRAS: o cartão de empréstimo -->
+<section style="background: #f8f9fb; border-top: 1px solid #e4e7eb; border-bottom: 1px solid #e4e7eb">
+<div style="max-width: 1200px; margin: 0 auto; padding: 112px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 64px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 18px; max-width: 480px">
+<h2 style="margin: 0; font-size: clamp(32px, 3.6vw, 46px); line-height: 1.12; font-weight: 800; letter-spacing: -0.02em">Regras que cabem num cartão</h2>
+<p style="margin: 0; font-size: 18px; color: #636e72">As mesmas regras valem para todos, e o sistema aplica sozinho. Ninguém precisa lembrar de cobrar ninguém.</p>
+<p style="margin: 0; font-size: 18px; color: #636e72">Suspensões vencidas se encerram sozinhas. Se quem reservou não retirar o livro em 48 horas, a vez passa para o próximo da fila.</p>
+</div>
+
+<div style="position: relative; max-width: 520px; width: 100%; justify-self: center">
+<div style="background: #ffffff; border: 1px solid #e4e7eb; border-radius: 8px; box-shadow: 0 18px 44px rgba(45, 52, 54, 0.12); padding: 30px 32px 18px; transform: rotate(-1.2deg)">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 2px solid #2d3436">
+<span style="font-size: 20px; font-weight: 800; letter-spacing: -0.01em">Cartão de empréstimo</span>
+<span style="font-size: 14px; font-weight: 600; color: #636e72">Biblioteca Libro</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); column-gap: 20px">
+<span style="padding: 14px 0; border-bottom: 1px solid #e4e7eb; font-size: 22px; font-weight: 800; color: #c92e08; line-height: 1.3">2 livros</span>
+<span style="padding: 14px 0; border-bottom: 1px solid #e4e7eb; font-size: 16px; line-height: 1.5; align-self: stretch; display: flex; align-items: center">ao mesmo tempo, sem repetir o título</span>
+<span style="padding: 14px 0; border-bottom: 1px solid #e4e7eb; font-size: 22px; font-weight: 800; color: #c92e08; line-height: 1.3">7 dias</span>
+<span style="padding: 14px 0; border-bottom: 1px solid #e4e7eb; font-size: 16px; line-height: 1.5; display: flex; align-items: center">de prazo em cada empréstimo</span>
+<span style="padding: 14px 0; border-bottom: 1px solid #e4e7eb; font-size: 22px; font-weight: 800; color: #c92e08; line-height: 1.3">2 renovações</span>
+<span style="padding: 14px 0; border-bottom: 1px solid #e4e7eb; font-size: 16px; line-height: 1.5; display: flex; align-items: center">de mais 7 dias, se ninguém estiver na fila</span>
+<span style="padding: 14px 0; border-bottom: 1px solid #e4e7eb; font-size: 22px; font-weight: 800; color: #c92e08; line-height: 1.3">1 por 1</span>
+<span style="padding: 14px 0; border-bottom: 1px solid #e4e7eb; font-size: 16px; line-height: 1.5; display: flex; align-items: center">um dia de suspensão para cada dia de atraso</span>
+<span style="padding: 14px 0; font-size: 22px; font-weight: 800; color: #c92e08; line-height: 1.3">48 horas</span>
+<span style="padding: 14px 0; font-size: 16px; line-height: 1.5; display: flex; align-items: center">para retirar um livro reservado que chegou</span>
+</div>
+</div>
+<span aria-hidden="true" style="position: absolute; top: -22px; right: -14px; transform: rotate(-12deg); border: 3px solid #c92e08; color: #c92e08; background: rgba(255, 255, 255, 0.85); border-radius: 8px; padding: 6px 14px; font-size: 18px; font-weight: 800; letter-spacing: 0.1em; line-height: 1.2">NO PRAZO</span>
+</div>
+</div>
+</section>
+
+<!-- PARA A BIBLIOTECA -->
+<section id="biblioteca" style="background: #ffffff">
+<div style="max-width: 1200px; margin: 0 auto; padding: 120px 24px 112px; display: flex; flex-direction: column; gap: 80px">
+<div style="display: flex; flex-direction: column; gap: 16px; max-width: 720px">
+<h2 style="margin: 0; font-size: clamp(32px, 3.6vw, 46px); line-height: 1.12; font-weight: 800; letter-spacing: -0.02em">A biblioteca enxerga o acervo inteiro</h2>
+<p style="margin: 0; font-size: 18px; color: #636e72">Quem cuida da biblioteca tem o painel, o balcão de atendimento e os relatórios no mesmo lugar.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 56px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 28px; max-width: 470px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700">Painel da biblioteca</h3>
+<p style="margin: 0; font-size: 17px; color: #636e72">Empréstimos por mês, as categorias mais lidas, os livros mais disputados e os leitores mais ativos, em uma tela.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 20px; line-height: 1.3; font-weight: 700">Atrasos com nome e livro</h3>
+<p style="margin: 0; font-size: 17px; color: #636e72">A lista de atrasados mostra o aluno, o livro e quantos dias passaram. Ao receber o livro, a suspensão é aplicada sozinha e o aluno recebe um e-mail.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 20px; line-height: 1.3; font-weight: 700">Relatórios para a direção</h3>
+<p style="margin: 0; font-size: 17px; color: #636e72">Relatório em PDF e planilhas de empréstimos, acervo e usuários que abrem no Excel e no Google Planilhas.</p>
+</div>
+</div>
+<img src="img/landing/painel.jpg" loading="lazy" alt="Painel da biblioteca com gráfico de empréstimos por mês, categorias mais lidas, rankings e atrasados" width="1240" height="1433" style="display: block; width: 100%; height: auto; border-radius: 22px; border: 1px solid #e4e7eb; box-shadow: 0 16px 40px rgba(45, 52, 54, 0.14)">
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 48px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<img src="img/landing/balcao.jpg" loading="lazy" alt="Balcão de atendimento com formulário de novo empréstimo e lista de devoluções" width="1200" height="421" style="display: block; width: 100%; height: auto; border-radius: 18px; border: 1px solid #e4e7eb; box-shadow: 0 16px 40px rgba(45, 52, 54, 0.12)">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 24px; line-height: 1.25; font-weight: 700">Balcão de atendimento</h3>
+<p style="margin: 0; font-size: 17px; color: #636e72">Para quem vai pessoalmente até a biblioteca: digite o nome do aluno e o título, e o empréstimo está registrado. As devoluções aparecem ordenadas pelo prazo.</p>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 22px">
+<img src="img/landing/isbn.jpg" loading="lazy" alt="Cadastro de livro preenchido automaticamente a partir do ISBN" width="1160" height="938" style="display: block; width: 100%; height: auto; border-radius: 18px; border: 1px solid #e4e7eb; box-shadow: 0 16px 40px rgba(45, 52, 54, 0.12)">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 24px; line-height: 1.25; font-weight: 700">Cadastro pelo ISBN</h3>
+<p style="margin: 0; font-size: 17px; color: #636e72">Digite o código do verso do livro: título, autor, editora, ano, sinopse e capa se preenchem sozinhos. Cadastrar o acervo deixa de levar uma tarde inteira.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como-funciona" style="background: #f8f9fb; border-top: 1px solid #e4e7eb">
+<div style="max-width: 1200px; margin: 0 auto; padding: 112px 24px; display: flex; flex-direction: column; gap: 56px">
+<h2 style="margin: 0; font-size: clamp(32px, 3.6vw, 46px); line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; max-width: 720px">A vida de um empréstimo</h2>
+<ol style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 40px 32px">
+<li style="display: flex; flex-direction: column; gap: 12px; padding-top: 22px; border-top: 2px solid #2d3436">
+<span style="font-size: 40px; font-weight: 800; line-height: 1; color: #c92e08">1</span>
+<h3 style="margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700">Pega o livro</h3>
+<p style="margin: 0; font-size: 16px; color: #636e72">Pelo celular ou no balcão. O prazo de 7 dias começa na hora.</p>
+</li>
+<li style="display: flex; flex-direction: column; gap: 12px; padding-top: 22px; border-top: 2px solid #2d3436">
+<span style="font-size: 40px; font-weight: 800; line-height: 1; color: #c92e08">2</span>
+<h3 style="margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700">Recebe o aviso</h3>
+<p style="margin: 0; font-size: 16px; color: #636e72">Faltando três dias, o aviso aparece na página inicial, e a biblioteca manda o lembrete por e-mail com um clique.</p>
+</li>
+<li style="display: flex; flex-direction: column; gap: 12px; padding-top: 22px; border-top: 2px solid #2d3436">
+<span style="font-size: 40px; font-weight: 800; line-height: 1; color: #c92e08">3</span>
+<h3 style="margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700">Renova ou devolve</h3>
+<p style="margin: 0; font-size: 16px; color: #636e72">Até duas renovações. Devolveu atrasado, a conta fica suspensa pelos mesmos dias.</p>
+</li>
+<li style="display: flex; flex-direction: column; gap: 12px; padding-top: 22px; border-top: 2px solid #2d3436">
+<span style="font-size: 40px; font-weight: 800; line-height: 1; color: #c92e08">4</span>
+<h3 style="margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700">A fila anda</h3>
+<p style="margin: 0; font-size: 16px; color: #636e72">Quem reservou primeiro recebe o aviso e tem 48 horas para retirar. Depois, a vez é do próximo.</p>
+</li>
+</ol>
+</div>
+</section>
+
+<!-- POR DENTRO -->
+<section id="por-dentro" style="background: #2d3436; color: #ffffff">
+<div style="max-width: 1200px; margin: 0 auto; padding: 112px 24px; display: flex; flex-direction: column; gap: 56px">
+<div style="display: flex; flex-direction: column; gap: 16px; max-width: 720px">
+<h2 style="margin: 0; font-size: clamp(32px, 3.6vw, 46px); line-height: 1.12; font-weight: 800; letter-spacing: -0.02em">Por dentro do projeto</h2>
+<p style="margin: 0; font-size: 18px; color: #d5d8dc">Sem servidor próprio para manter: o site é estático e o banco de dados guarda as regras.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 28px; border-radius: 14px; border: 1px solid #4a5254; background: #343c3e">
+<h3 style="margin: 0; font-size: 21px; font-weight: 700">Site</h3>
+<p style="margin: 0; font-size: 16px; color: #d5d8dc">HTML, CSS e JavaScript puro, publicado no GitHub Pages. Instalável no celular como aplicativo (PWA), com modo escuro.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 28px; border-radius: 14px; border: 1px solid #4a5254; background: #343c3e">
+<h3 style="margin: 0; font-size: 21px; font-weight: 700">Banco e regras</h3>
+<p style="margin: 0; font-size: 16px; color: #d5d8dc">PostgreSQL no Supabase. Limite, prazos, suspensão e fila de reserva ficam em funções SQL no próprio banco, e as senhas são guardadas com bcrypt.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 28px; border-radius: 14px; border: 1px solid #4a5254; background: #343c3e">
+<h3 style="margin: 0; font-size: 21px; font-weight: 700">E-mails</h3>
+<p style="margin: 0; font-size: 16px; color: #d5d8dc">Avisos de suspensão, de reserva e de prazo enviados pelo Resend, através de uma Edge Function do Supabase.</p>
+</div>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 24px; padding-top: 40px; border-top: 1px solid #4a5254">
+<div style="display: flex; flex-direction: column-reverse; gap: 4px">
+<dt style="font-size: 15px; color: #d5d8dc">funções no banco de dados</dt>
+<dd style="margin: 0; font-size: 34px; font-weight: 800; line-height: 1.1">47</dd>
+</div>
+<div style="display: flex; flex-direction: column-reverse; gap: 4px">
+<dt style="font-size: 15px; color: #d5d8dc">tabelas</dt>
+<dd style="margin: 0; font-size: 34px; font-weight: 800; line-height: 1.1">9</dd>
+</div>
+<div style="display: flex; flex-direction: column-reverse; gap: 4px">
+<dt style="font-size: 15px; color: #d5d8dc">testes automatizados</dt>
+<dd style="margin: 0; font-size: 34px; font-weight: 800; line-height: 1.1">24</dd>
+</div>
+<div style="display: flex; flex-direction: column-reverse; gap: 4px">
+<dt style="font-size: 15px; color: #d5d8dc">servidores para manter</dt>
+<dd style="margin: 0; font-size: 34px; font-weight: 800; line-height: 1.1">0</dd>
+</div>
+</dl>
+</div>
+</section>
+
+<!-- CHAMADA FINAL -->
+<section id="acessar" style="background: #ffffff">
+<div style="max-width: 760px; margin: 0 auto; padding: 120px 24px; display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center">
+<h2 style="margin: 0; font-size: clamp(34px, 4vw, 52px); line-height: 1.1; font-weight: 800; letter-spacing: -0.025em">Experimente o Libro</h2>
+<p style="margin: 0; font-size: 18px; color: #636e72">Entre com o seu e-mail da escola, terminado em @escola.pr.gov.br.</p>
+<a href="login/index.html" style="margin-top: 8px; background: #764ba2; color: #ffffff; text-decoration: none; padding: 18px 36px; border-radius: 14px; font-weight: 700; font-size: 18px; box-shadow: 0 10px 26px rgba(118, 75, 162, 0.32)">Entrar no Libro</a>
+<p style="margin: 0; font-size: 15px; color: #636e72">Ainda não tem conta? <a href="login/cadastro.html">Cadastre-se com o e-mail da escola</a>.</p>
+</div>
+</section>
+
+<footer style="background: #f8f9fb; border-top: 1px solid #e4e7eb">
+<div style="max-width: 1200px; margin: 0 auto; padding: 36px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 32px; font-size: 14px; color: #636e72">
+<p style="margin: 0">Libro é o Trabalho de Conclusão de Curso de [NOMES DA EQUIPE], [NOME DA ESCOLA], 2026.</p>
+<p style="margin: 0">Desenvolvido com o Claude como copiloto de código.</p>
+</div>
+</footer>
+
+</div>
+</body>
+</html>
