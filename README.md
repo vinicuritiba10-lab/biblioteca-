@@ -7,12 +7,12 @@ Sistema para facilitar a vida dos alunos e dos profissionais das bibliotecas esc
 - controle de reservas, suspensões e relatórios
 
 ## 🛠️ Tecnologias
-- HTML5, CSS3 e JavaScript puro (front-end)
-- Node.js + Express 5 (back-end)
-- Sequelize (ORM)
-- PostgreSQL hospedado no **Supabase**
-- Railway (hospedagem do servidor)
-- Nodemailer (e-mails) · PDFKit (relatórios) · node-cron (rotina diária)
+- HTML5, CSS3 e JavaScript puro, publicado no **GitHub Pages**
+- **Supabase**: banco PostgreSQL, regras em funções SQL e Edge Function de e-mail
+- **Resend** para enviar os e-mails
+- pgcrypto (bcrypt) para guardar as senhas
+- PWA: o site pode ser instalado no celular como aplicativo
+- `node:test` para os testes automatizados
 
 ## 📌 Funcionalidades
 
@@ -38,59 +38,52 @@ Sistema para facilitar a vida dos alunos e dos profissionais das bibliotecas esc
 - Suspensão automática por atraso, com e-mail para o aluno
 
 **Geral**
-- Rotinas automáticas: lembretes e suspensões todo dia às 8h; fila de reservas a cada hora
+- Arrumação automática (suspensões vencidas e fila de reservas) sempre que alguém usa o sistema
 - Aplicativo instalável (PWA), tema claro/escuro e layout para celular
-- 18 testes automatizados (`npm test`)
+- Landing page de apresentação na raiz do site
+- 24 testes automatizados (`npm test`)
 
 ## 🏗️ Arquitetura (como o sistema funciona)
 O sistema é dividido em três pilares, como pedido pelo professor:
 
-1. **Frontend** (`TR/`): HTML, CSS e JavaScript puro. As telas consultam os dados direto no Supabase (biblioteca `supabase-js` e funções RPC do banco) e usam o servidor Express para recursos como os lembretes por e-mail.
-2. **Backend** (`server.js` e pastas abaixo): Node.js + Express. Recebe as requisições, aplica as regras de negócio (limite de empréstimos, prazos, suspensões, reservas) e conversa com o banco pelo Sequelize.
-3. **Banco de dados**: PostgreSQL no Supabase, que guarda usuários, livros, empréstimos, reservas, solicitações, suspensões, avaliações e a lista "Quero ler". Veja o diagrama em [docs/BANCO.md](docs/BANCO.md).
+1. **Frontend** (`TR/` e a landing `index.html`): HTML, CSS e JavaScript puro, hospedado no GitHub Pages. As telas chamam as funções do banco com `db.rpc(...)`.
+2. **Backend**: as regras de negócio (limite de empréstimos, prazos, suspensões, fila de reservas, avaliações) ficam em **funções SQL no Supabase**, com RLS ligado em todas as tabelas. Os e-mails saem por uma **Edge Function** do Supabase, que usa o Resend.
+3. **Banco de dados**: PostgreSQL no Supabase, com 9 tabelas. Veja o diagrama em [docs/BANCO.md](docs/BANCO.md).
 
-### Organização do backend
+O site não precisa de servidor próprio: o GitHub Pages entrega os arquivos e o Supabase faz o resto.
+
+### Organização das pastas
 ```
-server.js            ponto de entrada: configura o Express e liga o servidor
-config/regras.js     limites e prazos (2 livros, 7 dias, 2 renovações, 48h de reserva...)
-routes/              quais URLs existem e quais verificações cada uma usa
-controllers/         o que cada rota faz
-services/            regras reaproveitadas: e-mail, suspensão, fila de reservas, lembretes
-middlewares/         verificações antes das rotas (perfil, suspensão, log, erros)
-models/              tabelas do banco (Sequelize), relacionamentos e migrações
-jobs/agendador.js    rotinas automáticas (diária e de hora em hora)
-utils/               cálculos puros: datas, estatísticas, conquistas, CSV
-test/                testes automatizados (node:test)
-scripts/seed.js      popula o acervo com clássicos para demonstração
-docs/                API, banco de dados, regras de negócio e roteiro da apresentação
-schema.sql           estrutura das tabelas em SQL
-TR/                  front-end (servido como arquivos estáticos)
-TR/home/extras.js    ficha do livro, avaliações, vitrines, Minha Conta, painel e balcão
-TR/home/isbn.js      busca de dados do livro pelo ISBN
+index.html            landing page (página inicial do site)
+TR/                   o sistema: login, página do aluno, painel da biblioteca
+TR/logica.js          cálculos puros: prazos, conquistas e planilhas (testados)
+TR/api.js             chamada às funções do Supabase (rpc)
+TR/emailHelper.js     e-mails pela Edge Function send-email (Resend)
+TR/home/extras.js     ficha do livro, avaliações, vitrines, Minha Conta, painel e balcão
+TR/home/isbn.js       cadastro de livro pelo ISBN
+supabase/             migracao-v2.sql (instala a versão 2) e desfazer-v2.sql
+test/                 testes automatizados (npm test)
+docs/                 funções do banco, diagrama, regras e roteiro da apresentação
 ```
 
-### API
-São cerca de 50 rotas, organizadas por recurso (usuários, livros, empréstimos, reservas, avaliações, suspensões, painel e relatórios). A lista completa, com quem pode acessar cada uma, está em [docs/API.md](docs/API.md).
+Na raiz também está o código do **servidor Node (Express)** da época do Railway (`server.js`, `routes/`, `controllers/` etc.). O site publicado não usa esse servidor; ele fica no repositório como referência. Detalhes em [docs/API-SERVIDOR-NODE.md](docs/API-SERVIDOR-NODE.md).
 
 ## 📚 Documentação
-- [docs/API.md](docs/API.md): todas as rotas
+- [docs/FUNCOES-SUPABASE.md](docs/FUNCOES-SUPABASE.md): todas as funções do banco, quem pode usar cada uma e quando os e-mails saem
 - [docs/BANCO.md](docs/BANCO.md): diagrama entidade-relacionamento e decisões de modelagem
 - [docs/REGRAS-DE-NEGOCIO.md](docs/REGRAS-DE-NEGOCIO.md): limites, prazos, suspensão, fila de reservas e conquistas
 - [docs/APRESENTACAO.md](docs/APRESENTACAO.md): roteiro de demonstração e perguntas prováveis da banca
 
-## ▶️ Como rodar localmente
-1. Instale as dependências: `npm install`
-2. Copie `.env.example` para `.env` e preencha `DATABASE_URL` e os dados de e-mail
-3. (Opcional) Popule o acervo com clássicos: `npm run seed`
-4. Rode `npm run dev` (reinicia sozinho ao salvar) ou `npm start`
-5. Acesse `http://localhost:3000` e confira `http://localhost:3000/status`
+## ▶️ Instalar a versão 2 no Supabase
+1. No Supabase, abra **SQL Editor** e clique no **+** para criar uma consulta nova.
+2. Cole todo o conteúdo de [`supabase/migracao-v2.sql`](supabase/migracao-v2.sql) e clique em **Run**.
+3. Deve aparecer `Libro v2 instalado`. Se der erro, nada foi alterado (o script roda numa transação).
 
-| Comando | O que faz |
-|---|---|
-| `npm start` | inicia o servidor |
-| `npm run dev` | inicia com reinício automático (nodemon) |
-| `npm test` | roda os testes automatizados |
-| `npm run seed` | cadastra 20 livros de domínio público para demonstração |
+Para voltar as funções antigas, rode [`supabase/desfazer-v2.sql`](supabase/desfazer-v2.sql) do mesmo jeito.
+
+## ▶️ Como rodar e testar
+- **Site:** qualquer servidor de arquivos estáticos serve. Exemplo: `npx serve .` e abra o endereço que aparecer. No GitHub Pages, basta enviar os arquivos.
+- **Testes:** `npm install` uma vez e depois `npm test`.
 
 ## 🤖 Uso de IA como copiloto de código
 Utilizamos o **Claude (Anthropic)** como copiloto de código durante o desenvolvimento, principalmente para revisar e corrigir erros de sintaxe e de modelagem do banco de dados, ajustar regras de negócio no backend (como limite de empréstimos e validação de e-mail institucional), reorganizar o backend em camadas e apoiar o diagnóstico de falhas no deploy em produção. As alterações sugeridas foram revisadas e aplicadas manualmente pela equipe antes de cada atualização.
@@ -113,6 +106,10 @@ Utilizamos o **Claude (Anthropic)** como copiloto de código durante o desenvolv
 | Sinopse aparecia como "null" ou quebrava a página | Texto inserido no HTML sem tratar aspas e valores vazios | Ficha do livro nova, com o texto tratado antes de exibir |
 | Menu saía da tela em notebooks | Cabeçalho largo demais entre 900px e 1440px | Versão compacta do cabeçalho nessa faixa de largura |
 | Reserva "disponível" ficava parada para sempre | Não havia prazo para retirar o livro | Prazo de 48h, e-mail de aviso e passagem automática para o próximo da fila |
+| Custo de manter um servidor ligado no Railway | O Express precisava rodar 24 horas | Regras movidas para funções SQL no Supabase e site publicado de graça no GitHub Pages |
+| Botão "Enviar Lembretes" parou de funcionar | Ele ainda chamava o servidor do Railway | Passou a usar a função `listar_lembretes_devolucao` do Supabase |
+| App instalado não funcionava no GitHub Pages | Caminhos começando com `/` apontavam para fora da pasta do projeto | Caminhos relativos no service worker e no manifesto |
+| Aluno suspenso conseguia pegar livro | A função de empréstimo não conferia suspensões | Verificação de suspensão dentro do `pegar_emprestado` |
 
 ## 🗓️ Cronograma
 | Semana | Período | Status |
@@ -122,10 +119,10 @@ Utilizamos o **Claude (Anthropic)** como copiloto de código durante o desenvolv
 | 4 | até 19/06 | Concluído — correção de bugs de integração, deploy em produção no Railway, ajustes de navegação |
 | 5 | até 26/06 | Concluído — limite de empréstimos, domínio institucional, PWA, notificações visuais, reservas, relatório em PDF, estatísticas |
 | 6 em diante | após 26/06 | Concluído — migração para PostgreSQL/Supabase, suspensões, solicitações extras, rotina diária automática e reorganização do backend em camadas |
-| Versão 2.0 | — | Concluído — ficha do livro, avaliações, Quero ler, recomendações, Minha Conta com conquistas, painel com gráficos, balcão de atendimento, cadastro por ISBN, planilhas, fila de reserva com prazo, testes automatizados e documentação |
+| Versão 2.0 | — | Concluído — ficha do livro, avaliações, Quero ler, recomendações, Minha Conta com conquistas, painel com gráficos, balcão de atendimento, cadastro por ISBN, planilhas, fila de reserva com prazo, landing page, testes automatizados e documentação, tudo rodando no Supabase |
 
 ## 🔜 Próximos passos
-- Senhas criptografadas (bcrypt) e autenticação por token (JWT ou Supabase Auth)
+- Login pelo Supabase Auth, com token, para as funções saberem com certeza quem está chamando
 - Leitura do código de barras do livro pela câmera do celular
 - Notificações push no aplicativo
 - Relatórios por turma

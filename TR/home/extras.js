@@ -6,8 +6,8 @@
 // Biblioteca: painel completo com gráficos, balcão de atendimento (empréstimo e devolução
 //             presencial) e exportação de planilhas.
 //
-// Os dados novos vêm do servidor Express (window.api). As telas antigas continuam
-// usando o Supabase normalmente.
+// Tudo vem das funções do Supabase instaladas por supabase/migracao-v2.sql,
+// chamadas com rpc() (TR/api.js). Os cálculos puros ficam em TR/logica.js.
 
 (function () {
     "use strict";
@@ -71,7 +71,7 @@
         if (!area) return;
 
         try {
-            const alertas = await api.get(`/usuarios/${eu().id}/alertas`);
+            const alertas = await rpc("alertas_usuario", { p_usuario_id: eu().id });
             area.innerHTML = alertas.map(alerta => `
                 <div class="alerta alerta-${alerta.nivel}" role="status">
                     <span class="alerta-icone" aria-hidden="true">${alerta.icone}</span>
@@ -90,7 +90,7 @@
 
     async function carregarContagemCategorias() {
         try {
-            const contagem = await api.get("/livros/categorias");
+            const contagem = await rpc("contagem_categorias");
             const porChave = Object.fromEntries(contagem.map(c => [c.categoria, c.total]));
             document.querySelectorAll("[data-contagem]").forEach(el => {
                 const total = porChave[el.dataset.contagem] || 0;
@@ -108,7 +108,7 @@
         if (!secao) return;
 
         try {
-            const dados = await api.get(`/livros/destaques?usuario_id=${eu().id}`);
+            const dados = await rpc("destaques_livros", { p_usuario_id: eu().id });
 
             const vitrines = [
                 { titulo: "Recomendados para você", descricao: dados.recomendados.motivo, livros: dados.recomendados.livros, tipo: "recomendado" },
@@ -181,7 +181,7 @@
 
     async function carregarMedias() {
         try {
-            estado.medias = await api.get("/avaliacoes/medias");
+            estado.medias = await rpc("medias_avaliacoes");
         } catch (erro) {
             estado.medias = {};
         }
@@ -189,8 +189,8 @@
 
     async function carregarFavoritos() {
         try {
-            const lista = await api.get(`/usuarios/${eu().id}/favoritos`);
-            estado.favoritos = new Set(lista.map(f => f.livro_id));
+            const lista = await rpc("listar_favoritos", { p_usuario_id: eu().id });
+            estado.favoritos = new Set(lista.map(f => Number(f.livro_id)));
         } catch (erro) {
             estado.favoritos = new Set();
         }
@@ -217,19 +217,15 @@
     }
 
     window.alternarFavorito = async function (livroId, botao) {
-        const jaEsta = estado.favoritos.has(livroId);
         try {
-            if (jaEsta) {
-                await api.del(`/usuarios/${eu().id}/favoritos/${livroId}`);
-                estado.favoritos.delete(livroId);
-                showToast("Removido de Quero ler", "info");
-            } else {
-                await api.post(`/usuarios/${eu().id}/favoritos`, { livro_id: livroId });
-                estado.favoritos.add(livroId);
-                showToast("Guardado em Quero ler 💛", "success");
-            }
-            document.querySelectorAll(`[data-favorito="${livroId}"]`).forEach(b => marcarBotaoFavorito(b, !jaEsta));
-            if (botao && !botao.dataset.favorito) marcarBotaoFavorito(botao, !jaEsta);
+            const resposta = await rpc("alternar_favorito", { p_usuario_id: eu().id, p_livro_id: livroId });
+            const ativo = Boolean(resposta.favorito);
+            if (ativo) estado.favoritos.add(livroId);
+            else estado.favoritos.delete(livroId);
+            showToast(ativo ? "Guardado em Quero ler 💛" : "Removido de Quero ler", ativo ? "success" : "info");
+
+            document.querySelectorAll(`[data-favorito="${livroId}"]`).forEach(b => marcarBotaoFavorito(b, ativo));
+            if (botao && !botao.dataset.favorito) marcarBotaoFavorito(botao, ativo);
         } catch (erro) {
             showToast(erro.message, "error");
         }
@@ -285,7 +281,7 @@
         requestAnimationFrame(() => modal.classList.add("aberto"));
 
         try {
-            const dados = await api.get(`/livros/${livroId}/detalhes?usuario_id=${eu().id}`);
+            const dados = await rpc("detalhes_livro", { p_usuario_id: eu().id, p_livro_id: livroId });
             if (estado.livroAberto !== livroId) return; // o aluno já abriu outro livro
             conteudo.innerHTML = fichaHTML(dados);
             ligarFormularioAvaliacao(dados);
@@ -468,10 +464,11 @@
                 return;
             }
             try {
-                const resposta = await api.post(`/livros/${livro.id}/avaliacoes`, {
-                    usuario_id: eu().id,
-                    nota: Number(nota),
-                    comentario: form.comentario.value
+                const resposta = await rpc("avaliar_livro", {
+                    p_usuario_id: eu().id,
+                    p_livro_id: livro.id,
+                    p_nota: Number(nota),
+                    p_comentario: form.comentario.value
                 });
                 showToast(resposta.message, "success");
                 await carregarMedias();
@@ -487,7 +484,7 @@
             botaoRemover.addEventListener("click", async () => {
                 if (!await showConfirm("Apagar a sua avaliação deste livro?", "Apagar", "Manter")) return;
                 try {
-                    await api.del(`/avaliacoes/${botaoRemover.dataset.remover}`);
+                    await rpc("apagar_avaliacao", { p_usuario_id: eu().id, p_avaliacao_id: Number(botaoRemover.dataset.remover) });
                     showToast("Avaliação apagada", "info");
                     await carregarMedias();
                     pintarCards();
@@ -510,7 +507,8 @@
         secao.innerHTML = `<p class="texto-centro">Carregando sua conta...</p>`;
 
         try {
-            const perfil = await api.get(`/usuarios/${eu().id}/perfil`);
+            const perfil = await rpc("perfil_usuario", { p_usuario_id: eu().id });
+            perfil.conquistas = calcularConquistas(perfil.resumo);
             secao.innerHTML = contaHTML(perfil);
             ligarAbas(secao, abaInicial);
         } catch (erro) {
@@ -654,8 +652,8 @@
 
     async function carregarQueroLer(painel) {
         try {
-            const lista = await api.get(`/usuarios/${eu().id}/favoritos`);
-            estado.favoritos = new Set(lista.map(f => f.livro_id));
+            const lista = await rpc("listar_favoritos", { p_usuario_id: eu().id });
+            estado.favoritos = new Set(lista.map(f => Number(f.livro_id)));
 
             if (!lista.length) {
                 painel.innerHTML = `<p class="texto-centro">Toque no ♡ de um livro para guardar aqui o que você quer ler depois.</p>`;
@@ -696,7 +694,7 @@
         area.innerHTML = `<div class="admin-panel"><p>Montando o painel...</p></div>`;
 
         try {
-            const p = await api.get("/admin/painel");
+            const p = await rpc("painel_biblioteca", { p_solicitante_id: eu().id });
             area.innerHTML = painelHTML(p);
         } catch (erro) {
             area.innerHTML = `<div class="admin-panel"><p>Não foi possível montar o painel: ${escaparHTML(erro.message)}</p>
@@ -827,10 +825,63 @@
             </ol>`;
     }
 
+    // Planilhas montadas no próprio navegador com os dados do Supabase
+    const PLANILHAS = {
+        async emprestimos() {
+            const linhas = await rpc("listar_meus_emprestimos_admin", { p_solicitante_id: eu().id });
+            return gerarCSV([
+                { titulo: "ID", valor: e => e.id },
+                { titulo: "Aluno", valor: e => e.usuario?.nome },
+                { titulo: "E-mail", valor: e => e.usuario?.email },
+                { titulo: "Livro", valor: e => e.livro?.titulo },
+                { titulo: "Autor", valor: e => e.livro?.autor },
+                { titulo: "Emprestado em", valor: e => formatarData(e.data_emprestimo) },
+                { titulo: "Prazo", valor: e => formatarData(e.data_prevista_devolucao) },
+                { titulo: "Devolvido em", valor: e => (e.data_devolucao_real ? formatarData(e.data_devolucao_real) : "") },
+                { titulo: "Situação", valor: e => situacaoTexto(e) }
+            ], linhas);
+        },
+        async livros() {
+            const { data: linhas, error } = await db.from("livros").select("*").order("titulo");
+            if (error) throw new Error(error.message);
+            return gerarCSV([
+                { titulo: "ID", valor: l => l.id },
+                { titulo: "Título", valor: l => l.titulo },
+                { titulo: "Autor", valor: l => l.autor },
+                { titulo: "ISBN", valor: l => l.isbn },
+                { titulo: "Editora", valor: l => l.editora },
+                { titulo: "Ano", valor: l => l.ano },
+                { titulo: "Categoria", valor: l => l.categoria ? nomeCategoria(l.categoria) : "" },
+                { titulo: "Exemplares", valor: l => l.quantidade_total },
+                { titulo: "Disponíveis", valor: l => l.quantidade_disponivel }
+            ], linhas);
+        },
+        async usuarios() {
+            const linhas = await rpc("listar_usuarios", { p_solicitante_id: eu().id });
+            const nomesPerfil = { aluno: "Aluno", bibliotecario: "Bibliotecário", admin: "Administrador" };
+            return gerarCSV([
+                { titulo: "ID", valor: u => u.id },
+                { titulo: "Nome", valor: u => u.nome },
+                { titulo: "E-mail", valor: u => u.email },
+                { titulo: "Perfil", valor: u => nomesPerfil[u.tipo] || u.tipo },
+                { titulo: "Cadastrado em", valor: u => (u.created_at ? formatarData(u.created_at) : "") }
+            ], linhas);
+        }
+    };
+
+    function situacaoTexto(emprestimo) {
+        if (emprestimo.status === "devolvido") {
+            const noPrazo = emprestimo.data_devolucao_real &&
+                dataISO(emprestimo.data_devolucao_real) <= dataISO(emprestimo.data_prevista_devolucao);
+            return noPrazo ? "Devolvido no prazo" : "Devolvido com atraso";
+        }
+        return descreverPrazo(emprestimo.data_prevista_devolucao).texto;
+    }
+
     window.baixarPlanilha = async function (tipo) {
         try {
-            const hoje = new Date().toLocaleDateString("en-CA");
-            await api.baixar(`/relatorio/${tipo}/csv`, `libro-${tipo}-${hoje}.csv`);
+            const conteudo = await PLANILHAS[tipo]();
+            api.baixarTexto(conteudo, `libro-${tipo}-${dataISO(new Date())}.csv`);
             showToast("Planilha baixada", "success");
         } catch (erro) {
             showToast(erro.message, "error");
@@ -840,8 +891,12 @@
     window.receberDevolucao = async function (emprestimoId) {
         if (!await showConfirm("Confirmar que o livro foi entregue na biblioteca?", "Receber livro")) return;
         try {
-            const resposta = await api.put(`/emprestimos/${emprestimoId}/devolver`);
-            showToast(resposta.message, resposta.suspensao_criada ? "warning" : "success", 5000);
+            const resposta = await rpc("devolver_livro", { p_usuario_id: eu().id, p_emprestimo_id: emprestimoId });
+            const aviso = resposta.suspensao_criada
+                ? ` ${resposta.usuario_nome} ficou suspenso(a) por ${resposta.dias_atraso} dia(s).`
+                : "";
+            showToast(resposta.message + aviso, resposta.suspensao_criada ? "warning" : "success", 5000);
+            enviarEmailsDaDevolucao(resposta);
             if (estado.painelAtual) estado.painelAtual();
             if (typeof carregarRelatoriosEmprestimos === "function") carregarRelatoriosEmprestimos();
         } catch (erro) {
@@ -859,11 +914,14 @@
         area.innerHTML = `<div class="admin-panel"><p>Abrindo o balcão...</p></div>`;
 
         try {
-            const [usuarios, livros, ativos] = await Promise.all([
-                api.get("/admin/usuarios"),
-                api.get("/livros"),
-                api.get("/emprestimos?status=ativo")
+            const [usuarios, consultaLivros, emprestimos] = await Promise.all([
+                rpc("listar_usuarios", { p_solicitante_id: eu().id }),
+                db.from("livros").select("*").order("titulo"),
+                rpc("listar_meus_emprestimos_admin", { p_solicitante_id: eu().id })
             ]);
+            if (consultaLivros.error) throw new Error(consultaLivros.error.message);
+            const livros = consultaLivros.data;
+            const ativos = emprestimos.filter(e => e.status === "ativo");
             area.innerHTML = balcaoHTML(usuarios, livros, ativos);
             ligarBalcao(usuarios, livros);
         } catch (erro) {
@@ -877,6 +935,7 @@
 
     function balcaoHTML(usuarios, livros, ativos) {
         const disponiveis = livros.filter(l => l.quantidade_disponivel > 0);
+        usuarios = usuarios.filter(u => u.tipo === "aluno");
         const ordenados = [...ativos].sort((a, b) => new Date(a.data_prevista_devolucao) - new Date(b.data_prevista_devolucao));
 
         return `
@@ -898,7 +957,7 @@
                         <datalist id="balcao-lista-livros">
                             ${disponiveis.map(l => `<option value="${escaparHTML(opcaoLivro(l))}"></option>`).join("")}
                         </datalist>
-                        <p class="texto-suave">${plural(disponiveis.length, "título disponível", "títulos disponíveis")}. Prazo de devolução: 7 dias.</p>
+                        <p class="texto-suave">${plural(usuarios.length, "aluno cadastrado", "alunos cadastrados")} e ${plural(disponiveis.length, "título disponível", "títulos disponíveis")}. Prazo de devolução: 7 dias.</p>
 
                         <button type="submit" class="btn-borrow">Registrar empréstimo</button>
                     </form>
@@ -944,8 +1003,12 @@
             if (!livro) return showToast("Escolha um livro da lista", "warning");
 
             try {
-                await api.post("/emprestimos", { usuario_id: aluno.id, livro_id: livro.id });
-                showToast(`"${livro.titulo}" emprestado para ${aluno.nome.split(" ")[0]}`, "success");
+                const resposta = await rpc("emprestar_pelo_balcao", {
+                    p_solicitante_id: eu().id,
+                    p_usuario_id: aluno.id,
+                    p_livro_id: livro.id
+                });
+                showToast(resposta.message, "success");
                 mostrarBalcao();
                 if (typeof carregarRelatoriosEmprestimos === "function") carregarRelatoriosEmprestimos();
             } catch (erro) {

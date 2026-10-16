@@ -535,14 +535,7 @@ window.devolverLivro = async function(emprestimoId) {
         if (error) throw error;
 
         showToast(data.message, 'success');
-
-        if (data.suspensao_criada) {
-            enviarEmail(
-                data.usuario_email,
-                `⚠️ Conta suspensa por atraso na devolução - ${data.livro_titulo}`,
-                templateSuspensao(data.usuario_nome, data.livro_titulo, data.dias_atraso, data.data_fim_suspensao)
-            );
-        }
+        enviarEmailsDaDevolucao(data);
 
         mostrarMeusEmprestimos();
     } catch (error) {
@@ -707,7 +700,7 @@ function configurarEventos() {
     }
 }
 
-//botao enviar lembretes
+//botao enviar lembretes: busca no Supabase quem vence em ate 3 dias e manda os e-mails
 async function enviarLembretes () {
     const btn = document.getElementById('btn-enviar-lembretes');
     if (btn) {
@@ -716,20 +709,24 @@ async function enviarLembretes () {
     }
 
     try {
-        const response = await fetch('/notificacoes/verificar');
+        const lembretes = await rpc('listar_lembretes_devolucao', { p_solicitante_id: usuarioAtual.id });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            showToast(data.error || 'Erro ao enviar notificações', 'error');
+        if (!lembretes.length) {
+            showToast('Nenhum empréstimo vencendo nos próximos 3 dias.', 'info');
             return;
         }
 
-        showToast(data.message, 'info', 5000);
-        
+        const resultados = await Promise.all(lembretes.map(item => enviarEmail(
+            item.usuario_email,
+            `📚 Lembrete: Prazo de devolução - ${item.livro_titulo}`,
+            templateLembreteDevolucao(item.usuario_nome, item.livro_titulo, item.data_prevista_devolucao, Math.max(item.dias_restantes, 0))
+        )));
+
+        const enviados = resultados.filter(Boolean).length;
+        showToast(`${enviados} de ${lembretes.length} lembrete(s) enviado(s) por e-mail.`, enviados ? 'success' : 'warning', 5000);
     } catch (error) {
         console.error('Erro:', error);
-        showToast('Erro ao enviar notificações', 'error');
+        showToast(error.message || 'Erro ao enviar lembretes', 'error');
     } finally {
         if (btn) {
             btn.disabled = false;

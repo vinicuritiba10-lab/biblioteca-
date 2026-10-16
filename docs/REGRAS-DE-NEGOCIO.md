@@ -1,6 +1,6 @@
 # Regras de negócio
 
-Os números ficam em [`config/regras.js`](../config/regras.js). Para mudar um prazo, basta alterar lá.
+As regras ficam nas funções SQL do Supabase (veja [FUNCOES-SUPABASE.md](FUNCOES-SUPABASE.md)), então valem igual para quem usa o site no computador, no celular ou no balcão.
 
 | Regra | Valor |
 |---|---|
@@ -13,11 +13,11 @@ Os números ficam em [`config/regras.js`](../config/regras.js). Para mudar um pr
 
 ## Empréstimo
 
-1. O livro precisa ter exemplar disponível.
+1. O livro precisa ter exemplar disponível, e o exemplar não pode estar guardado para quem está na frente da fila de reserva.
 2. O aluno não pode estar suspenso.
 3. O aluno não pode ter dois exemplares do mesmo título.
 4. O aluno não pode passar do limite de 2 livros. Se quiser um terceiro, pode enviar uma **solicitação de empréstimo extra**, que o bibliotecário aprova ou rejeita.
-5. O prazo é calculado pelo servidor (o aluno não escolhe a data).
+5. O prazo é calculado pelo banco (o aluno não escolhe a data).
 6. Se o aluno tinha reserva desse livro, a reserva é marcada como concluída.
 
 ## Renovação
@@ -26,14 +26,14 @@ Só é possível renovar quando o empréstimo está ativo, ainda tem renovaçõe
 
 ## Devolução e suspensão
 
-Na devolução o exemplar volta para o estoque. Se houve atraso, o aluno fica suspenso pelo mesmo número de dias e recebe um e-mail. Enquanto estiver suspenso, não pega livros, não renova e não envia solicitações. As suspensões vencidas são encerradas sozinhas todo dia às 8h.
+Na devolução o exemplar volta para o estoque. Se houve atraso, o aluno fica suspenso pelo mesmo número de dias e recebe um e-mail. Enquanto estiver suspenso, não pega livros e não renova. As suspensões vencidas são encerradas sozinhas (veja "Rotinas automáticas").
 
 ## Fila de reservas
 
 1. Só dá para reservar um livro que está com todos os exemplares emprestados.
-2. Quando um exemplar volta, a reserva mais antiga passa para **disponível** e o aluno recebe um e-mail.
-3. O aluno tem 48 horas para retirar. Se não retirar, a reserva **expira** e o próximo da fila é chamado.
-4. A verificação roda a cada hora.
+2. Quando um exemplar volta, a reserva mais antiga passa para **disponível**, o exemplar fica guardado para esse aluno e ele recebe um e-mail e um aviso na página inicial.
+3. O aluno tem 48 horas para retirar. Se não retirar, a reserva **expira** e o próximo da fila é chamado (com aviso na página inicial).
+4. Quando o aluno pega o livro reservado, a reserva é marcada como concluída.
 
 ## Avaliações
 
@@ -41,7 +41,7 @@ Nota de 1 a 5 estrelas e comentário opcional (até 500 caracteres). Só avalia 
 
 ## Conquistas
 
-Calculadas a partir do histórico do aluno (ver [`utils/conquistas.js`](../utils/conquistas.js)):
+Calculadas a partir do histórico do aluno (ver [`TR/logica.js`](../TR/logica.js), a partir do resumo que a função `perfil_usuario` devolve):
 
 | Conquista | Meta |
 |---|---|
@@ -59,9 +59,12 @@ O sistema olha as categorias que o aluno mais pegou e sugere livros dessas categ
 
 ## Rotinas automáticas
 
-| Quando | O que faz |
-|---|---|
-| Todo dia às 8h | encerra suspensões vencidas e envia lembretes de devolução |
-| A cada hora | avisa reservas que chegaram e expira as que passaram de 48h |
+O site não tem servidor ligado o tempo todo, então as rotinas rodam **quando alguém usa o sistema**. Sempre que um aluno abre a página inicial, ou a biblioteca abre o painel, a função `libro_manutencao()` faz a arrumação:
 
-Para desligar (por exemplo em testes): `CRON_ATIVO=false`.
+- encerra as suspensões que já venceram;
+- marca como concluídas as reservas de quem já pegou o livro;
+- expira as reservas não retiradas em 48 horas e chama o próximo da fila.
+
+Como a escola usa o sistema todo dia, isso acontece várias vezes por dia, sem precisar de agendador.
+
+Os **lembretes de prazo por e-mail** são enviados quando a biblioteca clica em "Enviar Lembretes". Eles vão para todos que vencem em até 3 dias. O aviso na página inicial do aluno aparece sozinho, sem precisar do clique.

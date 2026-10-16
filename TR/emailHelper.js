@@ -56,3 +56,38 @@ function templateSuspensao(nome, livroTitulo, diasAtraso, dataFimSuspensao) {
         </div>
     `;
 }
+
+function templateReservaDisponivel(nome, livroTitulo) {
+    return `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+            <h2 style="color: #4CAF50;">🔖 Biblioteca Libro — Sua reserva chegou</h2>
+            <p>Olá, <strong>${nome}</strong>!</p>
+            <p>O livro que você reservou já está disponível na biblioteca:</p>
+            <div style="background-color: #f1fbf4; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #4CAF50;">
+                <h3 style="margin: 0 0 10px 0;">📖 ${livroTitulo}</h3>
+                <p>Você tem <strong>48 horas</strong> para retirar. Depois disso, a vez passa para o próximo da fila.</p>
+            </div>
+            <hr style="margin: 20px 0;">
+            <p style="color: #666; font-size: 12px;">Biblioteca Libro — Facilitando seu acesso ao conhecimento</p>
+        </div>
+    `;
+}
+
+// Depois de devolver_livro: avisa quem foi suspenso e quem estava na fila de reserva
+function enviarEmailsDaDevolucao(data) {
+    if (!data) return;
+    if (data.suspensao_criada) {
+        enviarEmail(
+            data.usuario_email,
+            `⚠️ Conta suspensa por atraso na devolução - ${data.livro_titulo}`,
+            templateSuspensao(data.usuario_nome, data.livro_titulo, data.dias_atraso, data.data_fim_suspensao)
+        );
+    }
+    if (data.reserva_usuario_email) {
+        enviarEmail(
+            data.reserva_usuario_email,
+            `🔖 Sua reserva chegou - ${data.livro_titulo}`,
+            templateReservaDisponivel(data.reserva_usuario_nome, data.livro_titulo)
+        );
+    }
+}

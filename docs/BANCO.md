@@ -1,6 +1,6 @@
 # Banco de dados
 
-PostgreSQL hospedado no Supabase. As tabelas são criadas pelo Sequelize ao iniciar o servidor (`sequelize.sync()`), e o arquivo [`schema.sql`](../schema.sql) traz o mesmo modelo em SQL puro.
+PostgreSQL hospedado no Supabase. As regras ficam em funções SQL no próprio banco (lista em [FUNCOES-SUPABASE.md](FUNCOES-SUPABASE.md)), e as tabelas novas da versão 2 são criadas por [`supabase/migracao-v2.sql`](../supabase/migracao-v2.sql).
 
 ## Diagrama entidade-relacionamento
 
@@ -20,16 +20,18 @@ erDiagram
     LIVROS   ||--o{ AVALIACOES : "recebe"
     USUARIOS ||--o{ FAVORITOS : "guarda"
     LIVROS   ||--o{ FAVORITOS : "é guardado em"
+    USUARIOS ||--o{ LOGS_SISTEMA : "gera"
 
     USUARIOS {
-        int id PK
+        bigint id PK
         string nome
         string email
-        text senha
+        text senha "bcrypt"
         string tipo "aluno | bibliotecario | admin"
+        timestamptz created_at
     }
     LIVROS {
-        int id PK
+        bigint id PK
         string titulo
         string autor
         string isbn
@@ -42,9 +44,9 @@ erDiagram
         text descricao
     }
     EMPRESTIMOS {
-        int id PK
-        int usuario_id FK
-        int livro_id FK
+        bigint id PK
+        bigint usuario_id FK
+        bigint livro_id FK
         timestamptz data_emprestimo
         timestamptz data_prevista_devolucao
         timestamptz data_devolucao_real
@@ -52,56 +54,68 @@ erDiagram
         int renovacoes_restantes
     }
     RESERVAS {
-        int id PK
-        int usuario_id FK
-        int livro_id FK
+        bigint id PK
+        bigint usuario_id FK
+        bigint livro_id FK
         timestamptz data_reserva
         string status "ativa | disponivel | concluida | cancelada | expirada"
         timestamptz data_disponivel
     }
     SOLICITACOES {
-        int id PK
-        int usuario_id FK
-        int livro_id FK
+        bigint id PK
+        bigint usuario_id FK
+        bigint livro_id FK
         timestamptz data_solicitacao
         string status "pendente | aprovada | rejeitada"
     }
     SUSPENSOES {
-        int id PK
-        int usuario_id FK
-        int emprestimo_id FK
+        bigint id PK
+        bigint usuario_id FK
+        bigint emprestimo_id FK
         string motivo
         int dias_atraso
         date data_inicio
         date data_fim
         string status "ativa | cumprida"
     }
+    LOGS_SISTEMA {
+        bigint id PK
+        bigint usuario_id FK
+        text usuario_nome
+        text acao
+        text detalhes
+        timestamptz created_at
+    }
     AVALIACOES {
-        int id PK
-        int usuario_id FK
-        int livro_id FK
+        bigint id PK
+        bigint usuario_id FK
+        bigint livro_id FK
         int nota "1 a 5"
         text comentario
         timestamptz data_avaliacao
     }
     FAVORITOS {
-        int id PK
-        int usuario_id FK
-        int livro_id FK
+        bigint id PK
+        bigint usuario_id FK
+        bigint livro_id FK
         timestamptz data_adicao
     }
 ```
 
 ## Decisões de modelagem
 
-**Estoque no próprio livro.** Em vez de uma tabela de exemplares, `livros` guarda `quantidade_total` e `quantidade_disponivel`. Para uma biblioteca escolar isso basta e simplifica muito as consultas. Para não haver erro de contagem, toda operação que mexe no estoque (empréstimo, devolução, aprovação de solicitação) roda dentro de uma **transação com trava na linha do livro** (`SELECT ... FOR UPDATE`).
+**Regras no banco, não no navegador.** Limite de empréstimos, prazos, suspensão e fila de reserva estão em funções SQL. Assim, ninguém burla uma regra mexendo no JavaScript da página, e o site pode ser só arquivos estáticos no GitHub Pages.
 
-**Status como texto.** O projeto começou em MySQL com `ENUM`. Na migração para PostgreSQL, os campos viraram `VARCHAR` com validação no model do Sequelize (`isIn`), o que é mais simples de alterar depois.
+**RLS ligado em todas as tabelas.** O navegador só consegue ler a tabela `livros` direto. Todo o resto passa pelas funções, que conferem o perfil de quem pede (`eh_bibliotecario`, `eh_admin`).
 
-**Histórico preservado.** Reservas e solicitações nunca são apagadas: mudam de status (`cancelada`, `concluida`, `expirada`, `rejeitada`). Assim dá para gerar relatórios do passado.
+**Senhas com bcrypt.** O cadastro guarda a senha com `crypt(senha, gen_salt('bf'))`, da extensão pgcrypto, e o login compara com `crypt(senha_digitada, senha_guardada)`. A senha original nunca fica salva.
 
-**Uma avaliação por aluno em cada livro.** Garantido no banco com `UNIQUE (usuario_id, livro_id)`. Se o aluno avaliar de novo, a nota antiga é atualizada.
+**Estoque no próprio livro.** Em vez de uma tabela de exemplares, `livros` guarda `quantidade_total` e `quantidade_disponivel`. Para uma biblioteca escolar isso basta e simplifica as consultas. Cada função roda numa transação só, então o empréstimo e a baixa no estoque acontecem juntos ou não acontecem.
 
-**Apagar em cascata só onde faz sentido.** Avaliações e favoritos são apagados junto com o livro ou o usuário (`ON DELETE CASCADE`). Empréstimos não: o sistema impede excluir livro ou usuário com empréstimo ativo.
+**Histórico preservado.** Reservas e solicitações nunca são apagadas, só mudam de status (`cancelada`, `concluida`, `expirada`, `rejeitada`). As ações importantes ficam registradas em `logs_sistema`.
 
-**Datas no fuso de Brasília.** O servidor roda em UTC. As comparações de prazo usam a data no fuso `America/Sao_Paulo` (ver `utils/datas.js`), senão um livro "atrasava" às 21h do último dia.
+**Uma avaliação por aluno em cada livro.** Garantido no banco com `UNIQUE (usuario_id, livro_id)`. Se o aluno avaliar de novo, a nota é atualizada (`on conflict do update`).
+
+**Apagar em cascata só onde faz sentido.** Avaliações e favoritos somem junto com o livro ou o usuário (`on delete cascade`). Empréstimos e reservas não, então o banco impede excluir quem tem histórico.
+
+**Datas no fuso de Brasília.** O servidor do Supabase roda em UTC. As funções novas usam `libro_hoje()`, senão um livro "atrasaria" às 21h do último dia.

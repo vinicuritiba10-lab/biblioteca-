@@ -4,17 +4,17 @@ Tempo sugerido: 10 a 12 minutos de demonstração. A ideia é contar a história
 
 ## Antes de apresentar (na véspera)
 
-1. Rode `npm run seed` para o acervo ter livros de verdade.
-2. Crie duas contas: um **aluno** e uma **bibliotecária**. Deixe as duas logadas em navegadores diferentes (ou uma em aba anônima).
-3. Com o aluno, pegue 1 livro, devolva 1 livro e avalie esse livro. Assim a "Minha Conta" já tem histórico e conquistas.
-4. Para mostrar a suspensão, deixe um empréstimo atrasado: no painel do Supabase, mude a `data_prevista_devolucao` de um empréstimo ativo para alguns dias atrás.
-5. Para mostrar a fila de reserva, deixe um livro com todos os exemplares emprestados.
-6. Abra `/status` no navegador e confira se aparece `"status": "ok"`.
+1. Confira se a `supabase/migracao-v2.sql` já foi instalada: abra o site e veja se aparecem as vitrines e as estrelas nos livros.
+2. Cadastre uns 10 livros pelo **ISBN** (o formulário se preenche sozinho e já traz a capa).
+3. Crie duas contas: um **aluno** e uma **bibliotecária**. Deixe as duas logadas em navegadores diferentes (ou uma em aba anônima).
+4. Com o aluno, pegue 1 livro, devolva 1 livro e avalie esse livro. Assim a Minha Conta já tem histórico e conquistas.
+5. Para mostrar a suspensão, deixe um empréstimo atrasado: no **Table Editor** do Supabase, mude a `data_prevista_devolucao` de um empréstimo ativo para alguns dias atrás.
+6. Para mostrar a fila de reserva, deixe um livro com todos os exemplares emprestados.
 7. Instale o app no celular (PWA) para mostrar no fim.
 
 ## Demonstração
 
-**1. O problema (1 min).** Hoje o controle da biblioteca da escola é feito em caderno ou planilha: o aluno não sabe o prazo, a bibliotecária não sabe quem está atrasado e não há fila para livros disputados.
+**1. O problema (1 min).** Hoje o controle da biblioteca da escola é feito em caderno ou planilha: o aluno não sabe o prazo, a bibliotecária não sabe quem está atrasado e não há fila para livros disputados. Abra a landing page do site para apresentar o Libro.
 
 **2. Login com e-mail da escola (30 s).** Mostre que o cadastro só aceita `@escola.pr.gov.br`.
 
@@ -37,33 +37,42 @@ Tempo sugerido: 10 a 12 minutos de demonstração. A ideia é contar a história
 
 **10. Celular (30 s).** Mostre o app instalado e o modo escuro.
 
-**11. Bastidores (1 min).** Mostre a organização do backend (`routes`, `controllers`, `services`) e rode `npm test` com os 18 testes passando.
+**11. Bastidores (1 min).** Mostre uma função SQL no Supabase (a `pegar_emprestado` é boa: curta e cheia de regras) e rode `npm test` com os testes passando.
 
 ## Perguntas que a banca pode fazer
 
-**Por que PostgreSQL e não MySQL?**
-Começamos em MySQL. Migramos para PostgreSQL no Supabase porque ele oferece banco gerenciado com plano gratuito, painel para ver as tabelas e funções no próprio banco. O Sequelize facilitou a troca, porque quase todo o código é independente do banco.
+**Onde fica o back-end, se o site está no GitHub Pages?**
+No Supabase. O GitHub Pages só entrega os arquivos da página; as regras (limite, prazos, suspensão, fila) ficam em funções SQL dentro do banco, e o site chama essas funções. Os e-mails saem por uma Edge Function do Supabase, que usa o Resend.
 
-**Como vocês evitam que dois alunos peguem o último exemplar ao mesmo tempo?**
-O empréstimo roda numa transação que trava a linha do livro (`SELECT ... FOR UPDATE`). O segundo aluno espera o primeiro terminar e, quando chega a vez dele, o estoque já está zerado.
+**Por que saíram do Railway?**
+O Railway exigia um servidor Node ligado o tempo todo, com custo. Com as regras no Supabase, o site virou arquivos estáticos, hospedados de graça no GitHub Pages. O código do servidor Node continua no repositório como referência.
 
-**O que acontece se o servidor estiver em outro fuso horário?**
-O Railway roda em UTC. Todas as comparações de prazo usam a data no fuso de Brasília (`utils/datas.js`), e isso tem teste automatizado.
+**Por que colocar regras no banco e não no JavaScript da página?**
+Porque o JavaScript roda no navegador do aluno e pode ser alterado por ele. As funções rodam no banco, onde o aluno não mexe. Por isso as tabelas têm RLS ligado: o navegador só consegue ler a lista de livros direto, o resto passa pelas funções.
+
+**Como as senhas são guardadas?**
+Com bcrypt, pela extensão pgcrypto do PostgreSQL: o cadastro grava `crypt(senha, gen_salt('bf'))` e o login compara o resultado. A senha original nunca fica salva.
+
+**Qual o ponto fraco de segurança que vocês conhecem?**
+Responda com sinceridade: as funções recebem o id do usuário enviado pelo navegador, sem um token que prove quem ele é. A próxima etapa seria usar o Supabase Auth, que gera esse token, e as funções passariam a pegar o usuário do token. Mostrar que vocês conhecem a limitação conta a favor.
+
+**Como evitam que dois alunos peguem o último exemplar ao mesmo tempo?**
+Cada chamada de função no PostgreSQL roda numa transação. A verificação do estoque e a baixa acontecem dentro da mesma função, então o banco não deixa o estoque ficar negativo.
+
+**O que acontece com o fuso horário?**
+O servidor do Supabase roda em UTC. As funções novas usam `libro_hoje()`, que devolve a data em Brasília, senão um livro "atrasaria" às 21h do último dia.
+
+**Como as tarefas automáticas rodam sem servidor?**
+Sempre que alguém abre a página inicial ou o painel, a função `libro_manutencao()` encerra suspensões vencidas e expira reservas não retiradas em 48h. Como a escola usa o sistema todo dia, isso roda várias vezes por dia sem precisar de agendador.
 
 **Como funcionam as recomendações?**
 Uma consulta SQL conta as categorias que o aluno mais pegou e sugere livros dessas categorias que ele ainda não leu, com os disponíveis primeiro e depois os mais populares. Não é inteligência artificial; é uma regra simples e explicável.
 
-**Como as tarefas automáticas rodam?**
-Com `node-cron` dentro do próprio servidor: todo dia às 8h (lembretes e suspensões) e a cada hora (fila de reservas).
-
 **Como vocês testaram?**
-Testes automatizados com o `node:test` (nativo do Node, sem biblioteca extra) para as partes de cálculo: datas, prazos, pontualidade, conquistas e planilhas. As telas foram testadas manualmente em computador e celular.
-
-**Como as senhas são guardadas?**
-Responda com sinceridade: hoje a senha é comparada diretamente, sem criptografia, e a identificação do usuário nas rotas usa um header simples. A próxima etapa é usar `bcrypt` para as senhas e autenticação por token (JWT ou Supabase Auth). Mostrar que vocês conhecem a limitação conta a favor.
+Testes automatizados com o `node:test` (nativo do Node) para os cálculos do site: prazos, conquistas e planilhas (`TR/logica.js`). As telas foram testadas manualmente no computador e no celular.
 
 **Vocês usaram IA?**
-Sim, como copiloto de código, e isso está declarado no README. Explique uma parte que vocês entenderam bem, como a transação do empréstimo ou a regra de suspensão.
+Sim, como copiloto de código, e isso está declarado no README. Explique uma parte que vocês entenderam bem, como a função `pegar_emprestado` ou a regra de suspensão.
 
 **O que fariam com mais tempo?**
-Segurança (senhas e token), leitor de código de barras pela câmera do celular, notificações push no app e relatório por turma.
+Supabase Auth com token, leitor de código de barras pela câmera do celular, notificações push no app e relatório por turma.

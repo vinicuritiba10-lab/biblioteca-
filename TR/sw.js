@@ -7,41 +7,45 @@
 // primeiro. So usa o cache se o celular estiver sem internet. Isso evita o app
 // ficar "travado" numa versao antiga depois que o site e atualizado.
 //
+// Os caminhos comecam com "./" (relativos a este arquivo) para funcionar tanto
+// na raiz de um dominio quanto numa subpasta do GitHub Pages.
+//
 // IMPORTANTE: sempre que o codigo do site for atualizado, troque o numero da
 // versao abaixo (v2 -> v3 -> v4...). Isso forca o celular a esquecer o cache
 // antigo e buscar os arquivos novos.
 
-const CACHE_NAME = "libro-cache-v10";
+const CACHE_NAME = "libro-cache-v11";
 
 const ARQUIVOS_PARA_CACHEAR = [
-  "/login/index.html",
-  "/login/style.css",
-  "/login/login.js",
-  "/login/cadastro.html",
-  "/login/cadastro.css",
-  "/login/cadastro.js",
-  "/home/home.html",
-  "/home/home.css",
-  "/home/home.js",
-  "/home/extras.js",
-  "/home/extras.css",
-  "/home/admin-livros.html",
-  "/home/admin.js",
-  "/home/admin.css",
-  "/home/isbn.js",
-  "/api.js",
-  "/utils.js",
-  "/categorias.js",
-  "/img/g10.png",
-  "/img/icon-192.png",
-  "/img/icon-512.png",
-  "/manifest.json",
-  "/tokens.css",
-  "/toast.css",
-  "/toast.js",
-  "/theme.css",
-  "/theme-toggle.js",
-  "/password-toggle.js"
+  "./login/index.html",
+  "./login/style.css",
+  "./login/login.js",
+  "./login/cadastro.html",
+  "./login/cadastro.css",
+  "./login/cadastro.js",
+  "./home/home.html",
+  "./home/home.css",
+  "./home/home.js",
+  "./home/extras.js",
+  "./home/extras.css",
+  "./home/admin-livros.html",
+  "./home/admin.js",
+  "./home/admin.css",
+  "./home/isbn.js",
+  "./api.js",
+  "./utils.js",
+  "./logica.js",
+  "./categorias.js",
+  "./img/g10.png",
+  "./img/icon-192.png",
+  "./img/icon-512.png",
+  "./manifest.json",
+  "./tokens.css",
+  "./toast.css",
+  "./toast.js",
+  "./theme.css",
+  "./theme-toggle.js",
+  "./password-toggle.js"
 ];
 
 self.addEventListener("install", (event) => {
