@@ -1,0 +1,266 @@
+/* ========== PÁGINA DE CADASTRO ========== */
+
+* {
+    box-sizing: border-box;
+}
+
+/* Container principal */
+.container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--fonte-principal, 'Poppins', sans-serif);
+}
+
+/* Card do formulário */
+.form-container {
+    background: white;
+    border-radius: 22px;
+    padding: 34px 32px;
+    box-shadow: 0 18px 45px rgba(45, 52, 54, 0.10), 0 4px 12px rgba(45, 52, 54, 0.05);
+    width: 100%;
+    animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Título */
+.form-container h1 {
+    text-align: center;
+    color: #2d3436;
+    margin-bottom: 8px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.form-container .subtitle {
+    text-align: center;
+    color: #707b7c;
+    margin-bottom: 28px;
+    font-size: 14px;
+}
+
+/* Grupos de formulário */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    background: #fbfbfc;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #d8dbe0;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.12);
+}
+
+.form-group input.error {
+    border-color: #f44336;
+    background: #fff8f7;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #828c8d;
+}
+
+/* Caixa de sugestão de e-mail institucional */
+.sugestao-email-box {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: #f0faf0;
+    border: 1.5px solid #4CAF50;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #2e7d32;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.sugestao-email-box:hover {
+    background: #e3f6e3;
+    transform: translateY(-1px);
+}
+
+.sugestao-email-dica {
+    opacity: 0.6;
+    font-size: 12px;
+}
+
+/* Botões */
+.btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 10px;
+    letter-spacing: 0.2px;
+    transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1), filter 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(76, 175, 80, 0.32);
+    filter: brightness(1.03);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
+}
+
+.btn-primary:focus-visible {
+    outline: 3px solid rgba(76, 175, 80, 0.4);
+    outline-offset: 3px;
+}
+
+.btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-voltar {
+    width: 100%;
+    background: #f5f6f7;
+    color: #666;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-voltar:hover {
+    background: #e9ebec;
+    color: #444;
+}
+
+/* Link para login */
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+    color: #666;
+}
+
+.login-link a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
+.login-link a:hover {
+    color: #2e7d32;
+    text-decoration: underline;
+}
+
+/* Mensagens de erro/sucesso */
+.message {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.message.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.message.error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+        align-items: flex-start;
+        padding-top: 32px;
+    }
+
+    .form-container {
+        padding: 26px 22px;
+    }
+
+    .form-container h1 {
+        font-size: 24px;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 11px 13px;
+        font-size: 16px; /* Evita zoom automático no iOS */
+    }
+
+    .btn-primary,
+    .btn-voltar {
+        padding: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-container {
+        padding: 22px 18px;
+        border-radius: 18px;
+    }
+
+    .form-container h1 {
+        font-size: 22px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+    }
+}
