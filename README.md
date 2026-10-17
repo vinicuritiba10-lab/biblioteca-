@@ -72,18 +72,7 @@ Na raiz também está o código do **servidor Node (Express)** da época do Rail
 - [docs/FUNCOES-SUPABASE.md](docs/FUNCOES-SUPABASE.md): todas as funções do banco, quem pode usar cada uma e quando os e-mails saem
 - [docs/BANCO.md](docs/BANCO.md): diagrama entidade-relacionamento e decisões de modelagem
 - [docs/REGRAS-DE-NEGOCIO.md](docs/REGRAS-DE-NEGOCIO.md): limites, prazos, suspensão, fila de reservas e conquistas
-- [docs/APRESENTACAO.md](docs/APRESENTACAO.md): roteiro de demonstração e perguntas prováveis da banca
-
-## ▶️ Instalar a versão 2 no Supabase
-1. No Supabase, abra **SQL Editor** e clique no **+** para criar uma consulta nova.
-2. Cole todo o conteúdo de [`supabase/migracao-v2.sql`](supabase/migracao-v2.sql) e clique em **Run**.
-3. Deve aparecer `Libro v2 instalado`. Se der erro, nada foi alterado (o script roda numa transação).
-
-Para voltar as funções antigas, rode [`supabase/desfazer-v2.sql`](supabase/desfazer-v2.sql) do mesmo jeito.
-
-## ▶️ Como rodar e testar
-- **Site:** qualquer servidor de arquivos estáticos serve. Exemplo: `npx serve .` e abra o endereço que aparecer. No GitHub Pages, basta enviar os arquivos.
-- **Testes:** `npm install` uma vez e depois `npm test`.
+- [docs/APRESENTACAO.md](docs/APRESENTACAO.md): roteiro de demonstração e perguntas prováveis
 
 ## 🤖 Uso de IA como copiloto de código
 Utilizamos o **Claude (Anthropic)** como copiloto de código durante o desenvolvimento, principalmente para revisar e corrigir erros de sintaxe e de modelagem do banco de dados, ajustar regras de negócio no backend (como limite de empréstimos e validação de e-mail institucional), reorganizar o backend em camadas e apoiar o diagnóstico de falhas no deploy em produção. As alterações sugeridas foram revisadas e aplicadas manualmente pela equipe antes de cada atualização.
