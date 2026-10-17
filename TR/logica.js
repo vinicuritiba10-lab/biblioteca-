@@ -76,5 +76,54 @@
         return "\uFEFF" + [cabecalho, ...corpo].join("\r\n");
     }
 
-    return { dataISO, diasAte, descreverPrazo, CONQUISTAS, calcularConquistas, escaparCelula, gerarCSV };
+    // ---------------- logs do sistema ----------------
+    // Cada acao registrada (registrar_log no Supabase) cai numa categoria, pelo texto.
+    // A ordem importa: a primeira categoria que combinar e a escolhida.
+
+    const CATEGORIAS_LOG = [
+        { id: "acesso", nome: "Acesso", icone: "🔑", palavras: ["login", "cadastro"] },
+        { id: "emprestimos", nome: "Empréstimos", icone: "📖", palavras: ["empréstimo", "emprestimo", "devolvido", "devolução", "renova"] },
+        { id: "suspensoes", nome: "Suspensões", icone: "⛔", palavras: ["suspens"] },
+        { id: "avaliacoes", nome: "Avaliações", icone: "⭐", palavras: ["avaliad", "avaliação"] },
+        { id: "usuarios", nome: "Usuários", icone: "👥", palavras: ["usuário", "usuario"] },
+        { id: "sistema", nome: "Sistema", icone: "💾", palavras: ["backup"] }
+    ];
+    const CATEGORIA_OUTROS = { id: "outros", nome: "Outros", icone: "📝" };
+
+    function categoriaDoLog(acao) {
+        const texto = String(acao || "").toLowerCase();
+        const achada = CATEGORIAS_LOG.find(c => c.palavras.some(p => texto.includes(p)));
+        return achada ? { id: achada.id, nome: achada.nome, icone: achada.icone } : CATEGORIA_OUTROS;
+    }
+
+    // "Hoje", "Ontem" ou "Quinta-feira, 03/09/2026"
+    function rotuloDoDia(data, hoje = new Date()) {
+        const dias = diasAte(data, hoje);
+        if (dias === 0) return "Hoje";
+        if (dias === -1) return "Ontem";
+        const texto = new Date(data).toLocaleDateString("pt-BR", {
+            weekday: "long", day: "2-digit", month: "2-digit", year: "numeric"
+        });
+        return texto.charAt(0).toUpperCase() + texto.slice(1);
+    }
+
+    // Agrupa uma lista (ja ordenada) por dia, mantendo a ordem: [{ dia, rotulo, itens }]
+    function agruparPorDia(itens, obterData, hoje = new Date()) {
+        const grupos = [];
+        for (const item of itens) {
+            const dia = dataISO(obterData(item));
+            let grupo = grupos[grupos.length - 1];
+            if (!grupo || grupo.dia !== dia) {
+                grupo = { dia, rotulo: rotuloDoDia(obterData(item), hoje), itens: [] };
+                grupos.push(grupo);
+            }
+            grupo.itens.push(item);
+        }
+        return grupos;
+    }
+
+    return {
+        dataISO, diasAte, descreverPrazo, CONQUISTAS, calcularConquistas, escaparCelula, gerarCSV,
+        CATEGORIAS_LOG, categoriaDoLog, rotuloDoDia, agruparPorDia
+    };
 });

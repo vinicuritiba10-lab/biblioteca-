@@ -56,3 +56,44 @@ test("planilha CSV: BOM, separador ; e aspas escapadas", () => {
     assert.ok(csv.startsWith("\uFEFF"));
     assert.deepEqual(csv.slice(1).split("\r\n"), ["Título;Ano", "Dom Casmurro;1899", "Os Elementos;"]);
 });
+
+const { categoriaDoLog, rotuloDoDia, agruparPorDia } = require("../TR/logica.js");
+
+test("cada acao do log cai na categoria certa", () => {
+    const casos = {
+        "Login realizado": "acesso",
+        "Cadastro realizado": "acesso",
+        "Empréstimo realizado": "emprestimos",
+        "Empréstimo no balcão": "emprestimos",
+        "Livro devolvido": "emprestimos",
+        "Suspensão aplicada": "suspensoes",
+        "Livro avaliado": "avaliacoes",
+        "Usuário excluído": "usuarios",
+        "Tipo de usuário alterado": "usuarios",
+        "Backup exportado": "sistema",
+        "Algo novo que ninguém previu": "outros"
+    };
+    for (const [acao, esperado] of Object.entries(casos)) {
+        assert.equal(categoriaDoLog(acao).id, esperado, acao);
+    }
+});
+
+test("rotulo do dia: hoje, ontem e data por extenso", () => {
+    const hoje = dia("2026-10-16", "10:00");
+    assert.equal(rotuloDoDia(dia("2026-10-16", "08:00"), hoje), "Hoje");
+    assert.equal(rotuloDoDia(dia("2026-10-15", "23:00"), hoje), "Ontem");
+    assert.match(rotuloDoDia(dia("2026-09-03"), hoje), /^Quinta-feira, 03\/09\/2026$/);
+});
+
+test("agrupar logs por dia mantem a ordem e separa os dias", () => {
+    const hoje = dia("2026-10-16", "12:00");
+    const logs = [
+        { id: 1, created_at: dia("2026-10-16", "11:00") },
+        { id: 2, created_at: dia("2026-10-16", "09:00") },
+        { id: 3, created_at: dia("2026-10-15", "20:00") },
+        { id: 4, created_at: dia("2026-09-03", "22:00") }
+    ];
+    const grupos = agruparPorDia(logs, l => l.created_at, hoje);
+    assert.deepEqual(grupos.map(g => g.rotulo.split(",")[0]), ["Hoje", "Ontem", "Quinta-feira"]);
+    assert.deepEqual(grupos.map(g => g.itens.map(l => l.id)), [[1, 2], [3], [4]]);
+});

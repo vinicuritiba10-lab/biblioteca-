@@ -52,7 +52,7 @@ async function carregarListaUsuarios() {
     const container = document.getElementById('lista-usuarios-admin');
     if (!container) return;
 
-    container.innerHTML = '<div class="loading">🔄 Carregando usuários...</div>';
+    indicarCarregando(container, '<div class="loading">🔄 Carregando usuários...</div>');
 
     try {
         const { data: usuarios, error } = await db.rpc('listar_usuarios', {
@@ -176,7 +176,7 @@ async function carregarListaLivros() {
     const container = document.getElementById('lista-livros-admin');
     if (!container) return;
 
-    container.innerHTML = '<div class="loading">🔄 Carregando livros...</div>';
+    indicarCarregando(container, '<div class="loading">🔄 Carregando livros...</div>');
 
     try {
         const { data: livros, error } = await db.from('livros').select('*').order('id');

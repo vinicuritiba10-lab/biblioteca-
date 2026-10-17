@@ -27,3 +27,15 @@
         return Number(media).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     };
 })();
+
+// Mostra "Carregando..." só na primeira vez que uma lista aparece.
+// Nas atualizações depois de uma ação (renovar, devolver, aplicar suspensão...),
+// a lista antiga continua na tela até a nova chegar. Assim a página não encolhe
+// de repente e não "pula" para o topo.
+window.indicarCarregando = function (elemento, htmlCarregando) {
+    if (!elemento) return;
+    const jaTemConteudo = elemento.children.length > 0 && elemento.innerHTML !== elemento.__libroCarregando;
+    if (jaTemConteudo) return;
+    elemento.innerHTML = htmlCarregando;
+    elemento.__libroCarregando = elemento.innerHTML;
+};

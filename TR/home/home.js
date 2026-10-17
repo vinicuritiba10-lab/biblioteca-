@@ -141,7 +141,7 @@ async function buscarPorCategoria(categoria) {
     document.getElementById('btn-voltar').style.display = 'inline-block';
     
     const booksGrid = document.getElementById('books-grid');
-    booksGrid.innerHTML = '<p style="text-align:center;">Carregando livros...</p>';
+    indicarCarregando(booksGrid, '<p style="text-align:center;">Carregando livros...</p>');
    
     try {
         const { data: livros, error } = await db
@@ -282,7 +282,7 @@ async function mostrarMeusEmprestimos() {
     marcarMenuAtivo('btn-emprestimos');
     
     const emprestimosGrid = document.getElementById('emprestimos-grid');
-    emprestimosGrid.innerHTML = '<p style="text-align:center;">Carregando seus empréstimos...</p>';
+    indicarCarregando(emprestimosGrid, '<p style="text-align:center;">Carregando seus empréstimos...</p>');
     
     try {
         const { data: emprestimos, error } = await db.rpc('listar_meus_emprestimos', {
@@ -356,7 +356,7 @@ async function mostrarMinhasReservas() {
     marcarMenuAtivo('btn-reservas');
 
     const reservasGrid = document.getElementById('reservas-grid');
-    reservasGrid.innerHTML = '<p style="text-align:center;">Carregando suas reservas...</p>';
+    indicarCarregando(reservasGrid, '<p style="text-align:center;">Carregando suas reservas...</p>');
 
     try {
         const { data: reservas, error } = await db.rpc('listar_minhas_reservas', {
@@ -545,7 +545,7 @@ window.devolverLivro = async function(emprestimoId) {
 
 async function carregarTodosLivros() {
     const booksGrid = document.getElementById("books-grid");
-    booksGrid.innerHTML = '<p style="text-align:center;">Carregando livros...</p>';
+    indicarCarregando(booksGrid, '<p style="text-align:center;">Carregando livros...</p>');
     document.getElementById('livros-titulo').textContent = 'Acervo completo';
     document.getElementById('livros-desc').textContent = 'Todos os livros da biblioteca';
 
@@ -736,61 +736,102 @@ async function enviarLembretes () {
 }
 
 // Função mostrarGerenciarUsuarios corrigida
+// Gerenciar usuários: lista com busca, perfil e exclusão
+let buscaUsuarios = '';
+
 async function mostrarGerenciarUsuarios() {
     const conteudo = document.getElementById('conteudo-area');
-    
-    // VERIFICA SE O ELEMENTO EXISTE
-    if (!conteudo) {
-        console.error("❌ Elemento 'conteudo-area' não encontrado no HTML!");
-        showToast('Erro interno: elemento de conteúdo não encontrado', 'error');
-        return;
-    }
-    
-    conteudo.innerHTML = '<p>Carregando usuários...</p>';
-    
+    if (!conteudo) return;
+
+    indicarCarregando(conteudo, '<div class="admin-panel"><h2>👥 Gerenciar Usuários</h2><p>Carregando usuários...</p></div>');
+
     try {
         const { data: usuarios, error } = await db.rpc('listar_usuarios', {
             p_solicitante_id: usuarioAtual.id
         });
-
         if (error) throw error;
 
+        const nomesPerfil = {
+            aluno: ['aluno', 'alunos'],
+            bibliotecario: ['bibliotecário', 'bibliotecários'],
+            admin: ['admin', 'admins']
+        };
+        const contagem = ['aluno', 'bibliotecario', 'admin']
+            .map(tipo => ({ tipo, total: usuarios.filter(u => u.tipo === tipo).length }))
+            .filter(c => c.total > 0)
+            .map(c => `${c.total} ${nomesPerfil[c.tipo][c.total === 1 ? 0 : 1]}`)
+            .join(', ');
+
         conteudo.innerHTML = `
-            <div class="admin-panel">
-                <h2>👥 Gerenciar Usuários</h2>
-                <div style="overflow-x: auto;">
+            <div class="admin-panel usuarios-painel">
+                <div class="painel-cabecalho">
+                    <div>
+                        <h2>👥 Gerenciar Usuários</h2>
+                        <p class="texto-suave">${usuarios.length} cadastrados: ${contagem}</p>
+                    </div>
+                    <label class="visualmente-oculto" for="busca-usuarios">Buscar usuário</label>
+                    <input id="busca-usuarios" class="campo-busca" type="search" placeholder="Buscar por nome ou e-mail" value="${escaparHTML(buscaUsuarios)}">
+                </div>
+                <div class="tabela-scroll">
                     <table class="tabela-usuarios">
                         <thead>
-                            <tr><th>ID</th><th>Nome</th><th>Email</th><th>Tipo</th><th>Ações</th></tr>
+                            <tr><th>Usuário</th><th>ID</th><th>Perfil</th><th>Cadastro</th><th><span class="visualmente-oculto">Ações</span></th></tr>
                         </thead>
                         <tbody>
                             ${usuarios.map(user => `
-                                <tr>
-                                    <td>${user.id}</td>
-                                    <td>${user.nome}</td>
-                                    <td>${user.email}</td>
+                                <tr data-busca="${escaparHTML(`${user.nome} ${user.email}`.toLowerCase())}">
+                                    <td>
+                                        <div class="usuario-celula">
+                                            <span class="usuario-avatar" aria-hidden="true">${escaparHTML((user.nome || '?').charAt(0).toUpperCase())}</span>
+                                            <div>
+                                                <strong>${escaparHTML(user.nome)}${user.id === usuarioAtual.id ? ' <span class="selo-voce">você</span>' : ''}</strong>
+                                                <span class="texto-suave">${escaparHTML(user.email)}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="texto-suave">#${user.id}</td>
                                     <td>
                                         ${user.tipo === 'admin'
-                                            ? '<span title="Só pode ser alterado direto no banco de dados">👑 Admin</span>'
-                                            : `<select onchange="alterarTipoUsuario(${user.id}, this.value)">
-                                                <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>📖 Aluno</option>
-                                                <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>📚 Bibliotecário</option>
-                                               </select>`
-                                        }
+                                            ? '<span class="selo-perfil selo-perfil-admin" title="Só pode ser alterado direto no banco de dados">Admin</span>'
+                                            : `<label class="visualmente-oculto" for="perfil-${user.id}">Perfil de ${escaparHTML(user.nome)}</label>
+                                               <select id="perfil-${user.id}" class="select-tipo" onchange="alterarTipoUsuario(${user.id}, this.value)">
+                                                    <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>Aluno</option>
+                                                    <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>Bibliotecário</option>
+                                               </select>`}
                                     </td>
-                                    <td>${usuarioAtual.tipo === 'admin' ? `<button onclick="deletarUsuario(${user.id})" class="btn-danger" ${user.id === usuarioAtual.id ? 'disabled' : ''}>🗑️ Excluir</button>` : ''}</td>
+                                    <td class="texto-suave">${user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                                    <td class="celula-acoes">
+                                        ${usuarioAtual.tipo === 'admin' && user.id !== usuarioAtual.id
+                                            ? `<button type="button" onclick="deletarUsuario(${user.id})" class="btn-excluir-linha">Excluir</button>`
+                                            : ''}
+                                    </td>
                                 </tr>
                             `).join('')}
+                            <tr class="linha-vazia" hidden><td colspan="5">Nenhum usuário encontrado para essa busca.</td></tr>
                         </tbody>
                     </table>
                 </div>
                 <button onclick="fecharAdminPanel()" class="btn-voltar" style="margin-top: 20px;">← Fechar</button>
             </div>
         `;
-        
+
+        const campoBusca = document.getElementById('busca-usuarios');
+        const filtrar = () => {
+            buscaUsuarios = campoBusca.value;
+            const termo = buscaUsuarios.trim().toLowerCase();
+            let visiveis = 0;
+            conteudo.querySelectorAll('tr[data-busca]').forEach(linha => {
+                linha.hidden = termo !== '' && !linha.dataset.busca.includes(termo);
+                if (!linha.hidden) visiveis++;
+            });
+            conteudo.querySelector('.linha-vazia').hidden = visiveis > 0;
+        };
+        campoBusca.addEventListener('input', filtrar);
+        filtrar();
     } catch (error) {
         console.error('Erro:', error);
-        conteudo.innerHTML = '<p>❌ Erro ao carregar usuários.</p>';
+        conteudo.innerHTML = `<div class="admin-panel"><h2>👥 Gerenciar Usuários</h2><p>❌ ${escaparHTML(error.message || 'Erro ao carregar usuários.')}</p>
+            <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button></div>`;
     }
 }
 
@@ -811,7 +852,7 @@ async function mostrarEstatisticas() {
         return;
     }
     
-    conteudo.innerHTML = '<div class="stats-loading">Carregando estatísticas...</div>';
+    indicarCarregando(conteudo, '<div class="stats-loading">Carregando estatísticas...</div>');
     
     try {
         const { data: stats, error } = await db.rpc('obter_estatisticas', {
@@ -1033,7 +1074,7 @@ async function mostrarSolicitacoes() {
     const conteudo = document.getElementById('conteudo-area');
     if (!conteudo) return;
 
-    conteudo.innerHTML = '<p>Carregando solicitações...</p>';
+    indicarCarregando(conteudo, '<p>Carregando solicitações...</p>');
 
     try {
         const { data: solicitacoes, error } = await db.rpc('listar_solicitacoes_pendentes', {
@@ -1099,53 +1140,102 @@ window.responderSolicitacao = async function(id, acao) {
 };
 
 // Função para mostrar logs do sistema
+// Logs do sistema: linha do tempo agrupada por dia, com filtro por tipo e busca
 async function mostrarLogs() {
     const conteudo = document.getElementById('conteudo-area');
-    if (!conteudo) {
-        console.error("Elemento 'conteudo-area' não encontrado");
-        return;
-    }
+    if (!conteudo) return;
 
-    conteudo.innerHTML = '<div class="admin-panel"><h2>🔐 Logs do Sistema</h2><p>Carregando...</p></div>';
+    indicarCarregando(conteudo, '<div class="admin-panel"><h2>🔐 Logs do Sistema</h2><p>Carregando...</p></div>');
 
     try {
         const { data: logs, error } = await db.rpc('listar_logs', {
             p_solicitante_id: usuarioAtual.id
         });
-
         if (error) throw error;
 
+        logs.forEach(log => { log.categoria = categoriaDoLog(log.acao); });
+
+        const categoriasPresentes = CATEGORIAS_LOG
+            .map(c => ({ ...c, total: logs.filter(l => l.categoria.id === c.id).length }))
+            .filter(c => c.total > 0);
+        const outros = logs.filter(l => l.categoria.id === 'outros').length;
+        if (outros) categoriasPresentes.push({ id: 'outros', nome: 'Outros', icone: '📝', total: outros });
+
         conteudo.innerHTML = `
-            <div class="admin-panel">
-                <h2>🔐 Logs do Sistema</h2>
-                <p style="opacity:0.7; font-size: 13px;">Últimas ${logs.length} ações registradas</p>
-                <div style="overflow-x: auto;">
-                    <table class="tabela-usuarios">
-                        <thead>
-                            <tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Detalhes</th></tr>
-                        </thead>
-                        <tbody>
-                            ${logs.length === 0
-                                ? '<tr><td colspan="4" class="tabela-vazia">📭 Nenhum log registrado ainda</td></tr>'
-                                : logs.map(log => `
-                                    <tr>
-                                        <td>${new Date(log.created_at).toLocaleString('pt-BR')}</td>
-                                        <td>${log.usuario_nome || '(desconhecido)'}</td>
-                                        <td>${log.acao}</td>
-                                        <td>${log.detalhes || '-'}</td>
-                                    </tr>
-                                `).join('')}
-                        </tbody>
-                    </table>
+            <div class="admin-panel logs-painel">
+                <div class="painel-cabecalho">
+                    <div>
+                        <h2>🔐 Logs do Sistema</h2>
+                        <p class="texto-suave">Últimas ${logs.length} ações registradas</p>
+                    </div>
+                    <label class="visualmente-oculto" for="busca-logs">Buscar nos logs</label>
+                    <input id="busca-logs" class="campo-busca" type="search" placeholder="Buscar por usuário, ação ou detalhe">
                 </div>
+
+                <div class="logs-filtros" role="group" aria-label="Filtrar por tipo de ação">
+                    <button type="button" class="logs-filtro" data-categoria="todas" aria-pressed="true">Todas <span>${logs.length}</span></button>
+                    ${categoriasPresentes.map(c => `
+                        <button type="button" class="logs-filtro" data-categoria="${c.id}" aria-pressed="false">${c.icone} ${c.nome} <span>${c.total}</span></button>
+                    `).join('')}
+                </div>
+
+                <div id="logs-lista" class="logs-lista"></div>
+
                 <button onclick="fecharAdminPanel()" class="btn-voltar" style="margin-top: 20px;">← Fechar</button>
             </div>
         `;
+
+        let categoriaEscolhida = 'todas';
+        const campoBusca = document.getElementById('busca-logs');
+
+        const desenhar = () => {
+            const termo = campoBusca.value.trim().toLowerCase();
+            const filtrados = logs.filter(log =>
+                (categoriaEscolhida === 'todas' || log.categoria.id === categoriaEscolhida) &&
+                (termo === '' || `${log.usuario_nome || ''} ${log.acao || ''} ${log.detalhes || ''}`.toLowerCase().includes(termo))
+            );
+
+            const lista = document.getElementById('logs-lista');
+            if (!filtrados.length) {
+                lista.innerHTML = `<p class="logs-vazio">${logs.length ? 'Nenhuma ação encontrada com esse filtro.' : '📭 Nenhum log registrado ainda.'}</p>`;
+                return;
+            }
+
+            lista.innerHTML = agruparPorDia(filtrados, log => log.created_at).map(grupo => `
+                <section class="logs-dia">
+                    <h3>${grupo.rotulo} <span>${grupo.itens.length}</span></h3>
+                    <ol class="logs-itens">
+                        ${grupo.itens.map(log => {
+                            const quando = new Date(log.created_at);
+                            return `
+                                <li class="log-item log-${log.categoria.id}">
+                                    <span class="log-icone" aria-hidden="true">${log.categoria.icone}</span>
+                                    <div class="log-texto">
+                                        <p class="log-acao">${escaparHTML(log.acao)}</p>
+                                        <p class="log-detalhe"><strong>${escaparHTML(log.usuario_nome || '(desconhecido)')}</strong>${log.detalhes ? ` <span>${escaparHTML(log.detalhes)}</span>` : ''}</p>
+                                    </div>
+                                    <time datetime="${quando.toISOString()}" title="${quando.toLocaleString('pt-BR')}">${quando.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</time>
+                                </li>`;
+                        }).join('')}
+                    </ol>
+                </section>
+            `).join('');
+        };
+
+        conteudo.querySelectorAll('.logs-filtro').forEach(botao => {
+            botao.addEventListener('click', () => {
+                categoriaEscolhida = botao.dataset.categoria;
+                conteudo.querySelectorAll('.logs-filtro').forEach(b => b.setAttribute('aria-pressed', String(b === botao)));
+                desenhar();
+            });
+        });
+        campoBusca.addEventListener('input', desenhar);
+        desenhar();
     } catch (error) {
         conteudo.innerHTML = `
             <div class="admin-panel">
                 <h2>🔐 Logs do Sistema</h2>
-                <p>❌ ${error.message || 'Erro ao carregar logs.'}</p>
+                <p>❌ ${escaparHTML(error.message || 'Erro ao carregar logs.')}</p>
                 <button onclick="fecharAdminPanel()" class="btn-voltar">← Fechar</button>
             </div>
         `;

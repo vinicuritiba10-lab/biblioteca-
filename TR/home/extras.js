@@ -269,16 +269,21 @@
     }
     window.fecharModalLivro = fecharModalLivro;
 
+    // foco: "avaliar" (rola até o formulário) ou "manter" (atualiza a ficha aberta sem voltar ao topo)
     window.abrirDetalhesLivro = async function (livroId, foco) {
         const modal = document.getElementById("modal-livro");
         const conteudo = document.getElementById("modal-livro-conteudo");
-        focoAntesDoModal = document.activeElement;
+        const manter = foco === "manter" && !modal.hidden;
+        const rolagem = conteudo.scrollTop;
         estado.livroAberto = livroId;
 
-        conteudo.innerHTML = `<p class="modal-carregando">Abrindo a ficha do livro...</p>`;
-        modal.hidden = false;
-        document.body.classList.add("modal-aberto");
-        requestAnimationFrame(() => modal.classList.add("aberto"));
+        if (!manter) {
+            focoAntesDoModal = document.activeElement;
+            conteudo.innerHTML = `<p class="modal-carregando">Abrindo a ficha do livro...</p>`;
+            modal.hidden = false;
+            document.body.classList.add("modal-aberto");
+            requestAnimationFrame(() => modal.classList.add("aberto"));
+        }
 
         try {
             const dados = await rpc("detalhes_livro", { p_usuario_id: eu().id, p_livro_id: livroId });
@@ -286,7 +291,9 @@
             conteudo.innerHTML = fichaHTML(dados);
             ligarFormularioAvaliacao(dados);
 
-            if (foco === "avaliar") {
+            if (manter) {
+                conteudo.scrollTop = rolagem;
+            } else if (foco === "avaliar") {
                 const form = conteudo.querySelector(".avaliacao-form");
                 if (form) {
                     form.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -381,12 +388,12 @@
     // usa as mesmas funções do catálogo (Supabase) e depois atualiza a ficha
     window.pegarPelaFicha = async function (livroId) {
         await window.solicitarEmprestimo(livroId);
-        if (estado.livroAberto === livroId) abrirDetalhesLivro(livroId);
+        if (estado.livroAberto === livroId) abrirDetalhesLivro(livroId, "manter");
     };
 
     window.reservarPelaFicha = async function (livroId) {
         await window.reservarLivro(livroId);
-        if (estado.livroAberto === livroId) abrirDetalhesLivro(livroId);
+        if (estado.livroAberto === livroId) abrirDetalhesLivro(livroId, "manter");
     };
 
     function distribuicaoHTML(avaliacoes) {
@@ -473,7 +480,7 @@
                 showToast(resposta.message, "success");
                 await carregarMedias();
                 pintarCards();
-                abrirDetalhesLivro(livro.id);
+                abrirDetalhesLivro(livro.id, "manter");
             } catch (erro) {
                 showToast(erro.message, "error");
             }
@@ -488,7 +495,7 @@
                     showToast("Avaliação apagada", "info");
                     await carregarMedias();
                     pintarCards();
-                    abrirDetalhesLivro(livro.id);
+                    abrirDetalhesLivro(livro.id, "manter");
                 } catch (erro) {
                     showToast(erro.message, "error");
                 }
@@ -665,7 +672,7 @@
                     ${lista.map((f, i) => `
                         <div class="quero-ler-item">
                             ${cartaoVitrine(f.livro, i, "novo")}
-                            <button type="button" class="btn-link" onclick="removerQueroLer(${f.livro_id})">Remover</button>
+                            <button type="button" class="btn-link" onclick="removerQueroLer(${f.livro_id}, this)">Remover</button>
                         </div>`).join("")}
                 </div>`;
         } catch (erro) {
@@ -673,9 +680,20 @@
         }
     }
 
-    window.removerQueroLer = async function (livroId) {
+    window.removerQueroLer = async function (livroId, botao) {
         await alternarFavorito(livroId);
-        mostrarMinhaConta("quero-ler");
+        if (estado.favoritos.has(livroId)) return; // não conseguiu remover (o aviso de erro já apareceu)
+
+        const item = botao && botao.closest(".quero-ler-item");
+        if (item) item.remove();
+
+        const contador = document.querySelector('[data-aba="quero-ler"] .abas-contador');
+        if (contador) contador.textContent = estado.favoritos.size;
+
+        const painel = document.querySelector('[data-painel="quero-ler"]');
+        if (painel && !painel.querySelector(".quero-ler-item")) {
+            painel.innerHTML = `<p class="texto-centro">Toque no ♡ de um livro para guardar aqui o que você quer ler depois.</p>`;
+        }
     };
 
     // =====================================================================
@@ -688,10 +706,11 @@
         return area;
     }
 
-    window.mostrarPainelCompleto = async function () {
-        const area = areaAdmin();
+    // manterPosicao = true quando é uma atualização (depois de uma ação): não rola a página
+    window.mostrarPainelCompleto = async function (manterPosicao) {
+        const area = manterPosicao === true ? document.getElementById("conteudo-area") : areaAdmin();
         estado.painelAtual = mostrarPainelCompleto;
-        area.innerHTML = `<div class="admin-panel"><p>Montando o painel...</p></div>`;
+        if (manterPosicao !== true) area.innerHTML = `<div class="admin-panel"><p>Montando o painel...</p></div>`;
 
         try {
             const p = await rpc("painel_biblioteca", { p_solicitante_id: eu().id });
@@ -724,7 +743,7 @@
                         <p class="texto-suave">Atualizado em ${new Date(p.gerado_em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                            · ${plural(ind.total_emprestimos, "empréstimo registrado", "empréstimos registrados")}</p>
                     </div>
-                    <button type="button" onclick="mostrarPainelCompleto()" class="btn-refresh" title="Atualizar agora" aria-label="Atualizar painel">⟳</button>
+                    <button type="button" onclick="mostrarPainelCompleto(true)" class="btn-refresh" title="Atualizar agora" aria-label="Atualizar painel">⟳</button>
                 </div>
 
                 <div class="stats-cards-grid painel-cartoes">
@@ -897,7 +916,7 @@
                 : "";
             showToast(resposta.message + aviso, resposta.suspensao_criada ? "warning" : "success", 5000);
             enviarEmailsDaDevolucao(resposta);
-            if (estado.painelAtual) estado.painelAtual();
+            if (estado.painelAtual) estado.painelAtual(true);
             if (typeof carregarRelatoriosEmprestimos === "function") carregarRelatoriosEmprestimos();
         } catch (erro) {
             showToast(erro.message, "error");
@@ -908,10 +927,10 @@
     // BIBLIOTECA: BALCÃO DE ATENDIMENTO
     // =====================================================================
 
-    window.mostrarBalcao = async function () {
-        const area = areaAdmin();
+    window.mostrarBalcao = async function (manterPosicao) {
+        const area = manterPosicao === true ? document.getElementById("conteudo-area") : areaAdmin();
         estado.painelAtual = mostrarBalcao;
-        area.innerHTML = `<div class="admin-panel"><p>Abrindo o balcão...</p></div>`;
+        if (manterPosicao !== true) area.innerHTML = `<div class="admin-panel"><p>Abrindo o balcão...</p></div>`;
 
         try {
             const [usuarios, consultaLivros, emprestimos] = await Promise.all([
@@ -1009,7 +1028,7 @@
                     p_livro_id: livro.id
                 });
                 showToast(resposta.message, "success");
-                mostrarBalcao();
+                mostrarBalcao(true);
                 if (typeof carregarRelatoriosEmprestimos === "function") carregarRelatoriosEmprestimos();
             } catch (erro) {
                 showToast(erro.message, "error", 5000);

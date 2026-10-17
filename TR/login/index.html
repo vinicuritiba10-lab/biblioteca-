@@ -13,7 +13,8 @@
     })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Login</title>
+    <title>Login | Libro</title>
+    <link rel="icon" href="../img/icon-192.png">
     <link rel="stylesheet" href="../tokens.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="../toast.css">
@@ -33,15 +34,11 @@
     <div class="container">
         <!-- Lado esquerdo com gradiente e mensagem de boas-vindas -->
         <div class="left-side">
-            <img src="../img/g10.png" alt="logo">
+            <img class="logo-boas-vindas" src="../img/g10.png" alt="Libro">
             <div class="welcome-content">
                 <h1>Bem-vindo(a)!</h1>
                 <p>Estamos felizes em ter você por aqui</p>
-                <!--<div class="decorative-element"></div> -->
-            </div>
-
-            <div class="apresentacao">
-                <p>O Libro é um sistema de gerenciamento de biblioteca escolar desenvolvido para facilitar o acesso ao conhecimento. Aqui você pode explorar nosso acervo, realizar empréstimos, fazer reservas e acompanhar seus prazos de devolução, tudo em um só lugar, de forma simples e rápida.</p>
+                <a class="link-landing" href="../index.html">Conheça o Libro</a>
             </div>
         </div>
         
@@ -76,15 +73,15 @@
                             </button>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="tipo">Tipo de login</label>
+                        <select name="tipo" id="tipo">
+                            <option value="aluno">Aluno</option>
+                            <option value="bibliotecario">Bibliotecário</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
                     <button type="submit" id="btn-login">Entrar</button>
-                    
-
-                    <label for="tipo">Tipo de login</label>
-                    <select name="tipo" id="tipo">
-                        <option value="Aluno">Aluno</option>
-                        <option value="Bibliotecario">Bibliotecario</option>
-                        <option value="Bibliotecario">Admin</option>
-                    </select>
                 </form>
                 <p class="signup-link">Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
             </div>

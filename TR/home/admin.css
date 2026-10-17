@@ -4,6 +4,12 @@
     box-sizing: border-box;
 }
 
+/* Sem a margem padrão do navegador: o cabeçalho encosta no topo e nas laterais
+   e fica parado no lugar ao rolar, igual às outras páginas */
+body {
+    margin: 0;
+}
+
 /* Cabeçalho (estava sem estilo nesta página) */
 .princ {
     display: flex;
