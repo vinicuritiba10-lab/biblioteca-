@@ -82,7 +82,11 @@ document.getElementById('form-cadastro').addEventListener('submit', async functi
         }
 
         showToast('Cadastro realizado — Faça login para continuar.', 'success', 4000);
-        setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+
+        // e-mail de boas-vindas (espera no máximo 4 segundos para não travar a tela)
+        const envio = enviarEmail(email, '📚 Bem-vindo(a) ao Libro!', templateBoasVindas(nome));
+        await Promise.race([envio, new Promise(resolve => setTimeout(resolve, 4000))]);
+        window.location.href = 'index.html';
 
     } catch (err) {
         console.error('Erro:', err);

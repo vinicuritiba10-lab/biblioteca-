@@ -1063,3 +1063,35 @@ button.cat-card {
 
 /* selo de perfil para quem vê a lista mas não pode mudar o perfil */
 .selo-perfil:not(.selo-perfil-admin) { background: var(--cor-fundo-sutil); color: var(--cor-texto); border: 1px solid var(--cor-borda); }
+
+/* ---------- logs: período, contagem e rolagem dentro do painel ---------- */
+.logs-controles { display: flex; flex-wrap: wrap; gap: 10px; flex: 0 1 460px; }
+.logs-controles .campo-busca { flex: 1 1 220px; }
+.logs-contagem { margin-bottom: 8px; }
+.logs-lista {
+    max-height: min(60vh, 560px);
+    overflow-y: auto;
+    padding-right: 6px;
+    overscroll-behavior: contain;
+}
+.logs-dia h3 {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 6px 0;
+    background: var(--cor-fundo-card);
+}
+
+/* ficha: "Sair da fila" ao lado do aviso de reserva */
+.ficha-fila { display: grid; gap: 6px; }
+
+/* abas da Minha Conta: rolam para os lados no celular, sem a barrinha vertical inútil */
+.abas {
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-bottom: none;
+    box-shadow: inset 0 -2px 0 var(--cor-borda);
+    scrollbar-width: none;
+}
+.abas::-webkit-scrollbar { display: none; }
+.abas button { margin-bottom: 0; }

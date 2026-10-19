@@ -74,6 +74,15 @@ Na raiz também está o código do **servidor Node (Express)** da época do Rail
 - [docs/REGRAS-DE-NEGOCIO.md](docs/REGRAS-DE-NEGOCIO.md): limites, prazos, suspensão, fila de reservas e conquistas
 - [docs/APRESENTACAO.md](docs/APRESENTACAO.md): roteiro de demonstração e perguntas prováveis da banca
 
+## ▶️ Instalar a versão 2 no Supabase
+1. No Supabase, abra **SQL Editor** e clique no **+** para criar uma consulta nova.
+2. Cole todo o conteúdo de [`supabase/migracao-v2.sql`](supabase/migracao-v2.sql) e clique em **Run**.
+3. Deve aparecer `Libro v2 instalado`. Se der erro, nada foi alterado (o script roda numa transação).
+
+Para voltar as funções antigas, rode [`supabase/desfazer-v2.sql`](supabase/desfazer-v2.sql) do mesmo jeito.
+
+Depois, rode também [`supabase/migracao-v3.sql`](supabase/migracao-v3.sql): com ela, toda conta nova é de aluno e só o administrador promove bibliotecários. Para desfazer: [`supabase/desfazer-v3.sql`](supabase/desfazer-v3.sql).
+
 ## ▶️ Como rodar e testar
 - **Site:** qualquer servidor de arquivos estáticos serve. Exemplo: `npx serve .` e abra o endereço que aparecer. No GitHub Pages, basta enviar os arquivos.
 - **Testes:** `npm install` uma vez e depois `npm test`.

@@ -377,7 +377,10 @@
         if (usuario?.reserva) {
             return usuario.reserva.status === "disponivel"
                 ? `<p class="ficha-situacao ficha-situacao-ok">🔖 Sua reserva chegou! Retire na biblioteca.</p>`
-                : `<p class="ficha-situacao">🔖 Você está na fila de reserva deste livro.</p>`;
+                : `<div class="ficha-fila">
+                       <p class="ficha-situacao">🔖 Você está na fila de reserva deste livro.</p>
+                       <button type="button" class="btn-link btn-link-perigo" onclick="sairDaFila(${usuario.reserva.id}, ${livro.id})">Sair da fila</button>
+                   </div>`;
         }
         if (livro.quantidade_disponivel > 0) {
             return `<button type="button" class="btn-borrow" onclick="pegarPelaFicha(${livro.id})">Pegar emprestado</button>`;
@@ -389,6 +392,17 @@
     window.pegarPelaFicha = async function (livroId) {
         await window.solicitarEmprestimo(livroId);
         if (estado.livroAberto === livroId) abrirDetalhesLivro(livroId, "manter");
+    };
+
+    window.sairDaFila = async function (reservaId, livroId) {
+        if (!await showConfirm("Sair da fila de reserva deste livro?", "Sair da fila", "Continuar na fila")) return;
+        try {
+            const resposta = await rpc("cancelar_reserva", { p_usuario_id: eu().id, p_reserva_id: reservaId });
+            showToast(resposta.message || "Reserva cancelada.", "info");
+            abrirDetalhesLivro(livroId, "manter");
+        } catch (erro) {
+            showToast(erro.message, "error");
+        }
     };
 
     window.reservarPelaFicha = async function (livroId) {

@@ -451,8 +451,8 @@ window.renovarEmprestimo = async function(emprestimoId) {
 
         enviarEmail(
             data.usuario_email,
-            `📚 Lembrete: Prazo de devolução - ${data.livro_titulo}`,
-            templateLembreteDevolucao(data.usuario_nome, data.livro_titulo, data.nova_data_devolucao, 7)
+            `🔄 Empréstimo renovado - ${data.livro_titulo}`,
+            templateRenovacao(data.usuario_nome, data.livro_titulo, data.nova_data_devolucao, data.renovacoes_restantes)
         );
 
         mostrarMeusEmprestimos();
@@ -1170,8 +1170,17 @@ async function mostrarLogs() {
                         <h2>🔐 Logs do Sistema</h2>
                         <p class="texto-suave">Últimas ${logs.length} ações registradas</p>
                     </div>
-                    <label class="visualmente-oculto" for="busca-logs">Buscar nos logs</label>
-                    <input id="busca-logs" class="campo-busca" type="search" placeholder="Buscar por usuário, ação ou detalhe">
+                    <div class="logs-controles">
+                        <label class="visualmente-oculto" for="periodo-logs">Período</label>
+                        <select id="periodo-logs" class="select-tipo">
+                            <option value="hoje">Hoje</option>
+                            <option value="7" selected>Últimos 7 dias</option>
+                            <option value="30">Últimos 30 dias</option>
+                            <option value="todos">Tudo</option>
+                        </select>
+                        <label class="visualmente-oculto" for="busca-logs">Buscar nos logs</label>
+                        <input id="busca-logs" class="campo-busca" type="search" placeholder="Buscar por usuário, ação ou detalhe">
+                    </div>
                 </div>
 
                 <div class="logs-filtros" role="group" aria-label="Filtrar por tipo de ação">
@@ -1181,7 +1190,8 @@ async function mostrarLogs() {
                     `).join('')}
                 </div>
 
-                <div id="logs-lista" class="logs-lista"></div>
+                <p id="logs-contagem" class="texto-suave logs-contagem"></p>
+                <div id="logs-lista" class="logs-lista" tabindex="0" aria-label="Lista de ações registradas"></div>
 
                 <button onclick="fecharAdminPanel()" class="btn-voltar" style="margin-top: 20px;">← Fechar</button>
             </div>
@@ -1189,17 +1199,39 @@ async function mostrarLogs() {
 
         let categoriaEscolhida = 'todas';
         const campoBusca = document.getElementById('busca-logs');
+        const campoPeriodo = document.getElementById('periodo-logs');
+
+        // "hoje" = só hoje; "7"/"30" = últimos dias; "todos" = sem limite
+        const dentroDoPeriodo = log => {
+            const periodo = campoPeriodo.value;
+            if (periodo === 'todos') return true;
+            const dias = diasAte(log.created_at);
+            return periodo === 'hoje' ? dias === 0 : dias >= -Number(periodo);
+        };
 
         const desenhar = () => {
+            // os números de cada categoria acompanham o período escolhido
+            const doPeriodo = logs.filter(dentroDoPeriodo);
+            conteudo.querySelectorAll('.logs-filtro').forEach(botao => {
+                const cat = botao.dataset.categoria;
+                botao.querySelector('span').textContent = cat === 'todas'
+                    ? doPeriodo.length
+                    : doPeriodo.filter(l => l.categoria.id === cat).length;
+            });
+
             const termo = campoBusca.value.trim().toLowerCase();
-            const filtrados = logs.filter(log =>
+            const filtrados = doPeriodo.filter(log =>
                 (categoriaEscolhida === 'todas' || log.categoria.id === categoriaEscolhida) &&
                 (termo === '' || `${log.usuario_nome || ''} ${log.acao || ''} ${log.detalhes || ''}`.toLowerCase().includes(termo))
             );
 
+            document.getElementById('logs-contagem').textContent =
+                `Mostrando ${filtrados.length} de ${logs.length} ações`;
+
             const lista = document.getElementById('logs-lista');
+            lista.scrollTop = 0;
             if (!filtrados.length) {
-                lista.innerHTML = `<p class="logs-vazio">${logs.length ? 'Nenhuma ação encontrada com esse filtro.' : '📭 Nenhum log registrado ainda.'}</p>`;
+                lista.innerHTML = `<p class="logs-vazio">${logs.length ? 'Nenhuma ação encontrada nesse período ou filtro.' : '📭 Nenhum log registrado ainda.'}</p>`;
                 return;
             }
 
@@ -1232,6 +1264,7 @@ async function mostrarLogs() {
             });
         });
         campoBusca.addEventListener('input', desenhar);
+        campoPeriodo.addEventListener('change', desenhar);
         desenhar();
     } catch (error) {
         conteudo.innerHTML = `
