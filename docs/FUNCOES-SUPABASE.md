@@ -6,20 +6,20 @@ Todas as tabelas têm **RLS ligado** e nenhuma pode ser lida ou alterada direto 
 
 Cada chamada de função roda numa transação só: se der erro no meio, nada fica pela metade.
 
-**Legenda do perfil:** *todos* = qualquer usuário logado; *biblioteca* = bibliotecário ou admin; *admin* = só admin. Funções marcadas com ★ foram criadas ou melhoradas na versão 2 (`supabase/migracao-v2.sql`).
+**Legenda do perfil:** *todos* = qualquer usuário logado; *biblioteca* = bibliotecário ou admin; *admin* = só admin. Funções marcadas com ★ foram criadas ou melhoradas nas versões 2 e 3 (`supabase/migracao-v2.sql` e `supabase/migracao-v3.sql`).
 
 ## Conta e acesso
 
 | Função | Perfil | O que faz |
 |---|---|---|
-| `cadastrar_usuario(nome, email, senha, tipo)` | todos | Cria a conta com a senha criptografada (bcrypt) |
+| `cadastrar_usuario(nome, email, senha, tipo)` ★ | todos | Cria a conta com a senha criptografada (bcrypt). Toda conta nova é de aluno; o parâmetro tipo é ignorado |
 | `login_usuario(email, senha)` | todos | Confere a senha e devolve os dados do usuário |
 | `perfil_usuario(usuario_id)` ★ | todos | Minha Conta: resumo de leitura, próxima devolução, suspensão e histórico |
 | `alertas_usuario(usuario_id)` ★ | todos | Avisos do topo: suspensão, atraso, vencendo, reserva que chegou |
 | `consultar_suspensao_usuario(usuario_id)` | todos | Se o usuário está suspenso e até quando |
 | `listar_usuarios(solicitante_id)` | biblioteca | Todos os usuários |
-| `alterar_tipo_usuario(solicitante_id, usuario_id, tipo)` | biblioteca | Muda entre aluno e bibliotecário |
-| `deletar_usuario(solicitante_id, usuario_id)` | biblioteca | Exclui (bloqueado se houver histórico) |
+| `alterar_tipo_usuario(solicitante_id, usuario_id, tipo)` ★ | admin | Promove a bibliotecário ou volta para aluno (não mexe em administradores) |
+| `deletar_usuario(solicitante_id, usuario_id)` ★ | admin | Exclui (bloqueado se houver histórico ou se for administrador) |
 | `eh_bibliotecario(usuario_id)`, `eh_admin(usuario_id)` | interno | Verificação de perfil usada pelas outras funções |
 
 ## Catálogo e livros

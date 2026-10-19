@@ -1060,3 +1060,6 @@ button.cat-card {
     .log-icone { width: 34px; height: 34px; font-size: 16px; grid-row: span 2; }
     .log-item time { grid-column: 2; }
 }
+
+/* selo de perfil para quem vê a lista mas não pode mudar o perfil */
+.selo-perfil:not(.selo-perfil-admin) { background: var(--cor-fundo-sutil); color: var(--cor-texto); border: 1px solid var(--cor-borda); }

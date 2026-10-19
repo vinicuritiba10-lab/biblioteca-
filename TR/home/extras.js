@@ -818,7 +818,7 @@
 
                 <section class="painel-bloco painel-bloco-largo">
                     <h3>Planilhas</h3>
-                    <p class="texto-suave">Arquivos .csv que abrem no Excel e no Google Planilhas.</p>
+                    <p class="texto-suave">Planilhas do Excel com a marca do Libro. Também abrem no Google Planilhas.</p>
                     <div class="painel-exportar">
                         <button type="button" class="btn-admin" onclick="baixarPlanilha('emprestimos')">📄 Empréstimos</button>
                         <button type="button" class="btn-admin" onclick="baixarPlanilha('livros')">📚 Acervo</button>
@@ -844,47 +844,63 @@
             </ol>`;
     }
 
-    // Planilhas montadas no próprio navegador com os dados do Supabase
+    // Planilhas do Excel com a marca do Libro (TR/xlsx.js), montadas no próprio navegador
+    function destaqueSituacao(texto) {
+        if (/^Atrasado/.test(texto)) return "ruim";
+        if (/^Vence|com atraso/.test(texto)) return "alerta";
+        return "bom";
+    }
+
     const PLANILHAS = {
         async emprestimos() {
             const linhas = await rpc("listar_meus_emprestimos_admin", { p_solicitante_id: eu().id });
-            return gerarCSV([
-                { titulo: "ID", valor: e => e.id },
-                { titulo: "Aluno", valor: e => e.usuario?.nome },
-                { titulo: "E-mail", valor: e => e.usuario?.email },
-                { titulo: "Livro", valor: e => e.livro?.titulo },
-                { titulo: "Autor", valor: e => e.livro?.autor },
-                { titulo: "Emprestado em", valor: e => formatarData(e.data_emprestimo) },
-                { titulo: "Prazo", valor: e => formatarData(e.data_prevista_devolucao) },
-                { titulo: "Devolvido em", valor: e => (e.data_devolucao_real ? formatarData(e.data_devolucao_real) : "") },
-                { titulo: "Situação", valor: e => situacaoTexto(e) }
-            ], linhas);
+            return {
+                titulo: "Libro: Empréstimos", aba: "Empréstimos", linhas,
+                colunas: [
+                    { titulo: "ID", valor: e => e.id, tipo: "numero" },
+                    { titulo: "Aluno", valor: e => e.usuario?.nome },
+                    { titulo: "E-mail", valor: e => e.usuario?.email },
+                    { titulo: "Livro", valor: e => e.livro?.titulo },
+                    { titulo: "Autor", valor: e => e.livro?.autor },
+                    { titulo: "Emprestado em", valor: e => e.data_emprestimo, tipo: "data" },
+                    { titulo: "Prazo", valor: e => e.data_prevista_devolucao, tipo: "data" },
+                    { titulo: "Devolvido em", valor: e => e.data_devolucao_real, tipo: "data" },
+                    { titulo: "Situação", valor: e => situacaoTexto(e), destaque: destaqueSituacao }
+                ]
+            };
         },
         async livros() {
             const { data: linhas, error } = await db.from("livros").select("*").order("titulo");
             if (error) throw new Error(error.message);
-            return gerarCSV([
-                { titulo: "ID", valor: l => l.id },
-                { titulo: "Título", valor: l => l.titulo },
-                { titulo: "Autor", valor: l => l.autor },
-                { titulo: "ISBN", valor: l => l.isbn },
-                { titulo: "Editora", valor: l => l.editora },
-                { titulo: "Ano", valor: l => l.ano },
-                { titulo: "Categoria", valor: l => l.categoria ? nomeCategoria(l.categoria) : "" },
-                { titulo: "Exemplares", valor: l => l.quantidade_total },
-                { titulo: "Disponíveis", valor: l => l.quantidade_disponivel }
-            ], linhas);
+            return {
+                titulo: "Libro: Acervo", aba: "Acervo", linhas,
+                colunas: [
+                    { titulo: "ID", valor: l => l.id, tipo: "numero" },
+                    { titulo: "Título", valor: l => l.titulo },
+                    { titulo: "Autor", valor: l => l.autor },
+                    { titulo: "ISBN", valor: l => l.isbn },
+                    { titulo: "Editora", valor: l => l.editora },
+                    { titulo: "Ano", valor: l => l.ano, tipo: "numero" },
+                    { titulo: "Categoria", valor: l => (l.categoria ? nomeCategoria(l.categoria) : "") },
+                    { titulo: "Exemplares", valor: l => l.quantidade_total, tipo: "numero" },
+                    { titulo: "Disponíveis", valor: l => l.quantidade_disponivel, tipo: "numero",
+                      destaque: v => (Number(v) > 0 ? null : "ruim") }
+                ]
+            };
         },
         async usuarios() {
             const linhas = await rpc("listar_usuarios", { p_solicitante_id: eu().id });
             const nomesPerfil = { aluno: "Aluno", bibliotecario: "Bibliotecário", admin: "Administrador" };
-            return gerarCSV([
-                { titulo: "ID", valor: u => u.id },
-                { titulo: "Nome", valor: u => u.nome },
-                { titulo: "E-mail", valor: u => u.email },
-                { titulo: "Perfil", valor: u => nomesPerfil[u.tipo] || u.tipo },
-                { titulo: "Cadastrado em", valor: u => (u.created_at ? formatarData(u.created_at) : "") }
-            ], linhas);
+            return {
+                titulo: "Libro: Usuários", aba: "Usuários", linhas,
+                colunas: [
+                    { titulo: "ID", valor: u => u.id, tipo: "numero" },
+                    { titulo: "Nome", valor: u => u.nome },
+                    { titulo: "E-mail", valor: u => u.email },
+                    { titulo: "Perfil", valor: u => nomesPerfil[u.tipo] || u.tipo },
+                    { titulo: "Cadastrado em", valor: u => u.created_at, tipo: "data" }
+                ]
+            };
         }
     };
 
@@ -897,10 +913,33 @@
         return descreverPrazo(emprestimo.data_prevista_devolucao).texto;
     }
 
+    // logo do Libro para o canto da planilha (se não carregar, a planilha sai sem ele)
+    let logoPlanilha;
+    async function carregarLogoPlanilha() {
+        if (logoPlanilha !== undefined) return logoPlanilha;
+        try {
+            const resposta = await fetch("../img/g10.png");
+            logoPlanilha = resposta.ok
+                ? { bytes: new Uint8Array(await resposta.arrayBuffer()), largura: 35, altura: 48 }
+                : null;
+        } catch (e) {
+            logoPlanilha = null;
+        }
+        return logoPlanilha;
+    }
+
     window.baixarPlanilha = async function (tipo) {
         try {
-            const conteudo = await PLANILHAS[tipo]();
-            api.baixarTexto(conteudo, `libro-${tipo}-${dataISO(new Date())}.csv`);
+            const [dados, logo] = await Promise.all([PLANILHAS[tipo](), carregarLogoPlanilha()]);
+            const agora = new Date();
+            const quando = `${agora.toLocaleDateString("pt-BR")} às ${agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+            const bytes = gerarPlanilhaLibro({
+                ...dados,
+                subtitulo: `Gerada em ${quando}, com ${plural(dados.linhas.length, "registro", "registros")}`,
+                logo
+            });
+            api.baixarTexto(bytes, `libro-${tipo}-${dataISO(agora)}.xlsx`,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             showToast("Planilha baixada", "success");
         } catch (erro) {
             showToast(erro.message, "error");

@@ -90,10 +90,11 @@ async function carregarListaUsuarios() {
                     <td>${user.nome}</td>
                     <td>${user.email}</td>
                     <td>
+                        ${usuarioAtual.tipo === 'admin' && user.tipo !== 'admin' ? `
                         <select class="select-tipo" data-id="${user.id}" onchange="window.alterarTipoUsuario(${user.id}, this.value)">
                             <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>📖 Aluno</option>
                             <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>📚 Bibliotecário</option>
-                        </select>
+                        </select>` : (user.tipo === 'admin' ? '⚙️ Admin' : user.tipo === 'bibliotecario' ? '📚 Bibliotecário' : '📖 Aluno')}
                     </td>
                     <td>
                         <button class="btn-deletar" onclick="window.deletarUsuario(${user.id})" ${user.id === usuarioAtual.id ? 'disabled' : ''}>

@@ -6,7 +6,7 @@ Tempo sugerido: 10 a 12 minutos de demonstração. A ideia é contar a história
 
 1. Confira se a `supabase/migracao-v2.sql` já foi instalada: abra o site e veja se aparecem as vitrines e as estrelas nos livros.
 2. Cadastre uns 10 livros pelo **ISBN** (o formulário se preenche sozinho e já traz a capa).
-3. Crie duas contas: um **aluno** e uma **bibliotecária**. Deixe as duas logadas em navegadores diferentes (ou uma em aba anônima).
+3. Crie duas contas pelo cadastro (as duas nascem como aluno) e, com o administrador, promova uma delas a **bibliotecária** em Gerenciar Usuários. Deixe as duas logadas em navegadores diferentes (ou uma em aba anônima).
 4. Com o aluno, pegue 1 livro, devolva 1 livro e avalie esse livro. Assim a Minha Conta já tem histórico e conquistas.
 5. Para mostrar a suspensão, deixe um empréstimo atrasado: no **Table Editor** do Supabase, mude a `data_prevista_devolucao` de um empréstimo ativo para alguns dias atrás.
 6. Para mostrar a fila de reserva, deixe um livro com todos os exemplares emprestados.
@@ -33,7 +33,7 @@ Tempo sugerido: 10 a 12 minutos de demonstração. A ideia é contar a história
 
 **8. Cadastro pelo ISBN (30 s).** Digite um ISBN real e mostre o formulário se preenchendo sozinho.
 
-**9. Planilhas e PDF (30 s).** Baixe a planilha de empréstimos e abra no Excel.
+**9. Planilhas e PDF (30 s).** Baixe a planilha de empréstimos e abra no Excel: ela já vem com o logo, as cores do Libro e filtros.
 
 **10. Celular (30 s).** Mostre o app instalado e o modo escuro.
 

@@ -793,6 +793,8 @@ async function mostrarGerenciarUsuarios() {
                                     <td>
                                         ${user.tipo === 'admin'
                                             ? '<span class="selo-perfil selo-perfil-admin" title="Só pode ser alterado direto no banco de dados">Admin</span>'
+                                            : usuarioAtual.tipo !== 'admin'
+                                            ? `<span class="selo-perfil">${user.tipo === 'bibliotecario' ? 'Bibliotecário' : 'Aluno'}</span>`
                                             : `<label class="visualmente-oculto" for="perfil-${user.id}">Perfil de ${escaparHTML(user.nome)}</label>
                                                <select id="perfil-${user.id}" class="select-tipo" onchange="alterarTipoUsuario(${user.id}, this.value)">
                                                     <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>Aluno</option>

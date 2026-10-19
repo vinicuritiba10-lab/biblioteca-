@@ -50,7 +50,6 @@ document.getElementById('form-cadastro').addEventListener('submit', async functi
     const email = document.getElementById('email').value.trim();
     const senha = document.getElementById('senha').value;
     const confirmarSenha = document.getElementById('confirmar-senha').value;
-    const tipo = document.getElementById('tipo').value;
 
     if (!email.toLowerCase().endsWith(DOMINIO_ESCOLA)) {
         showToast(`Use seu e-mail institucional terminado em ${DOMINIO_ESCOLA}`, 'warning');
@@ -74,7 +73,7 @@ document.getElementById('form-cadastro').addEventListener('submit', async functi
             p_nome: nome,
             p_email: email,
             p_senha: senha,
-            p_tipo: tipo
+            p_tipo: 'aluno' // toda conta nova é de aluno; só o administrador promove bibliotecários
         });
 
         if (error) {

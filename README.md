@@ -34,14 +34,14 @@ Sistema para facilitar a vida dos alunos e dos profissionais das bibliotecas esc
 - Balcão de atendimento para registrar empréstimos e devoluções presenciais
 - Cadastro de livro pelo ISBN (preenche título, autor, editora, ano, sinopse e capa sozinho)
 - Gestão de usuários, solicitações e suspensões
-- Relatório em PDF e planilhas CSV (empréstimos, acervo e usuários) que abrem no Excel
+- Relatório em PDF e planilhas do Excel com a marca do Libro (empréstimos, acervo e usuários)
 - Suspensão automática por atraso, com e-mail para o aluno
 
 **Geral**
 - Arrumação automática (suspensões vencidas e fila de reservas) sempre que alguém usa o sistema
 - Aplicativo instalável (PWA), tema claro/escuro e layout para celular
 - Landing page de apresentação na raiz do site
-- 24 testes automatizados (`npm test`)
+- 32 testes automatizados (`npm test`)
 
 ## 🏗️ Arquitetura (como o sistema funciona)
 O sistema é dividido em três pilares, como pedido pelo professor:
@@ -72,7 +72,11 @@ Na raiz também está o código do **servidor Node (Express)** da época do Rail
 - [docs/FUNCOES-SUPABASE.md](docs/FUNCOES-SUPABASE.md): todas as funções do banco, quem pode usar cada uma e quando os e-mails saem
 - [docs/BANCO.md](docs/BANCO.md): diagrama entidade-relacionamento e decisões de modelagem
 - [docs/REGRAS-DE-NEGOCIO.md](docs/REGRAS-DE-NEGOCIO.md): limites, prazos, suspensão, fila de reservas e conquistas
-- [docs/APRESENTACAO.md](docs/APRESENTACAO.md): roteiro de demonstração e perguntas prováveis
+- [docs/APRESENTACAO.md](docs/APRESENTACAO.md): roteiro de demonstração e perguntas prováveis da banca
+
+## ▶️ Como rodar e testar
+- **Site:** qualquer servidor de arquivos estáticos serve. Exemplo: `npx serve .` e abra o endereço que aparecer. No GitHub Pages, basta enviar os arquivos.
+- **Testes:** `npm install` uma vez e depois `npm test`.
 
 ## 🤖 Uso de IA como copiloto de código
 Utilizamos o **Claude (Anthropic)** como copiloto de código durante o desenvolvimento, principalmente para revisar e corrigir erros de sintaxe e de modelagem do banco de dados, ajustar regras de negócio no backend (como limite de empréstimos e validação de e-mail institucional), reorganizar o backend em camadas e apoiar o diagnóstico de falhas no deploy em produção. As alterações sugeridas foram revisadas e aplicadas manualmente pela equipe antes de cada atualização.
@@ -99,6 +103,8 @@ Utilizamos o **Claude (Anthropic)** como copiloto de código durante o desenvolv
 | Botão "Enviar Lembretes" parou de funcionar | Ele ainda chamava o servidor do Railway | Passou a usar a função `listar_lembretes_devolucao` do Supabase |
 | App instalado não funcionava no GitHub Pages | Caminhos começando com `/` apontavam para fora da pasta do projeto | Caminhos relativos no service worker e no manifesto |
 | Aluno suspenso conseguia pegar livro | A função de empréstimo não conferia suspensões | Verificação de suspensão dentro do `pegar_emprestado` |
+| Qualquer pessoa podia se cadastrar como bibliotecário | O cadastro deixava escolher o perfil e o banco aceitava | Toda conta nova é de aluno, e só o administrador promove bibliotecários (no banco, não só na tela) |
+| Planilhas sem identidade visual | O formato CSV não guarda cores nem imagens | Planilhas do Excel (.xlsx) geradas no navegador, com logo, cores e filtros |
 
 ## 🗓️ Cronograma
 | Semana | Período | Status |
