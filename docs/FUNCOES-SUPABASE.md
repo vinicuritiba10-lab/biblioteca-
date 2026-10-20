@@ -6,7 +6,7 @@ Todas as tabelas têm **RLS ligado** e nenhuma pode ser lida ou alterada direto 
 
 Cada chamada de função roda numa transação só: se der erro no meio, nada fica pela metade.
 
-**Legenda do perfil:** *todos* = qualquer usuário logado; *biblioteca* = bibliotecário ou admin; *admin* = só admin. Funções marcadas com ★ foram criadas ou melhoradas nas versões 2 e 3 (`supabase/migracao-v2.sql` e `supabase/migracao-v3.sql`).
+**Legenda do perfil:** *todos* = qualquer usuário logado; *biblioteca* = bibliotecário ou admin; *admin* = só admin. Funções marcadas com ★ foram criadas ou melhoradas nas versões 2, 3 e 4 (`supabase/migracao-v2.sql`, `migracao-v3.sql` e `migracao-v4.sql`).
 
 ## Conta e acesso
 
@@ -49,8 +49,10 @@ Cada chamada de função roda numa transação só: se der erro no meio, nada fi
 
 | Função | Perfil | O que faz |
 |---|---|---|
-| `reservar_livro(usuario_id, livro_id)` | todos | Entra na fila de um livro sem exemplares livres |
-| `cancelar_reserva(usuario_id, reserva_id)` | todos | Cancela (mantém o histórico) |
+| `reservar_livro(usuario_id, livro_id)` ★ | todos | Entra na fila de um livro sem exemplar livre e devolve a posição na fila |
+| `cancelar_reserva(usuario_id, reserva_id)` ★ | todos | Cancela (mantém o histórico) e chama o próximo da fila, se liberou exemplar |
+| `situacao_reservas(usuario_id)` ★ | todos | Exemplares guardados para reservas e tamanho da fila de cada livro, para o catálogo |
+| `pegar_avisos_pendentes(solicitante_id)` ★ | biblioteca | E-mails de "sua reserva chegou" que ficaram pendentes, para o site enviar |
 | `listar_minhas_reservas(usuario_id)` ★ | todos | Reservas ativas e disponíveis do aluno |
 | `solicitar_emprestimo_extra(usuario_id, livro_id)` | todos | Pede um livro além do limite |
 | `listar_solicitacoes_pendentes(solicitante_id)` | biblioteca | Pedidos esperando resposta |
@@ -61,7 +63,7 @@ Cada chamada de função roda numa transação só: se der erro no meio, nada fi
 | Função | Perfil | O que faz |
 |---|---|---|
 | `avaliar_livro(usuario_id, livro_id, nota, comentario)` ★ | todos | Cria ou atualiza a nota (1 a 5). Só para quem já pegou o livro |
-| `apagar_avaliacao(usuario_id, avaliacao_id)` ★ | todos | Apaga a própria (a biblioteca pode apagar qualquer uma) |
+| `apagar_avaliacao(usuario_id, avaliacao_id)` ★ | todos | Apaga a própria; a biblioteca pode remover qualquer uma (moderação registrada nos logs) |
 | `medias_avaliacoes()` ★ | todos | Média e total de cada livro, para as estrelas do catálogo |
 | `listar_favoritos(usuario_id)` ★ | todos | Lista Quero ler |
 | `alternar_favorito(usuario_id, livro_id)` ★ | todos | Coloca ou tira da lista |
@@ -91,13 +93,15 @@ Cada chamada de função roda numa transação só: se der erro no meio, nada fi
 |---|---|
 | `libro_hoje()` | A data de hoje no fuso de Brasília (o servidor do Supabase roda em UTC) |
 | `libro_data_local(momento)` | O dia, em Brasília, de um horário qualquer |
-| `libro_manutencao()` | Arrumação automática: encerra suspensões vencidas, conclui reservas atendidas e expira reservas não retiradas em 48h, chamando o próximo da fila. Roda sozinha sempre que alguém abre a página inicial ou o painel, então não precisa de agendador |
+| `libro_manutencao()` | Arrumação automática: encerra suspensões vencidas, conclui reservas atendidas e expira reservas não retiradas em 3 dias e chama o próximo da fila sempre que sobra exemplar livre. Roda sozinha sempre que alguém abre a página inicial ou o painel, então não precisa de agendador |
 
 ## E-mails
 
 Os e-mails saem pela Edge Function `send-email` do Supabase, que usa o Resend. O front-end chama com `db.functions.invoke('send-email', { body: { to, subject, html } })` (veja `TR/emailHelper.js`) nestes momentos:
 
 - **Suspensão**: logo depois de uma devolução com atraso.
-- **Reserva chegou**: logo depois da devolução que liberou o livro para o primeiro da fila.
+- **Reserva confirmada**: logo depois de reservar, com a posição na fila.
+- **Reserva chegou**: logo depois da devolução que liberou o livro; quando a fila anda sozinha (reserva vencida ou cancelada), o e-mail sai quando a biblioteca abre o site.
+- **Conta criada**: logo depois do cadastro.
 - **Renovação**: confirmação com a nova data.
 - **Lembrete de prazo**: quando a biblioteca clica em "Enviar Lembretes".

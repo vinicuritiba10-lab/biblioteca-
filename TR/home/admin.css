@@ -504,3 +504,8 @@ a:hover{
 .campo-preenchido { box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.35) !important; transition: box-shadow 0.4s ease; }
 .previa-capa { margin-top: 10px; font-size: 13px; color: var(--cor-texto-suave, #636e72); }
 .previa-capa img { height: 150px; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+
+/* ===== Botão "Buscar capas que faltam" (isbn.js) ===== */
+.acervo-ferramentas { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 18px; }
+.acervo-ferramentas .btn-isbn { padding: 10px 16px; }
+.acervo-ferramentas .dica-campo { margin: 0; flex: 1 1 260px; }

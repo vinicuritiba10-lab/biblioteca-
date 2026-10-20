@@ -181,7 +181,25 @@ function templateSuspensao(nome, livroTitulo, diasAtraso, dataFimSuspensao) {
     });
 }
 
-function templateReservaDisponivel(nome, livroTitulo) {
+function templateReservaConfirmada(nome, livroTitulo, posicao) {
+    return layoutEmail({
+        cor: CORES_EMAIL.roxo,
+        etiqueta: 'Reserva confirmada',
+        titulo: posicao > 1 ? `Você é o ${posicao}º da fila` : 'Você é o primeiro da fila',
+        resumo: `Sua reserva de "${livroTitulo}" foi registrada.`,
+        nome,
+        paragrafos: ['Sua reserva foi registrada. Quando um exemplar voltar para a biblioteca e chegar a sua vez, avisamos por e-mail.'],
+        livro: livroTitulo,
+        linhas: [
+            ['Posição na fila', `${escaparEmail(posicao || 1)}º`],
+            ['Prazo para retirar, quando chegar', '3 dias']
+        ],
+        botao: { texto: 'Ver minhas reservas', caminho: 'login/index.html' },
+        nota: 'Mudou de ideia? Você pode sair da fila pela aba Reservas ou pela ficha do livro.'
+    });
+}
+
+function templateReservaDisponivel(nome, livroTitulo, retirarAte) {
     return layoutEmail({
         cor: CORES_EMAIL.verde,
         etiqueta: 'Reserva disponível',
@@ -190,9 +208,9 @@ function templateReservaDisponivel(nome, livroTitulo) {
         nome,
         paragrafos: ['O livro que você reservou voltou para a biblioteca e está guardado para você.'],
         livro: livroTitulo,
-        linhas: [['Prazo para retirar', '48 horas']],
+        linhas: [['Retire até', retirarAte ? dataEmail(retirarAte) : '3 dias a partir de hoje']],
         botao: { texto: 'Ver minhas reservas', caminho: 'login/index.html' },
-        nota: 'Se não for retirado nesse prazo, a vez passa para o próximo da fila.'
+        nota: 'Se não for retirado até essa data, a vez passa para o próximo da fila.'
     });
 }
 
@@ -210,7 +228,7 @@ function enviarEmailsDaDevolucao(data) {
         enviarEmail(
             data.reserva_usuario_email,
             `🔖 Sua reserva chegou - ${data.livro_titulo}`,
-            templateReservaDisponivel(data.reserva_usuario_nome, data.livro_titulo)
+            templateReservaDisponivel(data.reserva_usuario_nome, data.livro_titulo, new Date(Date.now() + 3 * 86400000))
         );
     }
 }

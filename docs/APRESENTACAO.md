@@ -63,7 +63,7 @@ Cada chamada de função no PostgreSQL roda numa transação. A verificação do
 O servidor do Supabase roda em UTC. As funções novas usam `libro_hoje()`, que devolve a data em Brasília, senão um livro "atrasaria" às 21h do último dia.
 
 **Como as tarefas automáticas rodam sem servidor?**
-Sempre que alguém abre a página inicial ou o painel, a função `libro_manutencao()` encerra suspensões vencidas e expira reservas não retiradas em 48h. Como a escola usa o sistema todo dia, isso roda várias vezes por dia sem precisar de agendador.
+Sempre que alguém abre a página inicial ou o painel, a função `libro_manutencao()` encerra suspensões vencidas, expira reservas não retiradas em 3 dias e chama o próximo da fila. Os e-mails que ficam pendentes são enviados quando a biblioteca abre o site. Como a escola usa o sistema todo dia, isso roda várias vezes por dia sem precisar de agendador.
 
 **Como funcionam as recomendações?**
 Uma consulta SQL conta as categorias que o aluno mais pegou e sugere livros dessas categorias que ele ainda não leu, com os disponíveis primeiro e depois os mais populares. Não é inteligência artificial; é uma regra simples e explicável.

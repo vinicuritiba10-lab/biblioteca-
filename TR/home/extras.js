@@ -16,6 +16,7 @@
         medias: {},              // livro_id -> { media, total }
         favoritos: new Set(),    // ids dos livros em "Quero ler"
         livroAberto: null,       // id do livro aberto na ficha
+        reservas: {},            // livro_id -> { guardados, fila } (exemplares guardados para outras pessoas)
         painelAtual: null        // função para recarregar o painel admin aberto
     };
 
@@ -57,10 +58,38 @@
     });
 
     async function atualizarInicio() {
-        await Promise.allSettled([carregarMedias(), carregarFavoritos()]);
+        await Promise.allSettled([carregarMedias(), carregarFavoritos(), carregarSituacaoReservas()]);
         pintarCards();
-        carregarAlertas();
+        carregarAlertas().then(() => { if (ehBiblioteca()) enviarAvisosPendentes(); });
         carregarVitrines();
+    }
+
+    async function carregarSituacaoReservas() {
+        try {
+            estado.reservas = await rpc("situacao_reservas", { p_usuario_id: eu().id }) || {};
+        } catch (erro) {
+            estado.reservas = {};
+        }
+    }
+
+    // exemplares que o aluno realmente pode pegar (tira os guardados para reservas de outros)
+    function exemplaresLivres(livro) {
+        const guardados = (estado.reservas[livro.id] || {}).guardados || 0;
+        return Math.max((livro.quantidade_disponivel || 0) - guardados, 0);
+    }
+
+    // E-mails "sua reserva chegou" que o banco deixou pendentes (quando a fila anda sozinha).
+    // Só a biblioteca envia, para os e-mails dos alunos não passarem pelo navegador de outros alunos.
+    async function enviarAvisosPendentes() {
+        try {
+            const avisos = await rpc("pegar_avisos_pendentes", { p_solicitante_id: eu().id });
+            for (const aviso of avisos) {
+                enviarEmail(aviso.email, `🔖 Sua reserva chegou - ${aviso.livro_titulo}`,
+                    templateReservaDisponivel(aviso.nome, aviso.livro_titulo, aviso.retirar_ate));
+            }
+        } catch (erro) {
+            console.warn("avisos de reserva não enviados:", erro.message);
+        }
     }
     window.atualizarInicio = atualizarInicio;
 
@@ -154,8 +183,9 @@
             detalhe = `${desenharEstrelas(livro.media)} ${formatarNota(livro.media)}`;
             classe = "vitrine-detalhe-neutro";
         } else {
-            const disponivel = livro.quantidade_disponivel > 0;
-            detalhe = disponivel ? "Disponível" : "Todos emprestados";
+            const disponivel = exemplaresLivres(livro) > 0;
+            const guardado = !disponivel && livro.quantidade_disponivel > 0;
+            detalhe = disponivel ? "Disponível" : guardado ? "Guardado para reserva" : "Todos emprestados";
             classe = disponivel ? "" : "vitrine-detalhe-ocupado";
         }
 
@@ -205,6 +235,27 @@
         });
         document.querySelectorAll("[data-favorito]").forEach(botao => {
             marcarBotaoFavorito(botao, estado.favoritos.has(Number(botao.dataset.favorito)));
+        });
+        document.querySelectorAll(".book-card[data-disponivel]").forEach(card => {
+            const id = Number(card.dataset.livroId);
+            const situacao = estado.reservas[id];
+            if (!situacao || !situacao.guardados) return;
+            const livres = exemplaresLivres({ id, quantidade_disponivel: Number(card.dataset.disponivel) });
+            const status = card.querySelector(".status");
+            const botao = card.querySelector(".btn-borrow:not(.btn-reservar)");
+            if (livres > 0) {
+                if (status) status.textContent = `● Disponível (${livres})`;
+            } else {
+                if (status) {
+                    status.textContent = "● Guardado para reserva";
+                    status.classList.replace("disponivel", "ocupado");
+                }
+                if (botao) {
+                    botao.classList.add("btn-reservar");
+                    botao.textContent = "🔖 Reservar";
+                    botao.setAttribute("onclick", `reservarLivro(${id})`);
+                }
+            }
         });
     }
     window.aoExibirLivros = pintarCards;
@@ -307,8 +358,8 @@
         }
     };
 
-    function fichaHTML({ livro, avaliacoes, fila_reservas, total_emprestimos, usuario }) {
-        const disponiveis = livro.quantidade_disponivel || 0;
+    function fichaHTML({ livro, avaliacoes, fila_reservas, total_emprestimos, usuario, livres, guardados, reservado_ate }) {
+        const disponiveis = livres ?? (livro.quantidade_disponivel || 0);
         const total = livro.quantidade_total || 0;
         const percentual = total ? Math.round((disponiveis / total) * 100) : 0;
         const favorito = usuario?.favorito;
@@ -342,12 +393,14 @@
                         <div class="ficha-estoque-barra"><span style="width:${percentual}%"></span></div>
                         <p>${disponiveis > 0
                             ? `<strong>${disponiveis} de ${total}</strong> exemplares disponíveis`
-                            : `Todos os ${total} exemplares estão emprestados`}
+                            : guardados
+                                ? `${plural(guardados, "exemplar guardado", "exemplares guardados")} para quem reservou, até ${formatarData(reservado_ate)}`
+                                : `Todos os ${total} exemplares estão emprestados`}
                            ${fila_reservas ? ` · ${plural(fila_reservas, "pessoa", "pessoas")} na fila de reserva` : ""}</p>
                     </div>
 
                     <div class="ficha-acoes">
-                        ${acaoPrincipalHTML(livro, usuario)}
+                        ${acaoPrincipalHTML(livro, usuario, disponiveis)}
                         <button type="button" class="btn-quero-ler ${favorito ? "ativo" : ""}" aria-pressed="${favorito ? "true" : "false"}"
                             onclick="alternarFavorito(${livro.id}, this)">${favorito ? "♥ Na lista Quero ler" : "♡ Quero ler"}</button>
                     </div>
@@ -369,20 +422,20 @@
             </section>`;
     }
 
-    function acaoPrincipalHTML(livro, usuario) {
+    function acaoPrincipalHTML(livro, usuario, livres) {
         if (usuario?.emprestimo_ativo) {
             const prazo = descreverPrazo(usuario.emprestimo_ativo.data_prevista_devolucao);
             return `<p class="ficha-situacao ficha-situacao-${prazo.nivel}">📖 Este livro está com você. ${prazo.texto}.</p>`;
         }
         if (usuario?.reserva) {
             return usuario.reserva.status === "disponivel"
-                ? `<p class="ficha-situacao ficha-situacao-ok">🔖 Sua reserva chegou! Retire na biblioteca.</p>`
+                ? `<p class="ficha-situacao ficha-situacao-ok">🔖 Sua reserva chegou! Retire na biblioteca${usuario.reserva.retirar_ate ? ` até ${formatarData(usuario.reserva.retirar_ate)}` : ""}.</p>`
                 : `<div class="ficha-fila">
-                       <p class="ficha-situacao">🔖 Você está na fila de reserva deste livro.</p>
+                       <p class="ficha-situacao">🔖 Você é o ${usuario.reserva.posicao || 1}º da fila de reserva deste livro.</p>
                        <button type="button" class="btn-link btn-link-perigo" onclick="sairDaFila(${usuario.reserva.id}, ${livro.id})">Sair da fila</button>
                    </div>`;
         }
-        if (livro.quantidade_disponivel > 0) {
+        if (livres > 0) {
             return `<button type="button" class="btn-borrow" onclick="pegarPelaFicha(${livro.id})">Pegar emprestado</button>`;
         }
         return `<button type="button" class="btn-borrow btn-reservar" onclick="reservarPelaFicha(${livro.id})">🔖 Entrar na fila de reserva</button>`;
@@ -470,8 +523,24 @@
                     <time>${formatarData(a.data_avaliacao)}</time>
                 </div>
                 ${a.comentario ? `<p>${escaparHTML(a.comentario)}</p>` : ""}
+                ${ehBiblioteca() && a.usuario_id !== eu().id
+                    ? `<button type="button" class="btn-link btn-link-perigo avaliacao-moderar" onclick="removerAvaliacaoDeAluno(${a.id})">Remover avaliação</button>`
+                    : ""}
             </li>`;
     }
+
+    window.removerAvaliacaoDeAluno = async function (avaliacaoId) {
+        if (!await showConfirm("Remover esta avaliação? Use para comentários ofensivos ou fora do assunto. A remoção fica registrada nos logs.", "Remover", "Cancelar")) return;
+        try {
+            await rpc("apagar_avaliacao", { p_usuario_id: eu().id, p_avaliacao_id: avaliacaoId });
+            showToast("Avaliação removida", "info");
+            await carregarMedias();
+            pintarCards();
+            if (estado.livroAberto) abrirDetalhesLivro(estado.livroAberto, "manter");
+        } catch (erro) {
+            showToast(erro.message, "error");
+        }
+    };
 
     function ligarFormularioAvaliacao({ livro }) {
         const form = document.querySelector(".avaliacao-form");
@@ -727,6 +796,7 @@
         if (manterPosicao !== true) area.innerHTML = `<div class="admin-panel"><p>Montando o painel...</p></div>`;
 
         try {
+            enviarAvisosPendentes();
             const p = await rpc("painel_biblioteca", { p_solicitante_id: eu().id });
             area.innerHTML = painelHTML(p);
         } catch (erro) {

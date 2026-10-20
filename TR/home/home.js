@@ -238,7 +238,7 @@ function exibirLivros(livros) {
         const disponivel = livro.quantidade_disponivel > 0;
         const titulo = escaparHTML(livro.titulo);
         return `
-        <div class="book-card" data-livro-id="${livro.id}">
+        <div class="book-card" data-livro-id="${livro.id}" data-disponivel="${livro.quantidade_disponivel}">
             <button type="button" class="btn-favorito" data-favorito="${livro.id}"
                 onclick="alternarFavorito(${livro.id}, this)" aria-label="Guardar ${titulo} em Quero ler" aria-pressed="false">♡</button>
             <div class="book-cover ${cores[index % cores.length]}" ${livro.capa_url ? 'style="padding:0;"' : ''}
@@ -401,7 +401,7 @@ async function mostrarMinhasReservas() {
 }
 
 window.reservarLivro = async function(livroId) {
-    if (!await showConfirm('Esse livro está indisponível agora. Deseja reservar para quando ele voltar?', 'Reservar')) return;
+    if (!await showConfirm('Esse livro não tem exemplar livre agora. Deseja entrar na fila de reserva? Avisamos por e-mail quando chegar a sua vez.', 'Reservar')) return;
 
     try {
         const { data, error } = await db.rpc('reservar_livro', {
@@ -411,7 +411,12 @@ window.reservarLivro = async function(livroId) {
 
         if (error) throw error;
 
-        showToast(data.message, 'success');
+        showToast(data.message, 'success', 5000);
+        if (data.usuario_email) {
+            enviarEmail(data.usuario_email, `🔖 Reserva confirmada - ${data.livro_titulo}`,
+                templateReservaConfirmada(data.usuario_nome, data.livro_titulo, data.posicao));
+        }
+        if (window.atualizarInicio) window.atualizarInicio();
     } catch (error) {
         showToast(error.message || 'Erro ao reservar livro', 'error');
     }
