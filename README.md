@@ -21,7 +21,7 @@ Sistema para facilitar a vida dos alunos e dos profissionais das bibliotecas esc
 - Catálogo com busca por título, autor ou categoria (também pelo nome com acento, como "História")
 - Ficha completa do livro: sinopse, exemplares livres, fila de reserva e avaliações dos colegas
 - Empréstimo com limite de 2 livros, renovação (até 2 vezes, +7 dias) e prazo visível ("vence amanhã", "atrasado há 2 dias")
-- Fila de reserva: quando o livro volta, o aluno recebe e-mail e tem 48h para retirar
+- Fila de reserva com e-mail de confirmação e posição na fila; quando chega a vez, o aluno recebe e-mail e tem 3 dias para retirar
 - Pedido de empréstimo extra quando atinge o limite
 - Avaliação de 1 a 5 estrelas com comentário (só para quem já pegou o livro)
 - Lista "Quero ler"
@@ -83,6 +83,10 @@ Para voltar as funções antigas, rode [`supabase/desfazer-v2.sql`](supabase/des
 
 Depois, rode também [`supabase/migracao-v3.sql`](supabase/migracao-v3.sql): com ela, toda conta nova é de aluno e só o administrador promove bibliotecários. Para desfazer: [`supabase/desfazer-v3.sql`](supabase/desfazer-v3.sql).
 
+Em seguida, [`supabase/migracao-v4.sql`](supabase/migracao-v4.sql): reservas com prazo de 3 dias, fila visível, e-mails de reserva e moderação de avaliações. Para desfazer: [`supabase/desfazer-v4.sql`](supabase/desfazer-v4.sql).
+
+Para começar com um acervo de exemplo, rode [`supabase/acervo-inicial.sql`](supabase/acervo-inicial.sql) (118 livros, sem duplicar os que já existem). Se já rodou a primeira versão dele, rode [`supabase/acervo-correcao.sql`](supabase/acervo-correcao.sql). As capas e os ISBNs são preenchidos editando cada livro; em Gerenciar Livros, o filtro "Sem capa" mostra quais faltam.
+
 ## ▶️ Como rodar e testar
 - **Site:** qualquer servidor de arquivos estáticos serve. Exemplo: `npx serve .` e abra o endereço que aparecer. No GitHub Pages, basta enviar os arquivos.
 - **Testes:** `npm install` uma vez e depois `npm test`.
@@ -107,12 +111,13 @@ Utilizamos o **Claude (Anthropic)** como copiloto de código durante o desenvolv
 | A busca rodava duas vezes a cada clique | Os eventos dos botões eram registrados duas vezes | Remoção do registro duplicado |
 | Sinopse aparecia como "null" ou quebrava a página | Texto inserido no HTML sem tratar aspas e valores vazios | Ficha do livro nova, com o texto tratado antes de exibir |
 | Menu saía da tela em notebooks | Cabeçalho largo demais entre 900px e 1440px | Versão compacta do cabeçalho nessa faixa de largura |
-| Reserva "disponível" ficava parada para sempre | Não havia prazo para retirar o livro | Prazo de 48h, e-mail de aviso e passagem automática para o próximo da fila |
+| Reserva "disponível" ficava parada para sempre | Não havia prazo para retirar o livro | Prazo para retirar (hoje, 3 dias), e-mail de aviso e passagem automática para o próximo da fila |
 | Custo de manter um servidor ligado no Railway | O Express precisava rodar 24 horas | Regras movidas para funções SQL no Supabase e site publicado de graça no GitHub Pages |
 | Botão "Enviar Lembretes" parou de funcionar | Ele ainda chamava o servidor do Railway | Passou a usar a função `listar_lembretes_devolucao` do Supabase |
 | App instalado não funcionava no GitHub Pages | Caminhos começando com `/` apontavam para fora da pasta do projeto | Caminhos relativos no service worker e no manifesto |
 | Aluno suspenso conseguia pegar livro | A função de empréstimo não conferia suspensões | Verificação de suspensão dentro do `pegar_emprestado` |
 | Qualquer pessoa podia se cadastrar como bibliotecário | O cadastro deixava escolher o perfil e o banco aceitava | Toda conta nova é de aluno, e só o administrador promove bibliotecários (no banco, não só na tela) |
+| Aluno não conseguia pegar nem reservar um livro | Quando o exemplar livre estava guardado para outra reserva, o banco dizia que o livro estava disponível, mas não deixava pegar | A reserva passou a desconsiderar exemplares guardados, e o catálogo mostra "Guardado para reserva" |
 | Planilhas sem identidade visual | O formato CSV não guarda cores nem imagens | Planilhas do Excel (.xlsx) geradas no navegador, com logo, cores e filtros |
 
 ## 🗓️ Cronograma

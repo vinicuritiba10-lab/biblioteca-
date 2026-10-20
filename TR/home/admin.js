@@ -173,6 +173,9 @@ window.deletarUsuario = async function(userId) {
 
 // ========== FUNÇÕES PARA GERENCIAR LIVROS ==========
 
+// Livros carregados do banco; a busca e os filtros trabalham em cima desta lista
+let acervoAdmin = [];
+
 async function carregarListaLivros() {
     const container = document.getElementById('lista-livros-admin');
     if (!container) return;
@@ -180,60 +183,128 @@ async function carregarListaLivros() {
     indicarCarregando(container, '<div class="loading">🔄 Carregando livros...</div>');
 
     try {
-        const { data: livros, error } = await db.from('livros').select('*').order('id');
-
+        const { data: livros, error } = await db.from('livros').select('*').order('titulo');
         if (error) throw error;
 
-        if (livros.length === 0) {
-            container.innerHTML = '<div class="empty-message">📭 Nenhum livro cadastrado</div>';
-            return;
-        }
-
+        acervoAdmin = livros;
         const totalLivros = document.getElementById('total-livros');
         if (totalLivros) totalLivros.textContent = livros.length;
 
-        let html = '<div class="livros-grid-admin">';
-
-        for (const livro of livros) {
-            const disponivel = livro.quantidade_disponivel > 0;
-            const capaImg = livro.capa_url
-                ? `<img src="${livro.capa_url}" alt="Capa de ${livro.titulo}" class="livro-capa-admin" onerror="this.style.display='none'">`
-                : '';
-            html += `
-                <div class="livro-card-admin">
-                    ${capaImg}
-                    <div class="livro-header">
-                        <h3 class="livro-titulo">📖 ${livro.titulo}</h3>
-                        <span class="livro-id">ID: ${livro.id}</span>
-                    </div>
-                    <div class="livro-autor">✍️ Autor: ${livro.autor}</div>
-                    <div class="livro-info">
-                        <span class="info-badge">📌 ${livro.categoria || 'Sem categoria'}</span>
-                        <span class="info-badge">🏢 ${livro.editora || 'Sem editora'}</span>
-                        <span class="info-badge">📅 ${livro.ano || 'Ano não informado'}</span>
-                    </div>
-                    <div class="livro-info">
-                        <span class="info-badge">📚 Total: ${livro.quantidade_total}</span>
-                        <span class="info-badge ${disponivel ? 'status-disponivel' : 'status-indisponivel'}">
-                            ${disponivel ? `✅ Disponível: ${livro.quantidade_disponivel}` : '❌ Indisponível'}
-                        </span>
-                    </div>
-                    <div class="livro-acoes-admin">
-                        <button class="btn-editar" onclick="window.editarLivro(${livro.id})">✏️ Editar</button>
-                        ${usuarioAtual.tipo === 'admin' ? `<button class="btn-excluir" onclick="window.excluirLivro(${livro.id})">🗑️ Excluir</button>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        html += '</div>';
-        container.innerHTML = html;
-
+        desenharListaLivros();
     } catch (error) {
         console.error('Erro:', error);
         container.innerHTML = '<div class="error-message">❌ Erro ao carregar livros</div>';
     }
 }
+
+// sem acento e em minúsculas, para "historia" achar "História"
+function textoParaBusca(texto) {
+    return String(texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function livroPassaNosFiltros(livro) {
+    const termo = textoParaBusca(document.getElementById('busca-acervo')?.value.trim());
+    const categoria = document.getElementById('filtro-categoria')?.value || '';
+    const situacao = document.getElementById('filtro-situacao')?.value || '';
+
+    if (termo) {
+        const onde = textoParaBusca(`${livro.titulo} ${livro.autor} ${livro.editora} ${livro.isbn}`);
+        if (!onde.includes(termo)) return false;
+    }
+    if (categoria && String(livro.categoria || '').toLowerCase() !== categoria) return false;
+    if (situacao === 'disponiveis' && !(livro.quantidade_disponivel > 0)) return false;
+    if (situacao === 'emprestados' && livro.quantidade_disponivel > 0) return false;
+    if (situacao === 'sem-capa' && String(livro.capa_url || '').trim()) return false;
+    if (situacao === 'sem-sinopse' && String(livro.descricao || '').trim()) return false;
+    return true;
+}
+
+function desenharListaLivros() {
+    const container = document.getElementById('lista-livros-admin');
+    const contagem = document.getElementById('contagem-acervo');
+    if (!container) return;
+
+    if (acervoAdmin.length === 0) {
+        container.innerHTML = '<div class="empty-message">📭 Nenhum livro cadastrado</div>';
+        if (contagem) contagem.textContent = '';
+        return;
+    }
+
+    const livros = acervoAdmin.filter(livroPassaNosFiltros);
+    if (contagem) {
+        contagem.textContent = livros.length === acervoAdmin.length
+            ? `${acervoAdmin.length} livros no acervo`
+            : `Mostrando ${livros.length} de ${acervoAdmin.length} livros`;
+    }
+
+    if (livros.length === 0) {
+        container.innerHTML = '<div class="empty-message">🔎 Nenhum livro encontrado com esses filtros.</div>';
+        return;
+    }
+
+    container.innerHTML = '<div class="livros-grid-admin">' + livros.map(livro => {
+        const disponivel = livro.quantidade_disponivel > 0;
+        const titulo = escaparHTML(livro.titulo);
+        const capaImg = livro.capa_url
+            ? `<img src="${escaparHTML(livro.capa_url)}" alt="Capa de ${titulo}" class="livro-capa-admin" onerror="this.style.display='none'">`
+            : '';
+        const categoria = livro.categoria
+            ? `${iconeCategoria(livro.categoria)} ${escaparHTML(nomeCategoria(livro.categoria))}`
+            : '📌 Sem categoria';
+        return `
+            <div class="livro-card-admin">
+                ${capaImg}
+                <div class="livro-header">
+                    <h3 class="livro-titulo">📖 ${titulo}</h3>
+                    <span class="livro-id">ID: ${livro.id}</span>
+                </div>
+                <div class="livro-autor">✍️ Autor: ${escaparHTML(livro.autor)}</div>
+                <div class="livro-info">
+                    <span class="info-badge">${categoria}</span>
+                    <span class="info-badge">🏢 ${escaparHTML(livro.editora || 'Sem editora')}</span>
+                    <span class="info-badge">📅 ${livro.ano || 'Ano não informado'}</span>
+                </div>
+                <div class="livro-info">
+                    <span class="info-badge">📚 Total: ${livro.quantidade_total}</span>
+                    <span class="info-badge ${disponivel ? 'status-disponivel' : 'status-indisponivel'}">
+                        ${disponivel ? `✅ Disponível: ${livro.quantidade_disponivel}` : '❌ Indisponível'}
+                    </span>
+                </div>
+                <div class="livro-acoes-admin">
+                    <button class="btn-editar" onclick="window.editarLivro(${livro.id})">✏️ Editar</button>
+                    ${usuarioAtual.tipo === 'admin' ? `<button class="btn-excluir" onclick="window.excluirLivro(${livro.id})">🗑️ Excluir</button>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('') + '</div>';
+}
+
+// liga a busca e os filtros (as categorias vêm de TR/categorias.js)
+document.addEventListener('DOMContentLoaded', () => {
+    const busca = document.getElementById('busca-acervo');
+    const categoria = document.getElementById('filtro-categoria');
+    const situacao = document.getElementById('filtro-situacao');
+    const limpar = document.getElementById('limpar-filtros');
+    if (!busca || !categoria || !situacao) return;
+
+    if (window.LIBRO_CATEGORIAS) {
+        categoria.insertAdjacentHTML('beforeend', LIBRO_CATEGORIAS
+            .map(c => `<option value="${c.chave}">${c.icone} ${c.nome}</option>`).join(''));
+    }
+
+    busca.addEventListener('input', desenharListaLivros);
+    categoria.addEventListener('change', desenharListaLivros);
+    situacao.addEventListener('change', desenharListaLivros);
+    if (limpar) {
+        limpar.addEventListener('click', () => {
+            busca.value = '';
+            categoria.value = '';
+            situacao.value = '';
+            desenharListaLivros();
+            busca.focus();
+        });
+    }
+});
 
 async function adicionarLivro(event) {
     event.preventDefault();

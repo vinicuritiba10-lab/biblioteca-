@@ -132,10 +132,21 @@
                     Acervo da Biblioteca
                     <span id="total-livros" style="font-size: 14px; background: #e9ecef; padding: 5px 12px; border-radius: 20px;"></span>
                 </h2>
-                <div class="acervo-ferramentas">
-                    <button type="button" id="btn-buscar-capas" class="btn-isbn">🖼️ Buscar capas que faltam</button>
-                    <span id="progresso-capas" class="dica-campo" aria-live="polite">Procura no Google Livros a capa, o ISBN e a editora dos livros sem capa.</span>
+                <div class="acervo-filtros" role="search">
+                    <input type="search" id="busca-acervo" placeholder="Buscar por título, autor, editora ou ISBN" aria-label="Buscar no acervo">
+                    <select id="filtro-categoria" aria-label="Filtrar por categoria">
+                        <option value="">Todas as categorias</option>
+                    </select>
+                    <select id="filtro-situacao" aria-label="Filtrar por situação">
+                        <option value="">Todas as situações</option>
+                        <option value="disponiveis">Com exemplar disponível</option>
+                        <option value="emprestados">Todos emprestados</option>
+                        <option value="sem-capa">Sem capa</option>
+                        <option value="sem-sinopse">Sem sinopse</option>
+                    </select>
+                    <button type="button" id="limpar-filtros" class="btn-limpar-filtros">Limpar filtros</button>
                 </div>
+                <p id="contagem-acervo" class="dica-campo contagem-acervo" aria-live="polite"></p>
                 <div id="lista-livros-admin" class="livros-grid-admin">
                     <div class="loading">Carregando livros...</div>
                 </div>
@@ -150,6 +161,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="../supabaseClient.js"></script>
     <script src="../utils.js"></script>
+    <script src="../categorias.js"></script>
     <script src="admin.js"></script>
     <script src="isbn.js"></script>
     <script src="../pwa-register.js"></script>

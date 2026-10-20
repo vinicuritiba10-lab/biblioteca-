@@ -505,7 +505,33 @@ a:hover{
 .previa-capa { margin-top: 10px; font-size: 13px; color: var(--cor-texto-suave, #636e72); }
 .previa-capa img { height: 150px; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
 
-/* ===== Botão "Buscar capas que faltam" (isbn.js) ===== */
-.acervo-ferramentas { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 18px; }
-.acervo-ferramentas .btn-isbn { padding: 10px 16px; }
-.acervo-ferramentas .dica-campo { margin: 0; flex: 1 1 260px; }
+/* ===== Busca e filtros do acervo (admin.js) ===== */
+.acervo-filtros { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 8px; }
+.acervo-filtros input[type="search"],
+.acervo-filtros select {
+    padding: 10px 12px;
+    border: 2px solid var(--cor-borda, #e4e7eb);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    background: var(--cor-fundo-card, #fff);
+    color: var(--cor-texto, #2d3436);
+}
+.acervo-filtros input[type="search"] { flex: 1 1 280px; min-width: 0; }
+.acervo-filtros select { flex: 0 1 220px; cursor: pointer; }
+.acervo-filtros input:focus,
+.acervo-filtros select:focus { outline: none; border-color: var(--cor-secundaria, #764ba2); }
+.btn-limpar-filtros {
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    color: var(--cor-secundaria, #764ba2);
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.contagem-acervo { margin: 0 0 18px; }
+/* contador de livros ao lado do título: legível também no modo escuro */
+[data-theme="dark"] #total-livros { background: var(--cor-fundo-sutil, #262838) !important; color: var(--cor-texto, #e8e8ef) !important; }
