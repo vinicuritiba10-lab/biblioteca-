@@ -216,6 +216,7 @@ function livroPassaNosFiltros(livro) {
     if (situacao === 'emprestados' && livro.quantidade_disponivel > 0) return false;
     if (situacao === 'sem-capa' && String(livro.capa_url || '').trim()) return false;
     if (situacao === 'sem-sinopse' && String(livro.descricao || '').trim()) return false;
+    if (situacao === 'sem-isbn' && String(livro.isbn || '').trim()) return false;
     return true;
 }
 
@@ -382,6 +383,7 @@ window.editarLivro = async function(livroId) {
         document.getElementById('categoria').value = livro.categoria || '';
         document.getElementById('quantidade_total').value = livro.quantidade_total || 1;
         document.getElementById('capa_url').value = livro.capa_url || '';
+        document.getElementById('texto-da-sinopse').value = livro.descricao || '';
         if (window.atualizarPreviaCapa) window.atualizarPreviaCapa();
 
         livroEmEdicaoId = livro.id;
