@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidade | Libro</title>
+    <link rel="icon" href="../img/icon-192.png">
+    <script>
+        // aplica o tema salvo antes de desenhar a página (evita piscar)
+        (function () {
+            try {
+                var tema = localStorage.getItem('libro-tema');
+                if (tema) document.documentElement.setAttribute('data-theme', tema);
+            } catch (e) {}
+        })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../tokens.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Poppins', Arial, sans-serif;
+            background: #f4f2f8;
+            color: #2d3436;
+            line-height: 1.7;
+        }
+        .topo {
+            background: linear-gradient(135deg, #ec380b, #764ba2);
+            color: #fff;
+            padding: 28px 20px;
+        }
+        .topo-conteudo, main { max-width: 760px; margin: 0 auto; }
+        .topo a { color: #fff; font-weight: 600; text-decoration: none; }
+        .topo h1 { margin: 10px 0 4px; font-size: 1.8rem; line-height: 1.25; }
+        .topo p { margin: 0; opacity: 0.9; }
+        main {
+            background: #fff;
+            margin-top: -12px;
+            margin-bottom: 40px;
+            padding: 28px 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+        }
+        h2 { font-size: 1.15rem; margin: 28px 0 8px; color: #764ba2; }
+        h2:first-child { margin-top: 0; }
+        p, li { font-size: 0.97rem; }
+        ul { padding-left: 22px; }
+        li { margin-bottom: 4px; }
+        .resumo {
+            background: #f8f5fc;
+            border-radius: 12px;
+            padding: 16px 20px;
+        }
+        .rodape { font-size: 0.85rem; color: #636e72; margin-top: 28px; }
+
+        [data-theme="dark"] body { background: #14151e; color: #e8e8ef; }
+        [data-theme="dark"] main { background: #1d1f2b; box-shadow: none; }
+        [data-theme="dark"] h2 { color: #b794e6; }
+        [data-theme="dark"] .resumo { background: #262838; }
+        [data-theme="dark"] .rodape { color: #a0a4b8; }
+        @media (max-width: 600px) {
+            main { padding: 22px 18px; border-radius: 0; margin-top: 0; }
+            .topo h1 { font-size: 1.45rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topo">
+        <div class="topo-conteudo">
+            <a href="cadastro.html">← Voltar ao cadastro</a>
+            <h1>Política de Privacidade do Libro</h1>
+            <p>Atualizada em 05/11/2026</p>
+        </div>
+    </header>
+
+    <main>
+        <section class="resumo">
+            <h2>Em resumo</h2>
+            <p>O Libro guarda só os dados necessários para a biblioteca funcionar: quem você é, os livros que pegou e os avisos que você precisa receber. Seus dados não são vendidos nem usados para propaganda, e você pode pedir para ver, corrigir ou apagar seus dados a qualquer momento.</p>
+        </section>
+
+        <h2>Por que existe esta página</h2>
+        <p>A Lei Geral de Proteção de Dados (Lei nº 13.709/2018, a LGPD) determina que quem coleta dados pessoais explique quais dados guarda, para que usa e quais são os direitos de quem é dono desses dados. Esta página faz essa explicação.</p>
+
+        <h2>Quais dados o Libro guarda</h2>
+        <ul>
+            <li><strong>Cadastro:</strong> seu nome, seu e-mail da escola, a escola em que você estuda e sua senha. A senha é guardada de forma criptografada (com hash bcrypt): nem a equipe da biblioteca consegue ver.</li>
+            <li><strong>Uso da biblioteca:</strong> livros emprestados, devolvidos e renovados, reservas, pedidos de empréstimo extra e suspensões por atraso.</li>
+            <li><strong>Participação:</strong> as notas e os comentários que você der aos livros e a sua lista “Quero ler”.</li>
+            <li><strong>Registros de segurança:</strong> ações importantes, como entrar no sistema ou fazer um empréstimo, com data e hora.</li>
+        </ul>
+
+        <h2>Para que esses dados são usados</h2>
+        <ul>
+            <li>Controlar os empréstimos, as devoluções, a fila de reservas e as suspensões.</li>
+            <li>Enviar e-mails sobre a sua conta: boas-vindas, prazos de devolução, renovações, reservas e suspensões.</li>
+            <li>Mostrar o seu histórico e as suas conquistas em “Minha Conta”.</li>
+            <li>Gerar indicadores para a biblioteca, como os livros mais emprestados e as devoluções atrasadas.</li>
+        </ul>
+
+        <h2>Quem pode ver seus dados</h2>
+        <ul>
+            <li><strong>Você:</strong> seus empréstimos, reservas, avaliações e histórico.</li>
+            <li><strong>A equipe da biblioteca</strong> (bibliotecários e administradores da escola): o necessário para atender os alunos e cuidar do acervo.</li>
+            <li><strong>Outros alunos:</strong> veem apenas suas avaliações de livros, com o seu primeiro nome. A fila de reservas não mostra quem reservou.</li>
+        </ul>
+        <p>Para funcionar, o Libro usa três serviços: o Supabase, que guarda o banco de dados; o Resend, que envia os e-mails; e o GitHub Pages, que hospeda o site. Eles só processam os dados para o sistema funcionar. Seus dados não são vendidos nem repassados para propaganda.</p>
+
+        <h2>Por quanto tempo os dados ficam guardados</h2>
+        <p>Enquanto a sua conta existir. O histórico de empréstimos é mantido para o controle do acervo da biblioteca. Se você pedir a exclusão da conta, seus dados pessoais são apagados, exceto o que a biblioteca precisar guardar para controlar livros ainda não devolvidos.</p>
+
+        <h2>Como seus dados são protegidos</h2>
+        <ul>
+            <li>Senhas criptografadas, que não podem ser lidas por ninguém.</li>
+            <li>Comunicação protegida por HTTPS entre o seu navegador e o sistema.</li>
+            <li>Acesso controlado por perfil: cada pessoa só vê e faz o que o seu perfil permite.</li>
+        </ul>
+
+        <h2>Seus direitos</h2>
+        <p>Pela LGPD (artigo 18), você pode a qualquer momento:</p>
+        <ul>
+            <li>confirmar se o Libro tem dados seus e saber quais são;</li>
+            <li>pedir a correção de dados errados ou desatualizados;</li>
+            <li>pedir a exclusão dos seus dados e da sua conta;</li>
+            <li>retirar o seu consentimento.</li>
+        </ul>
+        <p>Para isso, procure a biblioteca da escola. Para alunos menores de idade, os pais ou responsáveis também podem fazer esses pedidos junto à escola.</p>
+
+        <h2>Seu consentimento</h2>
+        <p>Ao marcar “Li e aceito a Política de Privacidade” no cadastro, você concorda com o uso dos seus dados como descrito nesta página. A data do seu aceite fica registrada.</p>
+
+        <p class="rodape">Libro, sistema da biblioteca do Colégio Estadual Professor Júlio Szymanski, Araucária (PR).</p>
+    </main>
+</body>
+</html>

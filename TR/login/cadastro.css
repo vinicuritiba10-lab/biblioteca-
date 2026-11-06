@@ -264,3 +264,32 @@
         font-size: 13px;
     }
 }
+
+/* LGPD: caixa de aceite da Política de Privacidade */
+.caixa-aceite {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 400 !important;
+    line-height: 1.5;
+}
+.caixa-aceite input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--cor-secundaria, #764ba2);
+    cursor: pointer;
+    /* tira o estilo das caixas de texto, que valeria para a caixinha também */
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    appearance: auto;
+    -webkit-appearance: checkbox;
+}
+.caixa-aceite a {
+    color: var(--cor-secundaria, #764ba2);
+    font-weight: 600;
+}

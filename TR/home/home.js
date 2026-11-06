@@ -13,6 +13,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     usuarioAtual = JSON.parse(usuarioLogado);
+
+    // v6: a escola da conta vem do login; quem entrou antes da atualização precisa entrar de novo
+    if (usuarioAtual.escola_id === undefined) {
+        localStorage.removeItem('usuarioLogado');
+        showToast('O Libro foi atualizado. Entre de novo, por favor.', 'info');
+        window.location.href = '../login/index.html';
+        return;
+    }
     
     // Mostra nome do usuário no menu (opcional)
     const contaBtn = document.getElementById('btn-conta');
@@ -33,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Relatório de empréstimos: visível para bibliotecário E admin
-    if (usuarioAtual.tipo === 'bibliotecario' || usuarioAtual.tipo === 'admin') {
+    if (['bibliotecario', 'admin', 'dono'].includes(usuarioAtual.tipo)) {
         const relatoriosSection = document.getElementById('relatorios-section');
         if (relatoriosSection) {
             relatoriosSection.style.display = 'block';
@@ -56,17 +64,28 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
    
     //se for bibliotecario ou admin, mostra menu de administracao
-    if (usuarioAtual.tipo === 'admin' || usuarioAtual.tipo === 'bibliotecario') {
+    if (['bibliotecario', 'admin', 'dono'].includes(usuarioAtual.tipo)) {
         const adminMenu = document.getElementById('admin-menu');
         if (adminMenu) {
             adminMenu.style.display = 'block';
         }
 
-        //se for admin, mostra opcoes extras
-        if (usuarioAtual.tipo === 'admin') {
+        // em qual escola a equipe está trabalhando (o dono pode trocar em "Escolas")
+        const escolaAtual = document.getElementById('escola-atual');
+        if (escolaAtual && usuarioAtual.escola_nome) {
+            escolaAtual.textContent = `Escola: ${usuarioAtual.escola_nome}`;
+            escolaAtual.hidden = false;
+        }
+
+        //se for admin (ou dono), mostra opcoes extras
+        if (['admin', 'dono'].includes(usuarioAtual.tipo)) {
             const adminExtra = document.getElementById('admin-extra');
             if (adminExtra) {
                 adminExtra.style.display = 'block';
+            }
+            const btnEscolas = document.getElementById('btn-escolas');
+            if (btnEscolas && usuarioAtual.tipo === 'dono') {
+                btnEscolas.style.display = '';
             }
         }
 
@@ -147,6 +166,7 @@ async function buscarPorCategoria(categoria) {
         const { data: livros, error } = await db
             .from('livros')
             .select('*')
+            .eq('escola_id', usuarioAtual.escola_id)
             .eq('categoria', categoria)
             .order('id');
 
@@ -201,6 +221,7 @@ async function buscarLivros() {
         const { data: livros, error } = await db
             .from('livros')
             .select('*')
+            .eq('escola_id', usuarioAtual.escola_id)
             .or(filtros.join(','))
             .order('id');
 
@@ -555,7 +576,7 @@ async function carregarTodosLivros() {
     document.getElementById('livros-desc').textContent = 'Todos os livros da biblioteca';
 
     try {
-        const { data: livros, error } = await db.from('livros').select('*').order('id');
+        const { data: livros, error } = await db.from('livros').select('*').eq('escola_id', usuarioAtual.escola_id).order('id');
 
         if (error) throw error;
 
@@ -759,9 +780,10 @@ async function mostrarGerenciarUsuarios() {
         const nomesPerfil = {
             aluno: ['aluno', 'alunos'],
             bibliotecario: ['bibliotecário', 'bibliotecários'],
-            admin: ['admin', 'admins']
+            admin: ['admin', 'admins'],
+            dono: ['dono', 'donos']
         };
-        const contagem = ['aluno', 'bibliotecario', 'admin']
+        const contagem = ['aluno', 'bibliotecario', 'admin', 'dono']
             .map(tipo => ({ tipo, total: usuarios.filter(u => u.tipo === tipo).length }))
             .filter(c => c.total > 0)
             .map(c => `${c.total} ${nomesPerfil[c.tipo][c.total === 1 ? 0 : 1]}`)
@@ -796,19 +818,22 @@ async function mostrarGerenciarUsuarios() {
                                     </td>
                                     <td class="texto-suave">#${user.id}</td>
                                     <td>
-                                        ${user.tipo === 'admin'
-                                            ? '<span class="selo-perfil selo-perfil-admin" title="Só pode ser alterado direto no banco de dados">Admin</span>'
-                                            : usuarioAtual.tipo !== 'admin'
-                                            ? `<span class="selo-perfil">${user.tipo === 'bibliotecario' ? 'Bibliotecário' : 'Aluno'}</span>`
+                                        ${user.tipo === 'dono'
+                                            ? '<span class="selo-perfil selo-perfil-admin" title="Equipe Libro: só pode ser alterado direto no banco de dados">Dono</span>'
+                                            : !['admin', 'dono'].includes(usuarioAtual.tipo) || user.id === usuarioAtual.id
+                                              || (user.tipo === 'admin' && usuarioAtual.tipo !== 'dono')
+                                            ? `<span class="selo-perfil${user.tipo === 'admin' ? ' selo-perfil-admin' : ''}">${{ admin: 'Admin', bibliotecario: 'Bibliotecário', aluno: 'Aluno' }[user.tipo] || user.tipo}</span>`
                                             : `<label class="visualmente-oculto" for="perfil-${user.id}">Perfil de ${escaparHTML(user.nome)}</label>
                                                <select id="perfil-${user.id}" class="select-tipo" onchange="alterarTipoUsuario(${user.id}, this.value)">
                                                     <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>Aluno</option>
                                                     <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>Bibliotecário</option>
+                                                    ${usuarioAtual.tipo === 'dono' ? `<option value="admin" ${user.tipo === 'admin' ? 'selected' : ''}>Administrador</option>` : ''}
                                                </select>`}
                                     </td>
                                     <td class="texto-suave">${user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '-'}</td>
                                     <td class="celula-acoes">
-                                        ${usuarioAtual.tipo === 'admin' && user.id !== usuarioAtual.id
+                                        ${['admin', 'dono'].includes(usuarioAtual.tipo) && user.id !== usuarioAtual.id
+                                          && user.tipo !== 'dono' && (user.tipo !== 'admin' || usuarioAtual.tipo === 'dono')
                                             ? `<button type="button" onclick="deletarUsuario(${user.id})" class="btn-excluir-linha">Excluir</button>`
                                             : ''}
                                     </td>

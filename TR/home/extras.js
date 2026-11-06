@@ -29,7 +29,7 @@
 
     function ehBiblioteca() {
         const u = eu();
-        return u && (u.tipo === "bibliotecario" || u.tipo === "admin");
+        return u && ["bibliotecario", "admin", "dono"].includes(u.tipo);
     }
 
     function capaHTML(livro, indice, classeExtra = "") {
@@ -119,7 +119,7 @@
 
     async function carregarContagemCategorias() {
         try {
-            const contagem = await rpc("contagem_categorias");
+            const contagem = await rpc("contagem_categorias", { p_usuario_id: eu().id });
             const porChave = Object.fromEntries(contagem.map(c => [c.categoria, c.total]));
             document.querySelectorAll("[data-contagem]").forEach(el => {
                 const total = porChave[el.dataset.contagem] || 0;
@@ -954,7 +954,7 @@
             };
         },
         async livros() {
-            const { data: linhas, error } = await db.from("livros").select("*").order("titulo");
+            const { data: linhas, error } = await db.from("livros").select("*").eq("escola_id", eu().escola_id).order("titulo");
             if (error) throw new Error(error.message);
             return {
                 titulo: "Libro: Acervo", aba: "Acervo", linhas,
@@ -1050,6 +1050,121 @@
     // BIBLIOTECA: BALCÃO DE ATENDIMENTO
     // =====================================================================
 
+    // ---------------- código de acesso para o cadastro ----------------
+    // O aluno pede na biblioteca; o código vale para uma pessoa e expira em 5 minutos.
+    let cronometroCodigo = null;
+
+    window.mostrarCodigoAcesso = async function () {
+        const area = areaAdmin();
+        estado.painelAtual = null;
+        clearInterval(cronometroCodigo);
+        area.innerHTML = `
+            <div class="admin-panel codigo-painel">
+                <h2>🔑 Código de acesso</h2>
+                <p class="texto-suave">O aluno digita este código no cadastro do Libro. Ele vale para uma pessoa só e expira em 5 minutos.</p>
+                <div id="codigo-caixa" class="codigo-caixa"><p>Gerando o código...</p></div>
+                <div class="codigo-acoes">
+                    <button type="button" class="btn-admin" onclick="mostrarCodigoAcesso()">Gerar outro código</button>
+                    <button type="button" class="btn-voltar" onclick="fecharAdminPanel()">← Fechar</button>
+                </div>
+            </div>`;
+        try {
+            const r = await rpc("gerar_codigo_acesso", { p_solicitante_id: eu().id });
+            const caixa = document.getElementById("codigo-caixa");
+            caixa.innerHTML = `
+                <p class="codigo-valor">${escaparHTML(r.codigo)}</p>
+                <p class="codigo-escola">${escaparHTML(r.escola_nome || "")}</p>
+                <p class="codigo-tempo" id="codigo-tempo" aria-live="polite"></p>`;
+            // conta os 5 minutos a partir de agora (não depende do relógio do computador estar certo)
+            const fim = Date.now() + 5 * 60 * 1000;
+            const atualizar = () => {
+                const el = document.getElementById("codigo-tempo");
+                if (!el) { clearInterval(cronometroCodigo); return; }
+                const resta = Math.max(0, Math.round((fim - Date.now()) / 1000));
+                if (resta === 0) {
+                    el.textContent = "Código expirado. Gere outro.";
+                    caixa.classList.add("codigo-expirado");
+                    clearInterval(cronometroCodigo);
+                    return;
+                }
+                el.textContent = `Expira em ${Math.floor(resta / 60)}:${String(resta % 60).padStart(2, "0")}`;
+            };
+            atualizar();
+            cronometroCodigo = setInterval(atualizar, 1000);
+        } catch (erro) {
+            document.getElementById("codigo-caixa").innerHTML = `<p>❌ ${escaparHTML(erro.message)}</p>`;
+        }
+    };
+
+    // ---------------- escolas (só o dono, a equipe Libro) ----------------
+    window.mostrarEscolas = async function () {
+        const area = areaAdmin();
+        estado.painelAtual = null;
+        area.innerHTML = `<div class="admin-panel"><p>Carregando escolas...</p></div>`;
+        try {
+            const escolas = await rpc("listar_escolas", { p_solicitante_id: eu().id });
+            area.innerHTML = `
+                <div class="admin-panel escolas-painel">
+                    <h2>🏫 Escolas</h2>
+                    <p class="texto-suave">Você está em <strong>${escaparHTML(eu().escola_nome || "nenhuma escola")}</strong>. Ao entrar em outra escola, todo o site passa a mostrar os dados dela.</p>
+                    <div class="tabela-scroll">
+                        <table class="tabela-usuarios">
+                            <thead><tr><th>Escola</th><th>Alunos</th><th>Livros</th><th>Empréstimos ativos</th><th><span class="visualmente-oculto">Ações</span></th></tr></thead>
+                            <tbody>
+                                ${escolas.map(e => `
+                                    <tr>
+                                        <td><strong>${escaparHTML(e.nome)}</strong>${e.cidade ? `<br><span class="texto-suave">${escaparHTML(e.cidade)}</span>` : ""}</td>
+                                        <td>${e.alunos}</td>
+                                        <td>${e.livros}</td>
+                                        <td>${e.emprestimos_ativos}</td>
+                                        <td class="celula-acoes">${e.atual
+                                            ? `<span class="selo-perfil">Você está aqui</span>`
+                                            : `<button type="button" class="btn-admin" onclick="entrarNaEscola(${e.id})">Entrar</button>`}</td>
+                                    </tr>`).join("")}
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 class="escolas-subtitulo">Cadastrar nova escola</h3>
+                    <form id="form-nova-escola" class="form-nova-escola">
+                        <label>Nome da escola<input id="nova-escola-nome" required maxlength="150"></label>
+                        <label>Cidade<input id="nova-escola-cidade" maxlength="100" placeholder="Ex.: Curitiba - PR"></label>
+                        <button type="submit" class="btn-admin">Cadastrar</button>
+                    </form>
+                    <button type="button" class="btn-voltar" onclick="fecharAdminPanel()">← Fechar</button>
+                </div>`;
+            document.getElementById("form-nova-escola").addEventListener("submit", async evento => {
+                evento.preventDefault();
+                try {
+                    const r = await rpc("criar_escola", {
+                        p_solicitante_id: eu().id,
+                        p_nome: document.getElementById("nova-escola-nome").value,
+                        p_cidade: document.getElementById("nova-escola-cidade").value
+                    });
+                    showToast(r.message, "success");
+                    mostrarEscolas();
+                } catch (erro) {
+                    showToast(erro.message, "error");
+                }
+            });
+        } catch (erro) {
+            area.innerHTML = `<div class="admin-panel"><p>❌ ${escaparHTML(erro.message)}</p></div>`;
+        }
+    };
+
+    window.entrarNaEscola = async function (escolaId) {
+        try {
+            const r = await rpc("entrar_na_escola", { p_solicitante_id: eu().id, p_escola_id: escolaId });
+            const u = JSON.parse(localStorage.getItem("usuarioLogado"));
+            u.escola_id = r.escola_id;
+            u.escola_nome = r.escola_nome;
+            localStorage.setItem("usuarioLogado", JSON.stringify(u));
+            showToast(r.message, "success");
+            setTimeout(() => window.location.reload(), 700);
+        } catch (erro) {
+            showToast(erro.message, "error");
+        }
+    };
+
     window.mostrarBalcao = async function (manterPosicao) {
         const area = manterPosicao === true ? document.getElementById("conteudo-area") : areaAdmin();
         estado.painelAtual = mostrarBalcao;
@@ -1058,7 +1173,7 @@
         try {
             const [usuarios, consultaLivros, emprestimos] = await Promise.all([
                 rpc("listar_usuarios", { p_solicitante_id: eu().id }),
-                db.from("livros").select("*").order("titulo"),
+                db.from("livros").select("*").eq("escola_id", eu().escola_id).order("titulo"),
                 rpc("listar_meus_emprestimos_admin", { p_solicitante_id: eu().id })
             ]);
             if (consultaLivros.error) throw new Error(consultaLivros.error.message);

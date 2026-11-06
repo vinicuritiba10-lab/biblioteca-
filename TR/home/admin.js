@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     usuarioAtual = JSON.parse(usuarioLogado);
 
-    if (usuarioAtual.tipo !== 'admin' && usuarioAtual.tipo !== 'bibliotecario') {
+    if (!['bibliotecario', 'admin', 'dono'].includes(usuarioAtual.tipo) || usuarioAtual.escola_id === undefined) {
         showToast('Acesso negado. Área restrita para administradores.', 'error');
         window.location.href = '../home/home.html';
         return;
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     const adminName = document.querySelector('.logo-text');
     if (adminName) {
-        const papel = usuarioAtual.tipo === 'admin' ? 'Admin' : 'Bibliotecário';
+        const papel = { dono: 'Dono', admin: 'Admin' }[usuarioAtual.tipo] || 'Bibliotecário';
         adminName.innerHTML = `📚 Libro | ${papel} (${usuarioAtual.nome})`;
     }
 
@@ -90,11 +90,11 @@ async function carregarListaUsuarios() {
                     <td>${user.nome}</td>
                     <td>${user.email}</td>
                     <td>
-                        ${usuarioAtual.tipo === 'admin' && user.tipo !== 'admin' ? `
+                        ${['admin', 'dono'].includes(usuarioAtual.tipo) && !['admin', 'dono'].includes(user.tipo) ? `
                         <select class="select-tipo" data-id="${user.id}" onchange="window.alterarTipoUsuario(${user.id}, this.value)">
                             <option value="aluno" ${user.tipo === 'aluno' ? 'selected' : ''}>📖 Aluno</option>
                             <option value="bibliotecario" ${user.tipo === 'bibliotecario' ? 'selected' : ''}>📚 Bibliotecário</option>
-                        </select>` : (user.tipo === 'admin' ? '⚙️ Admin' : user.tipo === 'bibliotecario' ? '📚 Bibliotecário' : '📖 Aluno')}
+                        </select>` : (user.tipo === 'dono' ? '👑 Dono' : user.tipo === 'admin' ? '⚙️ Admin' : user.tipo === 'bibliotecario' ? '📚 Bibliotecário' : '📖 Aluno')}
                     </td>
                     <td>
                         <button class="btn-deletar" onclick="window.deletarUsuario(${user.id})" ${user.id === usuarioAtual.id ? 'disabled' : ''}>
@@ -183,7 +183,7 @@ async function carregarListaLivros() {
     indicarCarregando(container, '<div class="loading">🔄 Carregando livros...</div>');
 
     try {
-        const { data: livros, error } = await db.from('livros').select('*').order('titulo');
+        const { data: livros, error } = await db.from('livros').select('*').eq('escola_id', usuarioAtual.escola_id).order('titulo');
         if (error) throw error;
 
         acervoAdmin = livros;
@@ -273,7 +273,7 @@ function desenharListaLivros() {
                 </div>
                 <div class="livro-acoes-admin">
                     <button class="btn-editar" onclick="window.editarLivro(${livro.id})">✏️ Editar</button>
-                    ${usuarioAtual.tipo === 'admin' ? `<button class="btn-excluir" onclick="window.excluirLivro(${livro.id})">🗑️ Excluir</button>` : ''}
+                    ${['admin', 'dono'].includes(usuarioAtual.tipo) ? `<button class="btn-excluir" onclick="window.excluirLivro(${livro.id})">🗑️ Excluir</button>` : ''}
                 </div>
             </div>
         `;
@@ -371,7 +371,7 @@ window.excluirLivro = async function(livroId) {
 
 window.editarLivro = async function(livroId) {
     try {
-        const { data: livro, error } = await db.from('livros').select('*').eq('id', livroId).single();
+        const { data: livro, error } = await db.from('livros').select('*').eq('id', livroId).eq('escola_id', usuarioAtual.escola_id).single();
 
         if (error) throw error;
 

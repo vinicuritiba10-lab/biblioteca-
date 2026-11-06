@@ -1095,3 +1095,45 @@ button.cat-card {
 }
 .abas::-webkit-scrollbar { display: none; }
 .abas button { margin-bottom: 0; }
+
+/* ===== v6: código de acesso, escola atual e painel de escolas ===== */
+.admin-escola-atual { margin: -4px 0 14px; color: var(--cor-texto-suave); font-weight: 600; }
+.codigo-caixa {
+    text-align: center;
+    padding: 28px 16px;
+    margin: 18px 0;
+    border: 2px dashed var(--cor-secundaria);
+    border-radius: var(--raio-md);
+}
+.codigo-valor {
+    font-size: clamp(2.4rem, 9vw, 3.8rem);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    font-variant-numeric: tabular-nums;
+    color: var(--cor-texto);
+    line-height: 1.2;
+}
+.codigo-escola { color: var(--cor-texto-suave); margin-top: 4px; }
+.codigo-tempo { font-weight: 700; color: var(--cor-secundaria); margin-top: 8px; }
+.codigo-expirado .codigo-valor { opacity: 0.35; text-decoration: line-through; }
+.codigo-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.escolas-subtitulo { margin: 24px 0 10px; font-size: 1rem; }
+.form-nova-escola {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 18px;
+}
+.form-nova-escola label { display: grid; gap: 4px; font-size: 0.85rem; font-weight: 600; }
+.form-nova-escola input {
+    padding: 10px 12px;
+    border: 1.5px solid var(--cor-borda);
+    border-radius: 10px;
+    font: inherit;
+    background: var(--cor-fundo-card);
+    color: var(--cor-texto);
+}
+@media (max-width: 640px) {
+    .form-nova-escola { grid-template-columns: 1fr; }
+}

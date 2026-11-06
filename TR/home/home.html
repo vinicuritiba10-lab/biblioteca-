@@ -150,12 +150,16 @@
         <!-- Menu Admin (visível apenas para bibliotecário e admin) -->
         <div id="admin-menu" class="admin-menu" style="display: none;">
             <h3>⚙️ Painel de Administração</h3>
+            <p id="escola-atual" class="admin-escola-atual" hidden></p>
             <div class="admin-buttons">
                 <button onclick="mostrarPainelCompleto()" class="btn-admin">
                     <span class="btn-admin-icon">📈</span> Painel completo
                 </button>
                 <button onclick="mostrarBalcao()" class="btn-admin">
                     <span class="btn-admin-icon">🛎️</span> Balcão de atendimento
+                </button>
+                <button onclick="mostrarCodigoAcesso()" class="btn-admin">
+                    <span class="btn-admin-icon">🔑</span> Código de acesso
                 </button>
                 <button onclick="window.location.href='admin-livros.html'" class="btn-admin">
                     <span class="btn-admin-icon">📚</span> Gerenciar Livros
@@ -184,6 +188,9 @@
                     </button>
                     <button onclick="mostrarBackup()" class="btn-admin-super">
                         <span class="btn-admin-icon">💾</span> Backup
+                    </button>
+                    <button id="btn-escolas" onclick="mostrarEscolas()" class="btn-admin-super" style="display: none;">
+                        <span class="btn-admin-icon">🏫</span> Escolas
                     </button>
                 </div>
             </div>

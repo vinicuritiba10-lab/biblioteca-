@@ -571,14 +571,14 @@
 
             usuarioAtual = JSON.parse(logado);
 
-            if (usuarioAtual.tipo !== 'admin' && usuarioAtual.tipo !== 'bibliotecario') {
+            if (!['bibliotecario', 'admin', 'dono'].includes(usuarioAtual.tipo)) {
                 alert('Acesso negado. Área restrita para administradores.');
                 window.location.href = 'home.html';
                 return;
             }
 
             document.getElementById('badge-tipo').textContent =
-                usuarioAtual.tipo === 'admin' ? 'Administrador' : 'Bibliotecário';
+                ({ dono: 'Dono', admin: 'Administrador' }[usuarioAtual.tipo] || 'Bibliotecário');
 
             document.getElementById('btn-sair').addEventListener('click', () => {
                 localStorage.removeItem('usuarioLogado');

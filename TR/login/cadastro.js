@@ -63,6 +63,21 @@ document.getElementById('form-cadastro').addEventListener('submit', async functi
         showToast('A senha deve ter pelo menos 4 caracteres', 'warning');
         return;
     }
+    // código de acesso gerado pela biblioteca: liga a conta à escola
+    const codigo = document.getElementById('codigo-acesso').value.trim();
+    if (codigo.replace(/[^A-Za-z0-9]/g, '').length !== 6) {
+        showToast('Digite o código de acesso de 6 caracteres que a biblioteca te passou.', 'warning');
+        document.getElementById('codigo-acesso').focus();
+        return;
+    }
+
+    // LGPD: sem o aceite da Política de Privacidade, a conta não é criada
+    const aceite = document.getElementById('aceite-privacidade');
+    if (!aceite.checked) {
+        showToast('Para criar a conta, é preciso aceitar a Política de Privacidade.', 'warning');
+        aceite.focus();
+        return;
+    }
 
     const btn = document.querySelector('button[type="submit"]');
     btn.disabled = true;
@@ -73,7 +88,8 @@ document.getElementById('form-cadastro').addEventListener('submit', async functi
             p_nome: nome,
             p_email: email,
             p_senha: senha,
-            p_tipo: 'aluno' // toda conta nova é de aluno; só o administrador promove bibliotecários
+            p_tipo: 'aluno', // toda conta nova é de aluno; só o administrador promove bibliotecários
+            p_codigo: codigo
         });
 
         if (error) {
